@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminFileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\CompanyDashboardController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DemoSessionController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\JobPostingFlowController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecruitmentOfferController;
 use App\Http\Controllers\TalentController;
+use App\Http\Controllers\TalentInboxController;
 use Illuminate\Support\Facades\Route;
 
 // Public
@@ -45,6 +47,10 @@ Route::middleware(['auth', 'verified', 'role:talenta'])->group(function () {
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profil', [ProfileController::class, 'store'])->name('profile.store');
     Route::post('/profil/status', [ProfileController::class, 'updateStatus'])->name('profile.status');
+    Route::get('/tawaran', [TalentInboxController::class, 'offers'])->name('talent.offers');
+    Route::post('/tawaran/{offer}/jawab', [TalentInboxController::class, 'respond'])->name('talent.offers.respond');
+    Route::get('/lamaran', [TalentInboxController::class, 'applications'])->name('talent.applications');
+    Route::post('/lowongan/{job}/lamar', [TalentInboxController::class, 'apply'])->middleware('throttle:20,1')->name('jobs.apply');
 });
 
 // Perusahaan
@@ -55,4 +61,8 @@ Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
     Route::get('/lowongan/pasang', [JobPostingFlowController::class, 'create'])->name('jobs.posting.create');
     Route::post('/lowongan/pasang', [JobPostingFlowController::class, 'store'])->middleware('throttle:10,1')->name('jobs.posting.store');
     Route::get('/lowongan/pasang/{job}', [JobPostingFlowController::class, 'status'])->name('jobs.posting.status');
+    Route::get('/perusahaan/tawaran', [CompanyDashboardController::class, 'offers'])->name('company.offers');
+    Route::get('/perusahaan/lowongan', [CompanyDashboardController::class, 'jobs'])->name('company.jobs');
+    Route::get('/perusahaan/lowongan/{job}/pelamar', [CompanyDashboardController::class, 'applicants'])->name('company.applicants');
+    Route::post('/perusahaan/lamaran/{application}/status', [CompanyDashboardController::class, 'updateApplication'])->name('company.applications.update');
 });

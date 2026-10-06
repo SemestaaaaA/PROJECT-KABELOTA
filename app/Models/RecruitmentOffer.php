@@ -14,6 +14,18 @@ class RecruitmentOffer extends Model
         return ['start_date' => 'date', 'responded_at' => 'datetime'];
     }
 
+    public const STATUSES = ['menunggu' => 'Menunggu jawaban', 'diterima' => 'Diterima', 'ditolak' => 'Ditolak'];
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    public function badgeClass(): string
+    {
+        return ['menunggu' => 'b-contract', 'diterima' => 'b-ok', 'ditolak' => 'b-bad'][$this->status] ?? 'b-plain';
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

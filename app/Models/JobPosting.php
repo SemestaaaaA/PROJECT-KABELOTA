@@ -20,6 +20,11 @@ class JobPosting extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function applications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', 'aktif')->whereDate('closes_at', '>=', today());

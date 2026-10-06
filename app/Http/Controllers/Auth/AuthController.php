@@ -87,7 +87,7 @@ class AuthController extends Controller
     {
         return match ($user->role) {
             'admin' => '/admin',
-            'perusahaan' => route('company.profile'),
+            'perusahaan' => $user->isVerifiedCompany() ? route('company.jobs') : route('company.profile'),
             default => $user->talent ? route('talents.show', $user->talent) : route('profile.edit'),
         };
     }

@@ -18,7 +18,7 @@ class HomeController extends Controller
                 ['value' => Company::whereNotNull('verified_at')->count(), 'label' => 'Perusahaan terverifikasi', 'note' => 'Konsultan dan kontraktor yang sudah dicek admin'],
                 ['value' => JobPosting::open()->count(), 'label' => 'Lowongan aktif', 'note' => 'Dari proyek di Sulawesi Tengah'],
             ],
-            'jobs' => JobPosting::with('company')->open()->featuredOrder()->take(3)->get(),
+            'jobs' => JobPosting::with('company')->withCount('applications')->open()->featuredOrder()->take(3)->get(),
         ]);
     }
 }

@@ -55,6 +55,11 @@ class Talent extends Model
         return $this->hasMany(Project::class)->orderByDesc('year_start');
     }
 
+    public function applications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
     public function offers(): HasMany
     {
         return $this->hasMany(RecruitmentOffer::class);

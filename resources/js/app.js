@@ -23,5 +23,8 @@ document.addEventListener('alpine:init', () => {
         },
     });
 });
+document.addEventListener('alpine:init', () => {
+    Alpine.store('apply', { job: null, show(job) { this.job = job; } });
+});
 window.addEventListener('auth', (e) => Alpine.store('auth').show(e.detail));
 Alpine.start();

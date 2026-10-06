@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Company;
+use App\Models\JobApplication;
 use App\Models\JobPosting;
 use App\Models\RecruitmentOffer;
 use App\Models\Talent;
@@ -30,7 +31,9 @@ class KabelotaStats extends StatsOverviewWidget
             Stat::make('Pendapatan lowongan bulan ini', 'Rp'.number_format($revenue, 0, ',', '.'))
                 ->description('Dari lowongan yang sudah disetujui'),
             Stat::make('Tawaran rekrut bulan ini', $offers)
-                ->description("$accepted diterima talenta"),
+                ->description($offers ? "$accepted diterima (".round($accepted / $offers * 100).'%)' : 'Belum ada tawaran'),
+            Stat::make('Lamaran bulan ini', JobApplication::where('created_at', '>=', now()->startOfMonth())->count())
+                ->description(JobApplication::where('status', 'diterima')->where('created_at', '>=', now()->startOfMonth())->count().' diterima perusahaan'),
         ];
     }
 }

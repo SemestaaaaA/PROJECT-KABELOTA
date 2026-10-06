@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\Availability;
 use App\Models\Company;
+use App\Models\JobApplication;
 use App\Models\JobPosting;
+use App\Models\RecruitmentOffer;
 use App\Models\Talent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -248,5 +250,98 @@ class KabelotaDemoTest extends TestCase
         $this->post('/demo/masuk', ['role' => 'talenta'])->assertRedirect(route('profile.edit'));
         $this->assertTrue(auth()->user()->isTalent());
         $this->assertNotNull(auth()->user()->email_verified_at);
+    }
+
+    /** Talent with a profile, for inbox / apply tests. */
+    private function talentWithProfile(): array
+    {
+        $user = $this->talentUser();
+        $talent = Talent::factory()->create(['user_id' => $user->id, 'availability' => Availability::Tersedia, 'phone' => '081299990000', 'email' => 'rahasia@contoh.id']);
+
+        return [$user, $talent];
+    }
+
+    public function test_talent_accepts_offer_and_company_sees_contact(): void
+    {
+        [$user, $talent] = $this->talentWithProfile();
+        $hrd = $this->hrd();
+        $offer = RecruitmentOffer::create([
+            'talent_id' => $talent->id, 'company_id' => $hrd->company->id, 'company_name' => $hrd->company->name,
+            'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Site Engineer Uji', 'message' => 'Pesan tawaran uji coba yang cukup panjang.',
+        ]);
+
+        $this->actingAs($hrd)->get('/perusahaan/tawaran')->assertOk()->assertSee('Site Engineer Uji')->assertDontSee('081299990000');
+
+        // Another talent cannot answer this offer.
+        $this->actingAs($this->talentUser())->post(route('talent.offers.respond', $offer), ['decision' => 'diterima'])->assertForbidden();
+
+        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Site Engineer Uji')->assertSee('Terima');
+        $this->post(route('talent.offers.respond', $offer), ['decision' => 'diterima'])->assertRedirect('/tawaran');
+        $this->assertSame('diterima', $offer->fresh()->status);
+        $this->post(route('talent.offers.respond', $offer), ['decision' => 'ditolak'])->assertStatus(422);
+
+        $this->actingAs($hrd)->get('/perusahaan/tawaran')->assertSee('081299990000')->assertSee('rahasia@contoh.id');
+    }
+
+    public function test_rejected_offer_keeps_contact_hidden(): void
+    {
+        [$user, $talent] = $this->talentWithProfile();
+        $hrd = $this->hrd();
+        $offer = RecruitmentOffer::create([
+            'talent_id' => $talent->id, 'company_id' => $hrd->company->id, 'company_name' => $hrd->company->name,
+            'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Drafter Uji', 'message' => 'Pesan tawaran uji coba yang cukup panjang.',
+        ]);
+
+        $this->actingAs($user)->post(route('talent.offers.respond', $offer), ['decision' => 'ditolak', 'note' => 'Masih kontrak']);
+        $this->actingAs($hrd)->get('/perusahaan/tawaran')->assertSee('Masih kontrak')->assertDontSee('081299990000');
+    }
+
+    public function test_talent_applies_once_and_company_manages_applicant(): void
+    {
+        [$user, $talent] = $this->talentWithProfile();
+        $hrd = $this->hrd();
+        $job = $hrd->company->jobPostings()->open()->firstOrFail();
+
+        $this->actingAs($user)->post(route('jobs.apply', $job), ['message' => 'Siap ditempatkan.'])->assertRedirect('/lamaran');
+        $this->post(route('jobs.apply', $job))->assertSessionHas('status', 'Anda sudah melamar lowongan ini sebelumnya.');
+        $this->assertSame(1, JobApplication::where('talent_id', $talent->id)->count());
+        $this->get('/lamaran')->assertOk()->assertSee($job->title);
+        $this->get('/lowongan')->assertSee('Sudah melamar');
+
+        $application = JobApplication::where('talent_id', $talent->id)->first();
+        $this->actingAs($hrd)->get(route('company.applicants', $job))->assertOk()->assertSee(e($talent->name), false)->assertDontSee('081299990000');
+        $this->post(route('company.applications.update', $application), ['status' => 'diterima'])->assertRedirect();
+        $this->get(route('company.applicants', $job))->assertSee('081299990000');
+
+        $this->actingAs($user)->get('/lamaran')->assertSee('Diterima');
+    }
+
+    public function test_other_company_cannot_see_or_change_applicants(): void
+    {
+        $hrd = $this->hrd();
+        $job = $hrd->company->jobPostings()->open()->firstOrFail();
+        $application = JobApplication::where('job_posting_id', $job->id)->firstOrFail();
+
+        $other = User::factory()->create(['role' => 'perusahaan']);
+        Company::create(['user_id' => $other->id, 'name' => 'PT Lain', 'type' => 'kontraktor', 'city' => 'Palu', 'status' => 'terverifikasi']);
+
+        $this->actingAs($other)->get(route('company.applicants', $job))->assertForbidden();
+        $this->actingAs($other)->post(route('company.applications.update', $application), ['status' => 'ditolak'])->assertForbidden();
+    }
+
+    public function test_talent_without_profile_is_sent_to_profile_before_applying(): void
+    {
+        $job = JobPosting::open()->firstOrFail();
+
+        $this->actingAs($this->talentUser())->post(route('jobs.apply', $job))->assertRedirect(route('profile.edit'));
+        $this->get('/tawaran')->assertRedirect(route('profile.edit'));
+    }
+
+    public function test_account_pages_are_role_gated(): void
+    {
+        $this->actingAs($this->hrd())->get('/tawaran')->assertRedirect('/');
+        $this->actingAs($this->talentUser())->get('/perusahaan/lowongan')->assertRedirect('/');
+        $this->actingAs($this->hrd())->get('/perusahaan/lowongan')->assertOk()->assertSee('pelamar');
+        $this->actingAs(User::where('role', 'admin')->first())->get('/admin/job-applications')->assertOk();
     }
 }

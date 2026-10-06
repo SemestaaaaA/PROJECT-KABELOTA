@@ -6,6 +6,7 @@
         <h1 style="margin-top:12px">Profil perusahaan</h1>
         <p>Profil ini tampil di setiap lowongan dan tawaran yang Anda kirim ke talenta.</p>
     </div>
+    <x-page-tabs :items="[['Lowongan Saya', 'company.jobs'], ['Tawaran Terkirim', 'company.offers'], ['Profil Perusahaan', 'company.profile']]" />
 
     @if ($c->status === 'ditolak')
         <div class="err-box" role="alert" style="margin-top:20px"><b>Verifikasi ditolak.</b> {{ $c->rejection_reason ?? 'Silakan periksa kembali dokumen Anda.' }} Perbaiki data lalu simpan untuk mengajukan ulang.</div>

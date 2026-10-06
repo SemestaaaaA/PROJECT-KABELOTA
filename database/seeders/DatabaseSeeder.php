@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\JobApplication;
+use App\Models\RecruitmentOffer;
 use App\Models\JobPosting;
 use App\Models\Talent;
 use App\Models\User;
@@ -92,7 +94,27 @@ class DatabaseSeeder extends Seeder
                 'location' => $loc,
                 'description' => 'Dibutuhkan untuk paket pekerjaan tahun anggaran 2027. Penempatan di lokasi proyek, mess dan transport lokal disediakan.',
                 'closes_at' => today()->addDays(10 + $i * 4),
-                'applicants_count' => $apps,
+            ]);
+        }
+
+        // A few applications and offers so the HRD demo dashboards are not empty.
+        $alumni = Talent::where('type', 'alumni')->where('availability', 'tersedia')->inRandomOrder()->take(8)->get();
+        foreach (JobPosting::where('company_id', $companies->first()->id)->get() as $job) {
+            foreach ($alumni->random(min(3, $alumni->count())) as $i => $talent) {
+                JobApplication::create([
+                    'job_posting_id' => $job->id, 'talent_id' => $talent->id,
+                    'status' => ['baru', 'ditinjau', 'baru'][$i % 3],
+                    'message' => 'Saya berdomisili di '.$talent->city.' dan siap ditempatkan di lokasi proyek.',
+                ]);
+            }
+        }
+        foreach ($alumni->take(2) as $i => $talent) {
+            RecruitmentOffer::create([
+                'talent_id' => $talent->id, 'company_id' => $companies->first()->id, 'company_name' => $companies->first()->name,
+                'contact_name' => 'Rina Lamba', 'contact_email' => 'hrd@demo.kabelota.test',
+                'position' => $i ? 'Quantity Surveyor Proyek Gedung' : 'Site Engineer Jalan',
+                'duration' => '8 bulan', 'message' => 'Kami sedang menyiapkan dokumen penawaran dan membutuhkan personel sesuai SKK Anda.',
+                'status' => $i ? 'menunggu' : 'diterima', 'responded_at' => $i ? null : now()->subDay(),
             ]);
         }
     }

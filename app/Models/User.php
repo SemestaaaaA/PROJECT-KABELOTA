@@ -38,6 +38,22 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasOne(Company::class);
     }
 
+    /** Ids of jobs this talent already applied to (memoized per request). */
+    public function appliedJobIds(): array
+    {
+        return once(fn () => $this->isTalent()
+            ? JobApplication::whereHas('talent', fn ($q) => $q->where('user_id', $this->id))->pluck('job_posting_id')->all()
+            : []);
+    }
+
+    /** Offers still waiting for this talent's answer (nav badge). */
+    public function pendingOfferCount(): int
+    {
+        return once(fn () => $this->isTalent()
+            ? RecruitmentOffer::where('status', 'menunggu')->whereHas('talent', fn ($q) => $q->where('user_id', $this->id))->count()
+            : 0);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

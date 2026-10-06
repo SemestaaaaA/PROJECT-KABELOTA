@@ -38,15 +38,31 @@
                 <i class="ph" :class="dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
             </button>
             @auth
-                @if ($me->isTalent())
-                    <a class="in menu-me" href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}">Profil Saya</a>
-                @elseif ($me->isCompany())
-                    <a class="in menu-me" href="{{ route('jobs.posting.create') }}">Pasang Lowongan</a>
-                    <a class="in" href="{{ route('company.profile') }}">Perusahaan</a>
-                @elseif ($me->isAdmin())
-                    <a class="in menu-me" href="/admin">Panel Admin</a>
-                @endif
-                <form method="post" action="{{ route('logout') }}">@csrf<button class="btn btn-line btn-sm" type="submit">Keluar</button></form>
+                @php($pending = $me->pendingOfferCount())
+                <div class="acct" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+                    <button type="button" class="acct-btn" @click="open = !open" :aria-expanded="open" aria-haspopup="menu">
+                        <span class="acct-av" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
+                        <span class="acct-name">{{ $me->isCompany() ? ($me->company?->name ?? $me->name) : \Illuminate\Support\Str::before($me->name, ',') }}</span>
+                        @if ($pending)<span class="count" aria-label="{{ $pending }} tawaran baru">{{ $pending }}</span>@endif
+                        <i class="ph ph-caret-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="acct-menu" role="menu" x-show="open" x-cloak x-transition.opacity>
+                        @if ($me->isTalent())
+                            <a role="menuitem" href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}"><i class="ph ph-user" aria-hidden="true"></i> Profil saya</a>
+                            <a role="menuitem" href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($pending)<span class="count">{{ $pending }}</span>@endif</a>
+                            <a role="menuitem" href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya</a>
+                        @elseif ($me->isCompany())
+                            <a role="menuitem" href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
+                            <a role="menuitem" href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
+                            <a role="menuitem" href="{{ route('jobs.posting.create') }}"><i class="ph ph-plus" aria-hidden="true"></i> Pasang lowongan</a>
+                            <a role="menuitem" href="{{ route('company.profile') }}"><i class="ph ph-buildings" aria-hidden="true"></i> Profil perusahaan
+                                @unless ($me->isVerifiedCompany())<span class="count warn">!</span>@endunless</a>
+                        @elseif ($me->isAdmin())
+                            <a role="menuitem" href="/admin"><i class="ph ph-gauge" aria-hidden="true"></i> Panel admin</a>
+                        @endif
+                        <form method="post" action="{{ route('logout') }}">@csrf<button role="menuitem" type="submit"><i class="ph ph-sign-out" aria-hidden="true"></i> Keluar</button></form>
+                    </div>
+                </div>
             @else
                 <button type="button" class="in" @click="$store.auth.show({ tab: 'masuk' })">Masuk</button>
                 <button type="button" class="btn btn-accent btn-sm" @click="$store.auth.show({ tab: 'daftar' })">Daftar</button>
@@ -110,6 +126,37 @@
     <button type="button" class="to-top" x-data="{ show: false }" @scroll.window.throttle.150ms="show = window.scrollY > 700"
         x-show="show" x-cloak x-transition.opacity @click="window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })"
         aria-label="Kembali ke atas" title="Kembali ke atas"><i class="ph ph-arrow-up" aria-hidden="true"></i></button>
+
+    @if ($me?->isTalent())
+    {{-- Apply confirmation popup (opened from job cards via $store.apply) --}}
+    <div class="modal-bg" x-show="$store.apply.job" x-cloak x-transition.opacity @click.self="$store.apply.job = null" @keydown.escape.window="$store.apply.job = null">
+        <form class="sheet" method="post" :action="$store.apply.job?.url" role="dialog" aria-modal="true" aria-labelledby="apply-h" x-trap.noscroll="$store.apply.job">
+            @csrf
+            <header>
+                <span class="lbl">Lamar lowongan</span>
+                <h2 id="apply-h" x-text="$store.apply.job?.title"></h2>
+                <p class="demo-note" x-text="$store.apply.job?.company"></p>
+            </header>
+            <div class="content">
+                @if ($me->talent)
+                    <p class="privacy">Perusahaan akan melihat profil, SKK, dan CV Anda. Nomor HP dan email baru terbuka kalau lamaran Anda diterima.</p>
+                    <div class="fld"><label for="apply-msg">Pesan singkat <span class="demo-note">(opsional)</span></label>
+                        <textarea class="box" id="apply-msg" name="message" rows="3" maxlength="600" placeholder="mis. Saya berdomisili di Palu dan siap ditempatkan di lokasi proyek."></textarea></div>
+                @else
+                    <p class="privacy">Anda belum punya profil. Buat profil dulu supaya perusahaan bisa menilai lamaran Anda.</p>
+                @endif
+            </div>
+            <footer>
+                <button type="button" class="btn btn-line" @click="$store.apply.job = null">Batal</button>
+                @if ($me->talent)
+                    <button type="submit" class="btn btn-accent">Kirim Lamaran</button>
+                @else
+                    <a class="btn btn-accent" href="{{ route('profile.edit') }}">Buat Profil</a>
+                @endif
+            </footer>
+        </form>
+    </div>
+    @endif
 
     {{-- Login / daftar popup --}}
     <div class="modal-bg" x-show="$store.auth.open" x-cloak x-transition.opacity @click.self="$store.auth.open = false" @keydown.escape.window="$store.auth.open = false">

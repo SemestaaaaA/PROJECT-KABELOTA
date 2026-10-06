@@ -17,7 +17,7 @@ class JobPostingController extends Controller
             'paket' => ['nullable', Rule::in(array_keys(config('kabelota.packages')))],
         ]);
 
-        $jobs = JobPosting::with('company')
+        $jobs = JobPosting::with('company')->withCount('applications')
             ->open()
             ->when($filters['q'] ?? null, fn ($q, $t) => $q->where('title', 'like', "%{$t}%"))
             ->when($filters['lokasi'] ?? null, fn ($q, $l) => $q->where('location', $l))

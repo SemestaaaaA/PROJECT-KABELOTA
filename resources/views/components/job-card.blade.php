@@ -23,9 +23,16 @@
         </dl>
     </div>
     <div class="foot">
-        <span>{{ $job->applicants_count }} pelamar</span>
+        @php($count = $job->applications_count ?? $job->applications()->count())
+        <span>{{ $count ? $count.' pelamar' : 'Belum ada pelamar' }}</span>
         @if (auth()->user()?->isTalent())
-            <button type="button" x-data="{ sent: false }" @click="sent = true" :disabled="sent" x-text="sent ? 'Lamaran terkirim' : 'Lamar'" @class(['btn btn-sm', 'btn-accent' => $job->isHighlighted(), 'btn-line' => ! $job->isHighlighted()])>Lamar</button>
+            @if (in_array($job->id, auth()->user()->appliedJobIds()))
+                <a class="btn btn-sm btn-line" href="{{ route('talent.applications') }}"><i class="ph ph-check" aria-hidden="true"></i> Sudah melamar</a>
+            @else
+                <button type="button" @click="$store.apply.show({ id: {{ $job->id }}, title: @js($job->title), company: @js($job->company->name), url: @js(route('jobs.apply', $job)) })" @class(['btn btn-sm', 'btn-accent' => $job->isHighlighted(), 'btn-line' => ! $job->isHighlighted()])>Lamar</button>
+            @endif
+        @elseif (auth()->user()?->isCompany())
+            <span class="demo-note">Khusus talenta</span>
         @else
             <button type="button" @click="$store.auth.show({ tab: 'masuk', role: 'talenta', reason: 'Masuk sebagai talenta untuk melamar lowongan ini. Gratis.' })" @class(['btn btn-sm', 'btn-accent' => $job->isHighlighted(), 'btn-line' => ! $job->isHighlighted()])>Lamar</button>
         @endif
