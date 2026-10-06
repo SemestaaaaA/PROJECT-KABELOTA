@@ -46,6 +46,7 @@ class TalentInboxController extends Controller
         ]);
 
         $offer->update(['status' => $data['decision'], 'response_note' => $data['note'] ?? null, 'responded_at' => now()]);
+        $offer->company?->user?->notify(new \App\Notifications\OfferAnswered($offer));
 
         return redirect()->route('talent.offers')->with('status', $data['decision'] === 'diterima'
             ? "Tawaran dari {$offer->company_name} diterima. Nomor HP dan email Anda sekarang terlihat oleh perusahaan ini."
@@ -77,6 +78,10 @@ class TalentInboxController extends Controller
             ['job_posting_id' => $job->id, 'talent_id' => $talent->id],
             ['message' => $data['message'] ?? null, 'status' => 'baru'],
         );
+
+        if ($application->wasRecentlyCreated) {
+            $job->company->user?->notify(new \App\Notifications\ApplicationReceived($application));
+        }
 
         return redirect()->route('talent.applications')->with('status', $application->wasRecentlyCreated
             ? "Lamaran untuk \"{$job->title}\" terkirim. Profil dan CV Anda bisa dilihat perusahaan."

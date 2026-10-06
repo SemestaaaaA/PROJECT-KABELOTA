@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminFileController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CompanyDashboardController;
 use App\Http\Controllers\CompanyProfileController;
@@ -25,6 +26,10 @@ Route::post('/kontak', [ContactController::class, 'store'])->middleware('throttl
 Route::get('/talenta', [TalentController::class, 'index'])->name('talents.index');
 Route::get('/talenta/{talent}', [TalentController::class, 'show'])->name('talents.show');
 Route::get('/lowongan', [JobPostingController::class, 'index'])->name('jobs.index');
+Route::get('/lowongan/{job}', [JobPostingController::class, 'show'])->whereNumber('job')->name('jobs.show');
+Route::get('/mitra/{company}', [JobPostingController::class, 'company'])->name('companies.show');
+Route::view('/kebijakan-privasi', 'legal.privacy')->name('privacy');
+Route::view('/syarat-penggunaan', 'legal.terms')->name('terms');
 
 // Auth
 Route::middleware('guest')->group(function () {
@@ -32,6 +37,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/masuk', [AuthController::class, 'login'])->name('login.store');
     Route::post('/daftar', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('register');
     Route::post('/demo/masuk', [DemoSessionController::class, 'store'])->name('demo.login');
+    Route::get('/lupa-sandi', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/lupa-sandi', [PasswordResetController::class, 'email'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-sandi/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-sandi', [PasswordResetController::class, 'update'])->name('password.update');
 });
 Route::middleware('auth')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout'])->name('logout');

@@ -600,3 +600,18 @@ button.doclink { cursor: pointer; font-family: inherit; }
 .contact-reveal a { display: inline-flex; gap: 6px; align-items: center; text-decoration: none; color: var(--ok); font-weight: 600; }
 .status-form .box { padding: 7px 10px; font-size: 14px; width: auto; }
 @media (max-width: 560px) { .inbox-head { grid-template-columns: 40px 1fr; } .inbox-head .badge { grid-column: 2; justify-self: start; } }
+
+/* ---------- legal pages, job detail, public company */
+.legal { margin-top: 24px; display: grid; gap: 14px; font-size: 16.5px; max-width: 70ch; }
+.legal h2 { font: 700 20px var(--f-body); margin-top: 14px; }
+.legal ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.job-co { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.job-co a { color: inherit; }
+.mini-logo { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--line-strong); display: inline-grid; place-items: center; font: 700 11px var(--f-body); overflow: hidden; background: var(--paper); flex: none; }
+.mini-logo img { width: 100%; height: 100%; object-fit: contain; }
+.job h3 a { text-decoration: none; color: inherit; }
+.job h3 a:hover { text-decoration: underline; }
+.company-card { text-decoration: none; color: inherit; }
+.company-card:hover { border-color: var(--ink); }
+.company-hero { display: grid; grid-template-columns: 84px 1fr; gap: 20px; align-items: center; }
+.hazard { height: 10px; background: repeating-linear-gradient(-45deg, #F5B800 0 14px, #111113 14px 28px); }

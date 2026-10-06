@@ -10,8 +10,11 @@
             @endif
             <span class="lbl">Tutup {{ $job->closes_at->translatedFormat('j M Y') }}</span>
         </div>
-        <h3>{{ $job->title }}</h3>
-        <p class="co">{{ $job->company->name }} · {{ $job->location }}</p>
+        <h3><a href="{{ route('jobs.show', $job) }}">{{ $job->title }}</a></h3>
+        <p class="co job-co">
+            <span class="mini-logo" aria-hidden="true">@if ($job->company->logoUrl())<img src="{{ $job->company->logoUrl() }}" alt="">@else{{ mb_substr($job->company->name, 0, 1) }}@endif</span>
+            <a href="{{ route('companies.show', $job->company) }}">{{ $job->company->name }}</a> · {{ $job->location }}
+        </p>
         <dl>
             @if ($job->min_jenjang)
                 <dt class="lbl">Jenjang min.</dt><dd>{{ $job->min_jenjang }} {{ str_replace('Ahli ', '', config('kabelota.jenjang')[$job->min_jenjang]) }}</dd>

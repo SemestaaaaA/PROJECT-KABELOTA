@@ -94,8 +94,8 @@
             </ul></div>
             <div><h4>Bantuan</h4><ul>
                 <li><a href="{{ route('home') }}#faq-h">FAQ</a></li>
-                <li><a href="#">Kebijakan Privasi</a></li>
-                <li><a href="#">Syarat Penggunaan</a></li>
+                <li><a href="{{ route('privacy') }}">Kebijakan Privasi</a></li>
+                <li><a href="{{ route('terms') }}">Syarat Penggunaan</a></li>
             </ul></div>
             <div id="kontak"><h4>Kontak</h4><ul>
                 <li>Sekretariat HMTS, Fakultas Teknik Universitas Tadulako, Palu</li>
@@ -178,7 +178,10 @@
                 <div class="fld"><label for="a-pass">Kata sandi</label>
                     <input class="box @error('password', 'login') is-err @enderror" id="a-pass" name="password" type="password" autocomplete="current-password" required>
                     @error('password', 'login')<span class="err">{{ $message }}</span>@enderror</div>
-                <label class="consent"><input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini</label>
+                <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+                    <label class="consent"><input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini</label>
+                    <a class="textlink" href="{{ route('password.request') }}" style="font-size:13.5px">Lupa kata sandi?</a>
+                </div>
                 <button type="submit" class="btn btn-ink">Masuk</button>
                 @if (config('kabelota.demo_mode'))
                     <p class="demo-note">Untuk demo, coba tanpa akun sebagai:</p>
@@ -204,7 +207,7 @@
                     @error('password', 'register')<span class="err">{{ $message }}</span>@enderror</div>
                 <p class="demo-note" x-show="$store.auth.role !== 'perusahaan'">Status Alumni atau Mahasiswa dipilih saat membuat profil, jadi bisa diubah setelah Anda lulus.</p>
                 <p class="demo-note" x-show="$store.auth.role === 'perusahaan'">Setelah mendaftar, lengkapi profil perusahaan dan unggah NIB atau SBU. Admin mengeceknya sebelum akun bisa merekrut.</p>
-                <label class="consent"><input type="checkbox" name="consent" value="1"> Saya setuju data saya diproses sesuai Kebijakan Privasi Kabelota (UU No. 27 Tahun 2022).</label>
+                <label class="consent"><input type="checkbox" name="consent" value="1"> Saya setuju dengan <a class="textlink" href="{{ route('terms') }}" target="_blank">Syarat Penggunaan</a> dan data saya diproses sesuai <a class="textlink" href="{{ route('privacy') }}" target="_blank">Kebijakan Privasi</a> (UU No. 27 Tahun 2022).</label>
                 @error('consent', 'register')<span class="err">{{ $message }}</span>@enderror
                 <button type="submit" class="btn btn-accent">Buat Akun</button>
                 <p class="demo-note">

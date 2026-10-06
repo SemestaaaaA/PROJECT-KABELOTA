@@ -10,6 +10,25 @@ class Company extends Model
 {
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::created(function (Company $c) {
+            if (! $c->slug) {
+                $c->updateQuietly(['slug' => \Illuminate\Support\Str::slug($c->name).'-'.$c->id]);
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->logo_path) : null;
+    }
+
     protected function casts(): array
     {
         return ['verified_at' => 'datetime'];

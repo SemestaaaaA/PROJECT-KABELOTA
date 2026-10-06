@@ -10,7 +10,13 @@ use App\Models\RecruitmentOffer;
 use App\Models\Talent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Notifications\ApplicationReceived;
+use App\Notifications\ApplicationStatusChanged;
+use App\Notifications\OfferAnswered;
+use App\Notifications\OfferReceived;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -343,5 +349,77 @@ class KabelotaDemoTest extends TestCase
         $this->actingAs($this->talentUser())->get('/perusahaan/lowongan')->assertRedirect('/');
         $this->actingAs($this->hrd())->get('/perusahaan/lowongan')->assertOk()->assertSee('pelamar');
         $this->actingAs(User::where('role', 'admin')->first())->get('/admin/job-applications')->assertOk();
+    }
+
+    public function test_emails_are_queued_for_every_step(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talentWithProfile();
+        $hrd = $this->hrd();
+
+        $this->actingAs($hrd)->post(route('offers.store', $talent), [
+            'company_name' => $hrd->company->name, 'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id',
+            'position' => 'Site Engineer', 'message' => 'Kami membutuhkan site engineer untuk paket jalan.',
+        ]);
+        Notification::assertSentTo($user, OfferReceived::class);
+
+        $offer = RecruitmentOffer::where('talent_id', $talent->id)->firstOrFail();
+        $this->actingAs($user)->post(route('talent.offers.respond', $offer), ['decision' => 'diterima']);
+        Notification::assertSentTo($hrd, OfferAnswered::class);
+
+        $job = $hrd->company->jobPostings()->open()->firstOrFail();
+        $this->actingAs($user)->post(route('jobs.apply', $job));
+        Notification::assertSentTo($hrd, ApplicationReceived::class);
+
+        $application = JobApplication::where('talent_id', $talent->id)->firstOrFail();
+        $this->actingAs($hrd)->post(route('company.applications.update', $application), ['status' => 'ditinjau']);
+        Notification::assertSentTo($user, ApplicationStatusChanged::class);
+    }
+
+    public function test_offer_email_renders_in_indonesian(): void
+    {
+        [$user, $talent] = $this->talentWithProfile();
+        $offer = RecruitmentOffer::create([
+            'talent_id' => $talent->id, 'company_id' => $this->hrd()->company->id, 'company_name' => 'CV Lembah Palu Konsultan',
+            'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Site Engineer Jalan', 'message' => 'Pesan tawaran uji coba.',
+        ]);
+
+        $html = (string) (new OfferReceived($offer))->toMail($user)->render();
+        $this->assertStringContainsString('Tawaran', $html);
+        $this->assertStringContainsString('Site Engineer Jalan', $html);
+        $this->assertStringContainsString(route('talent.offers'), $html);
+    }
+
+    public function test_forgot_password_flow(): void
+    {
+        Notification::fake();
+        $user = $this->talentUser(['email' => 'lupa@contoh.id']);
+
+        $this->get('/lupa-sandi')->assertOk();
+        $this->post('/lupa-sandi', ['email' => 'tidakada@contoh.id'])->assertSessionHas('status');
+        $this->post('/lupa-sandi', ['email' => 'lupa@contoh.id'])->assertSessionHas('status');
+
+        $token = null;
+        Notification::assertSentTo($user, ResetPassword::class, function ($n) use (&$token) { $token = $n->token; return true; });
+
+        $this->get('/reset-sandi/'.$token.'?email=lupa@contoh.id')->assertOk();
+        $this->post('/reset-sandi', ['token' => $token, 'email' => 'lupa@contoh.id', 'password' => 'baru12345', 'password_confirmation' => 'baru12345'])
+            ->assertRedirect('/');
+        $this->post('/masuk', ['email' => 'lupa@contoh.id', 'password' => 'baru12345']);
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_job_detail_company_page_and_legal_pages(): void
+    {
+        $job = JobPosting::open()->with('company')->firstOrFail();
+
+        $this->get(route('jobs.show', $job))->assertOk()->assertSee(e($job->title), false)->assertSee($job->company->name);
+        $this->get(route('companies.show', $job->company))->assertOk()->assertSee('Terverifikasi Kabelota')->assertSee(e($job->title), false);
+
+        $pending = JobPosting::create($job->only(['company_id', 'package', 'location', 'duration_months', 'description', 'closes_at']) + ['title' => 'Belum tayang', 'status' => 'menunggu_verifikasi']);
+        $this->get(route('jobs.show', $pending))->assertNotFound();
+
+        $this->get('/kebijakan-privasi')->assertOk()->assertSee('UU PDP');
+        $this->get('/syarat-penggunaan')->assertOk()->assertSee('Hukum yang berlaku');
     }
 }

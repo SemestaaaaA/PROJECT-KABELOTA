@@ -86,6 +86,7 @@ class JobPostingResource extends Resource
                     ->visible(fn (JobPosting $r) => $r->status === 'menunggu_verifikasi')
                     ->action(function (JobPosting $r) {
                         $r->update(['status' => 'aktif', 'approved_at' => now(), 'closes_at' => today()->addDays(config("kabelota.packages.{$r->package}.days"))]);
+                        $r->company?->user?->notify(new \App\Notifications\JobPostingApproved($r));
                         Notification::make()->title('Lowongan tayang')->success()->send();
                     }),
                 Action::make('tolak')->label('Tolak')->icon(Heroicon::OutlinedXCircle)->color('danger')

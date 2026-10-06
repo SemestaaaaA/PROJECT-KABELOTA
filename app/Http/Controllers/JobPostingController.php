@@ -28,4 +28,24 @@ class JobPostingController extends Controller
 
         return view('jobs.index', compact('jobs', 'filters'));
     }
+
+    public function show(\App\Models\JobPosting $job): View
+    {
+        abort_unless($job->status === 'aktif', 404);
+
+        return view('jobs.show', [
+            'job' => $job->load('company')->loadCount('applications'),
+            'closed' => $job->closes_at->lt(today()),
+        ]);
+    }
+
+    public function company(\App\Models\Company $company): View
+    {
+        abort_unless($company->isVerified(), 404);
+
+        return view('company.public', [
+            'company' => $company,
+            'jobs' => $company->jobPostings()->with('company')->withCount('applications')->open()->featuredOrder()->get(),
+        ]);
+    }
 }

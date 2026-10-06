@@ -46,7 +46,11 @@ class CompanyDashboardController extends Controller
         abort_unless($application->jobPosting->company_id === $request->user()->company->id, 403);
 
         $data = $request->validate(['status' => ['required', Rule::in(array_keys(JobApplication::STATUSES))]]);
+        $changed = $application->status !== $data['status'];
         $application->update(['status' => $data['status'], 'status_changed_at' => now()]);
+        if ($changed && $data['status'] !== 'baru') {
+            $application->talent->user?->notify(new \App\Notifications\ApplicationStatusChanged($application));
+        }
 
         return back()->with('status', 'Status lamaran '.\Illuminate\Support\Str::before($application->talent->name, ',').' diubah ke '.$application->statusLabel().'.');
     }

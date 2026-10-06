@@ -92,6 +92,7 @@ class CompanyResource extends Resource
                     ->visible(fn (Company $r) => $r->status !== 'terverifikasi')
                     ->action(function (Company $r) {
                         $r->update(['status' => 'terverifikasi', 'verified_at' => now(), 'rejection_reason' => null]);
+                        $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} terverifikasi")->success()->send();
                     }),
                 Action::make('tolak')->label('Tolak')->icon(Heroicon::OutlinedXCircle)->color('danger')
@@ -99,6 +100,7 @@ class CompanyResource extends Resource
                     ->schema([Textarea::make('reason')->label('Alasan (dikirim ke perusahaan)')->required()->default('NIB tidak terbaca atau tidak sesuai nama perusahaan.')])
                     ->action(function (Company $r, array $data) {
                         $r->update(['status' => 'ditolak', 'rejection_reason' => $data['reason']]);
+                        $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} ditolak")->warning()->send();
                     }),
                 EditAction::make(),

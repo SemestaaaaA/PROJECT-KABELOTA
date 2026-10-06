@@ -1,12 +1,12 @@
-# Kabelota · DEMO#1
+# Kabelota · DEMO#3
 
 Platform tenaga ahli Teknik Sipil Sulawesi Tengah. *Kabelota* dalam bahasa Kaili berarti **kebaikan untuk bersama**.
 
 Diselenggarakan oleh **Himpunan Mahasiswa Teknik Sipil Universitas Tadulako**. Powered by **RINOYA UNTAD**.
 
-> **DEMO#1** adalah demo pertama untuk klien. Semua nama talenta, perusahaan, dan proyek adalah data contoh dari seeder. Login masih berupa login demo (lihat bagian Mode demo).
+> **DEMO#3**: alur Fase 1 sudah tersambung dari ujung ke ujung. Semua nama talenta, perusahaan, dan proyek adalah data contoh dari seeder. Login masih berupa login demo (lihat bagian Mode demo).
 
-## Isi DEMO#1
+## Isi demo
 
 | Halaman | Rute | Isi |
 |---|---|---|
@@ -16,7 +16,14 @@ Diselenggarakan oleh **Himpunan Mahasiswa Teknik Sipil Universitas Tadulako**. P
 | Ajukan Rekrut | `POST /talenta/{slug}/tawaran` | Khusus HRD; tawaran disimpan berstatus `menunggu` (email belum dikirim) |
 | Buat Profil | `/profil` | Formulir 4 langkah dengan pratinjau kartu langsung dan indikator kelengkapan; foto, CV, scan SKK/transkrip (privat), keahlian software; status Alumni/Mahasiswa dipilih di sini dan bisa diubah dari halaman profil |
 | Pasang Lowongan | `/lowongan/pasang` | Khusus HRD: detail, pilih paket, transfer dan unggah bukti, status menunggu verifikasi, lalu tayang (persetujuan admin masih disimulasikan) |
-| Lowongan | `/lowongan` | Filter posisi, lokasi, paket; paket Tenaga Ahli tampil paling atas |
+| Lowongan | `/lowongan`, `/lowongan/{id}` | Filter posisi, lokasi, paket; halaman detail; paket Tenaga Ahli tampil paling atas |
+| Halaman perusahaan | `/mitra/{slug}` | Profil publik perusahaan terverifikasi dan lowongan aktifnya |
+| Tawaran masuk (talenta) | `/tawaran` | Terima atau Tolak; kontak terbuka hanya untuk perusahaan yang diterima |
+| Lamaran Saya (talenta) | `/lamaran` | Status tiap lamaran: Terkirim, Ditinjau, Diterima/Tidak lanjut |
+| Lowongan Saya (perusahaan) | `/perusahaan/lowongan` | Status bayar/tayang, jumlah pelamar |
+| Pelamar (perusahaan) | `/perusahaan/lowongan/{id}/pelamar` | Pratinjau CV, ubah status; kontak terbuka saat Diterima |
+| Tawaran Terkirim (perusahaan) | `/perusahaan/tawaran` | Status tawaran; kontak talenta terbuka setelah diterima |
+| Legal | `/kebijakan-privasi`, `/syarat-penggunaan` | Draf, perlu ditinjau ahli hukum |
 | Untuk Perusahaan | `/untuk-perusahaan` | Keunggulan, biaya lowongan (Rp50rb / Rp100rb / Rp200rb), cara memasang lowongan |
 | Tentang Kami | `/tentang` | Cerita nama, alasan HMTS memulai Kabelota (draf, menunggu konfirmasi HMTS), FAQ |
 | Kontak | `/kontak` | Instagram, WhatsApp dan email (placeholder), form pesan (disimpan ke database) |
@@ -78,12 +85,18 @@ Foto 5 MB (otomatis dikompres jadi WebP 600x600), dokumen PDF 3 MB. PHP bawaan m
 
 Dihitung langsung dari database (`HomeController`): talenta terdaftar, perusahaan terverifikasi, lowongan aktif. Setelah pilot, bisa diganti ke talenta yang diterima kerja, rata-rata hari sampai tawaran pertama, atau skor kepuasan dari survei. Jangan menampilkan angka yang belum diukur.
 
-## Belum ada di DEMO#1
+## Email notifikasi
 
-- Terima/Tolak tawaran di sisi talenta, dan kontak terbuka untuk perusahaan
-- Lamaran yang tersimpan (tombol Lamar masih tampilan saja) dan daftar pelamar untuk perusahaan
-- Email notifikasi tawaran dan lamaran lewat queue
-- Lupa kata sandi
+Dikirim lewat queue (`QUEUE_CONNECTION=database`) untuk: tawaran baru, tawaran diterima/ditolak, lamaran baru, status lamaran berubah, perusahaan diverifikasi/ditolak, lowongan disetujui. Juga verifikasi email dan lupa kata sandi. Di lokal (`MAIL_MAILER=log`) isi email masuk ke `storage/logs/laravel.log`.
+
+Queue butuh worker: jalankan `composer dev` (server + queue + Vite sekaligus), atau `php artisan queue:work` di terminal terpisah. Di produksi, worker dijalankan dengan Supervisor dan `MAIL_MAILER` diisi SMTP (mis. Brevo/Resend).
+
+## Belum ada
+
+- Pembayaran otomatis (QRIS/VA), notifikasi WhatsApp, Export CV format tender (Fase 2)
+- Hapus akun mandiri (sekarang lewat halaman Kontak)
+- Verifikasi SKK oleh admin
+
 
 ## Struktur
 
