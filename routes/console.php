@@ -40,3 +40,13 @@ Artisan::command('kabelota:reset-demo {--force : Lewati konfirmasi}', function (
     $this->call('migrate:fresh', ['--seed' => true, '--force' => true]);
     $this->info('Data demo sudah bersih.');
 })->purpose('Kosongkan data dan unggahan, lalu isi ulang data contoh');
+
+Artisan::command('kabelota:seed-if-empty', function () {
+    if (\App\Models\User::exists()) {
+        $this->info('Database sudah berisi data, seeding dilewati.');
+
+        return 0;
+    }
+
+    $this->call('db:seed', ['--force' => true]);
+})->purpose('Isi database hanya saat pertama kali deploy (masih kosong)');
