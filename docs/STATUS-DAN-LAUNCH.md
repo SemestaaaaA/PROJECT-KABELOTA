@@ -1,6 +1,6 @@
 # Kabelota: status demo dan rencana launching
 
-Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md). Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
+Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [CATATAN-MANUAL.md](CATATAN-MANUAL.md). Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
 
 ## Status fitur di demo
 
@@ -24,7 +24,8 @@ Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [LAUNCH-CHECKLIST
 | Sistem | Analitik Umami (aktif kalau diisi), index database, cache statistik beranda, tes anti N+1 | ✅ Selesai |
 | Sistem | UU PDP: catatan waktu persetujuan, Unduh data saya (JSON), hapus akun mandiri | ✅ Selesai |
 | Sistem | `php artisan kabelota:preflight` mengecek setelan sebelum launch | ✅ Selesai |
-| Sistem | 54 tes otomatis | ✅ Lolos |
+| Admin | Dashboard: antrean tindakan, 6 KPI 30 hari dengan tren, pendaftaran mingguan, pendapatan per paket, konsentrasi, jenjang SKK, alur rekrutmen, domisili, perusahaan teraktif, lowongan segera berakhir, kualitas data, panel Umami | ✅ Selesai |
+| Sistem | 56 tes otomatis | ✅ Lolos |
 | Legal | Kebijakan Privasi, Syarat Penggunaan | ⚠️ Draf, isian [kurung siku] menunggu klien + ahli hukum |
 | Konten | Foto hero dan section | ⚠️ Masih stok Unsplash, perlu foto asli |
 | Konten | Narasi HMTS di Tentang Kami, istilah status keanggotaan | ⚠️ Perlu konfirmasi HMTS |

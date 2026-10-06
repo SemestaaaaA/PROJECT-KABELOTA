@@ -30,7 +30,7 @@ class SecurityHeaders
                 "img-src 'self' data: blob:",
                 "font-src 'self' data:",
                 "connect-src 'self'".($analytics ? ' '.$analytics : ''),
-                "frame-src 'self'",
+                "frame-src 'self'".($analytics ? ' '.$analytics : ''),
                 "frame-ancestors 'self'",
                 "form-action 'self'",
                 "base-uri 'self'",

@@ -24,6 +24,8 @@ return [
     'analytics' => [
         'host' => env('UMAMI_HOST'), // e.g. https://cloud.umami.is
         'website_id' => env('UMAMI_WEBSITE_ID'),
+        // Umami > Website > Share URL: shows the visitor dashboard inside /admin.
+        'share_url' => env('UMAMI_SHARE_URL'),
     ],
 
     // Receives alerts: failed jobs and failed backups.

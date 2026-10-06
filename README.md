@@ -68,7 +68,7 @@ Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pen
 
 ## Produksi
 
-- Sebelum launch jalankan `php artisan kabelota:preflight` (semua GAGAL harus hilang). Tugas manual: [docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md).
+- Sebelum launch jalankan `php artisan kabelota:preflight` (semua GAGAL harus hilang). Tugas manual: [docs/CATATAN-MANUAL.md](docs/CATATAN-MANUAL.md).
 - `KABELOTA_DEMO=false` → seeder hanya membuat akun admin (`KABELOTA_ADMIN_EMAIL`, sandi minimal 12 karakter), tombol demo mati, admin wajib 2FA (aplikasi authenticator).
 - Backup harian (database + unggahan) ke `storage/app/backups`, simpan 14 hari. `BACKUP_DISK` bisa diarahkan ke S3/R2.
 - Email: `MAIL_MAILER=brevo` + `BREVO_API_KEY` (HTTPS, aman untuk Railway), atau SMTP biasa di VPS.

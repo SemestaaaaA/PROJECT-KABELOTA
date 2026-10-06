@@ -9,6 +9,7 @@ use App\Models\JobPosting;
 use App\Models\Talent;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 /** Demo data: 5 verified companies, 50 talents, jobs, offers and applications. Never run in production. */
 class DemoSeeder extends Seeder
@@ -118,6 +119,61 @@ class DemoSeeder extends Seeder
                 'status' => $i ? 'menunggu' : 'diterima', 'responded_at' => $i ? null : now()->subDay(),
             ]);
         }
+
+        $this->spreadTimeline($companies);
+    }
+
+    /**
+     * Spread the sample data over the last 12 weeks and add paid postings from earlier months,
+     * so the admin dashboard charts show a realistic history instead of one spike today.
+     */
+    private function spreadTimeline($companies): void
+    {
+        $at = fn (int $maxDays, int $minDays = 0) => now()->subDays(fake()->numberBetween($minDays, $maxDays))->setTime(fake()->numberBetween(7, 21), fake()->numberBetween(0, 59));
+
+        // Sign-ups grow over time: more recent weeks get more talents.
+        Talent::query()->each(function (Talent $t) use ($at) {
+            $days = (int) round(84 * (1 - sqrt(fake()->randomFloat(4, 0, 1))));
+            DB::table('talents')->where('id', $t->id)->update(['created_at' => $at($days, max(0, $days - 6)), 'updated_at' => now()]);
+        });
+
+        $companies->each(function (Company $c, int $i) use ($at) {
+            $created = $at(84 - $i * 10, 70 - $i * 10);
+            DB::table('companies')->where('id', $c->id)->update(['created_at' => $created, 'verified_at' => $created->copy()->addDays(2)]);
+        });
+
+        // Open postings were approved in the last three weeks.
+        JobPosting::query()->each(fn (JobPosting $j) => DB::table('job_postings')->where('id', $j->id)
+            ->update(['created_at' => $created = $at(21, 3), 'approved_at' => $created->copy()->addDay()]));
+
+        // Paid postings from earlier months, already closed: history for the revenue chart.
+        foreach (range(1, 5) as $monthsAgo) {
+            foreach (range(1, fake()->numberBetween(1, 3)) as $n) {
+                $package = fake()->randomElement(['magang', 'reguler', 'reguler', 'tenaga_ahli']);
+                $approved = now()->subMonths($monthsAgo)->startOfMonth()->addDays(fake()->numberBetween(0, 25));
+                JobPosting::create([
+                    'company_id' => $companies->random()->id, 'title' => 'Lowongan selesai #'.$monthsAgo.$n, 'package' => $package,
+                    'duration_months' => 6, 'location' => 'Palu', 'description' => 'Lowongan contoh yang sudah berakhir, untuk riwayat pendapatan di panel admin.',
+                    'status' => 'ditutup', 'approved_at' => $approved, 'closes_at' => $approved->copy()->addDays(config("kabelota.packages.$package.days")),
+                ])->forceFill(['created_at' => $approved->copy()->subDay()])->saveQuietly();
+            }
+        }
+
+        // Offers from other companies too, so "Perusahaan teraktif" has a ranking.
+        $alumni = Talent::where('type', 'alumni')->inRandomOrder()->take(6)->get();
+        foreach ($alumni as $i => $talent) {
+            $company = $companies[1 + $i % 3];
+            RecruitmentOffer::create([
+                'talent_id' => $talent->id, 'company_id' => $company->id, 'company_name' => $company->name,
+                'contact_name' => $company->contact_name, 'contact_email' => 'hrd@contoh.kabelota.test',
+                'position' => ['Site Engineer', 'Pengawas Lapangan', 'Drafter'][$i % 3], 'duration' => '6 bulan',
+                'message' => 'Kami membutuhkan personel untuk paket pekerjaan tahun anggaran berjalan.',
+                'status' => ['diterima', 'ditolak', 'menunggu'][$i % 3],
+            ]);
+        }
+
+        RecruitmentOffer::query()->each(fn ($o) => DB::table('recruitment_offers')->where('id', $o->id)->update(['created_at' => $at(42)]));
+        JobApplication::query()->each(fn ($a) => DB::table('job_applications')->where('id', $a->id)->update(['created_at' => $at(20)]));
     }
 
     private function fillAlumni(Talent $t): void
