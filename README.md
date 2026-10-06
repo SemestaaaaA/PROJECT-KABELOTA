@@ -66,6 +66,11 @@ Kalau link tidak bisa dibuka dan log tunnel menulis `QUIC connection failed` ata
 cloudflared tunnel --protocol http2 --url http://127.0.0.1:8000
 ```
 
+Kalau log menulis `Failed to initialize DNS local resolver ... i/o timeout`, DNS dari provider internet (misalnya IndiHome) tidak menjawab pencarian alamat Cloudflare. Pilih salah satu:
+
+- `composer share:alt`: tunnel langsung ke alamat IP Cloudflare tanpa DNS.
+- Ganti DNS Mac ke `1.1.1.1` dan `8.8.8.8` (System Settings → Wi-Fi → Details → DNS), lalu jalankan `composer share` lagi.
+
 Kalau masih gagal, pindah ke hotspot HP. Link baru juga kadang butuh 15–30 detik sebelum bisa dibuka; error 530 di awal itu normal.
 
 Catatan: link berganti setiap kali dijalankan ulang; laptop harus menyala, online, dan tidak sleep. Kata sandi akun demo ada di `.env`, jangan dibagikan selain ke orang yang perlu masuk sebagai admin. Vercel tidak cocok untuk Kabelota (unggahan file, database, dan queue butuh server yang jalan terus); untuk pilot gunakan VPS.

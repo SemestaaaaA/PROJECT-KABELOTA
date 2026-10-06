@@ -78,6 +78,10 @@
         "share": [
             "Composer\\Config::disableProcessTimeout",
             "cloudflared tunnel --url http://127.0.0.1:8000"
+        ],
+        "share:alt": [
+            "Composer\\Config::disableProcessTimeout",
+            "cloudflared tunnel --protocol http2 --edge-ip-version 4 --edge 198.41.192.77:7844 --edge 198.41.200.33:7844 --url http://127.0.0.1:8000"
         ]
     },
     "extra": {
