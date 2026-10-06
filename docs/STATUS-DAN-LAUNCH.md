@@ -1,6 +1,6 @@
 # Kabelota: status demo dan rencana launching
 
-Diperbarui 6 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
+Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
 
 ## Status fitur di demo
 
@@ -19,12 +19,15 @@ Diperbarui 6 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot
 | Perusahaan | Pasang lowongan + bukti transfer, Lowongan Saya, Pelamar | ✅ Selesai |
 | Admin | Panel Filament: verifikasi perusahaan & pembayaran, talenta, lamaran, tawaran, pesan, dasbor | ✅ Selesai |
 | Sistem | Email notifikasi lewat queue (6 kejadian) | ✅ Selesai (lokal masuk log) |
-| Sistem | 26 tes otomatis | ✅ Lolos |
+| Sistem | 36 tes otomatis | ✅ Lolos |
 | Legal | Kebijakan Privasi, Syarat Penggunaan | ⚠️ Draf, isian [kurung siku] menunggu klien + ahli hukum |
 | Konten | Foto hero dan section | ⚠️ Masih stok Unsplash, perlu foto asli |
 | Konten | Narasi HMTS di Tentang Kami, istilah status keanggotaan | ⚠️ Perlu konfirmasi HMTS |
-| Akun | Hapus akun mandiri | ❌ Belum (sementara lewat Kontak) |
-| Admin | Verifikasi SKK talenta (badge Terverifikasi) | ❌ Belum |
+| Akun | Pengaturan akun: ganti sandi/email, sembunyikan profil, hapus akun mandiri | ✅ Selesai |
+| Admin | Verifikasi SKK talenta (badge + filter Terverifikasi, reset otomatis saat SKK diubah) | ✅ Selesai |
+| Sistem | Lowongan kedaluwarsa ditutup otomatis, perusahaan bisa tutup lebih awal, pengingat SKK habis 30 hari | ✅ Selesai |
+| Sistem | Halaman error bergaya Kabelota, pratinjau link WhatsApp | ✅ Selesai |
+| Sistem | Server gratis demo + QA (skrip siap di `deploy/`) | ⚠️ Menunggu VM Oracle |
 | Sistem | Server produksi, domain, email SMTP sungguhan | ❌ Belum |
 | Fase 2 | QRIS/VA otomatis, WhatsApp, Export CV tender, Mode Kebutuhan Tender, impor Excel | ❌ Belum (upsell) |
 

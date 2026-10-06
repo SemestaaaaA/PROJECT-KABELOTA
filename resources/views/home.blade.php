@@ -46,7 +46,7 @@
                 ? 'Lihat hasil tanpa daftar. Profil lengkap dan Ajukan Rekrut untuk perusahaan terverifikasi.'
                 : 'Melamar memakai profil dan CV Anda di Kabelota. Gratis.'">Lihat hasil tanpa daftar. Profil lengkap dan Ajukan Rekrut untuk perusahaan terverifikasi.</p>
         </div>
-        <div class="shot" role="img" aria-label="Pekerja berhelm kuning di perancah proyek gedung"></div>
+        <div class="shot" role="img" aria-label="{{ config('kabelota.photos.hero.alt') }}" style="background-image:url({{ config('kabelota.photos.hero.src') }})"></div>
     </div>
 </section>
 
@@ -110,7 +110,7 @@
 
     <div class="bento" x-show="who === 'co'">
         <article class="tile big chamfer">
-            <div class="ph" role="img" aria-label="Barisan pekerja proyek berhelm kuning" style="background-image:url(/images/insinyur-banyumas-web.jpg)"></div>
+            <div class="ph" role="img" aria-label="{{ config('kabelota.photos.talent.alt') }}" style="background-image:url({{ config('kabelota.photos.talent.src') }})"></div>
             <div class="tx">
                 <h3>Saring sesuai tabel kebutuhan tender</h3>
                 <p>Pilih jabatan kerja, jenjang, pengalaman minimal, dan lokasi. Yang muncul hanya orang yang memenuhi syarat dokumen penawaran Anda.</p>
@@ -129,7 +129,7 @@
 
     <div class="bento" x-show="who === 'ta'" x-cloak>
         <article class="tile big chamfer">
-            <div class="ph" role="img" aria-label="Pekerja proyek berompi oranye" style="background-image:url(/images/tim-proyek-web.jpg)"></div>
+            <div class="ph" role="img" aria-label="{{ config('kabelota.photos.company.alt') }}" style="background-image:url({{ config('kabelota.photos.company.src') }})"></div>
             <div class="tx">
                 <h3>Gratis, dan akan tetap gratis</h3>
                 <p>Isi profil sekali: SKK, riwayat proyek, CV. Perusahaan yang mencari Anda, dan merekalah yang membayar.</p>
@@ -158,7 +158,7 @@
 
 <section class="wrap" id="tentang" aria-labelledby="story-h">
     <div class="story">
-        <div class="ph chamfer" role="img" aria-label="Pekerja berompi oranye bekerja di samping tangga" style="background-image:url(/images/pekerja-tangga-web.jpg)"></div>
+        <div class="ph chamfer" role="img" aria-label="{{ config('kabelota.photos.cta.alt') }}" style="background-image:url({{ config('kabelota.photos.cta.src') }})"></div>
         <div>
             <span class="lbl" id="story-h">Tentang kami</span>
             <blockquote style="margin-top:12px">"Kabelota" dalam bahasa Kaili berarti <em>kebaikan untuk bersama.</em></blockquote>

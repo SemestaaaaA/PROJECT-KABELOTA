@@ -37,8 +37,8 @@ class JobApplicationResource extends Resource
                 TextColumn::make('talent.name')->label('Pelamar')->searchable()->description(fn (JobApplication $r) => $r->talent?->headline),
                 TextColumn::make('jobPosting.title')->label('Lowongan')->wrap()->description(fn (JobApplication $r) => $r->jobPosting?->company?->name),
                 TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn ($s) => JobApplication::STATUSES[$s] ?? $s)
-                    ->color(fn ($s) => ['baru' => 'info', 'ditinjau' => 'warning', 'diterima' => 'success', 'ditolak' => 'danger'][$s] ?? 'gray'),
+                    ->formatStateUsing(fn ($state) => JobApplication::STATUSES[$state] ?? $state)
+                    ->color(fn ($state) => ['baru' => 'info', 'ditinjau' => 'warning', 'diterima' => 'success', 'ditolak' => 'danger'][$state] ?? 'gray'),
                 TextColumn::make('created_at')->label('Melamar')->since()->sortable(),
             ])
             ->filters([SelectFilter::make('status')->options(JobApplication::STATUSES)]);

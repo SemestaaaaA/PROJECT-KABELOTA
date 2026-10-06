@@ -16,7 +16,7 @@ class RecruitmentOfferController extends Controller
             return redirect()->route('company.profile')->with('status', 'Ajukan Rekrut terbuka setelah perusahaan Anda diverifikasi admin.');
         }
 
-        abort_if($talent->availability === Availability::TidakTersedia, 422, 'Talenta sedang tidak menerima tawaran.');
+        abort_if($talent->availability === Availability::TidakTersedia || ! $talent->is_visible, 422, 'Talenta sedang tidak menerima tawaran.');
 
         $data = $request->validateWithBag('offer', [
             'company_name' => ['required', 'string', 'max:120'],

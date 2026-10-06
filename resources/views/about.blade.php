@@ -6,7 +6,7 @@
             <h1 style="margin-top:10px">Kebaikan untuk bersama.</h1>
             <p class="lead" style="margin-top:16px">"Kabelota" berasal dari bahasa Kaili. Kami memakainya sebagai janji: platform ini ada supaya lulusan Teknik Sipil daerah dan perusahaan yang membangun daerah saling menemukan.</p>
         </div>
-        <div class="ph chamfer" role="img" aria-label="Barisan pekerja proyek berhelm kuning" style="background-image:url(/images/tim-proyek-web.jpg)"></div>
+        <div class="ph chamfer" role="img" aria-label="{{ config('kabelota.photos.about_page.alt') }}" style="background-image:url({{ config('kabelota.photos.about_page.src') }})"></div>
     </div>
 </div>
 

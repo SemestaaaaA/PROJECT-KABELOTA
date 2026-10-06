@@ -17,6 +17,7 @@ class AdminFileController extends Controller
         $path = match ($type) {
             'legalitas' => Company::findOrFail($id)->legal_doc_path,
             'bukti-transfer' => JobPosting::findOrFail($id)->payment_proof_path,
+            'skk' => \App\Models\Talent::findOrFail($id)->skk_scan_path,
             default => abort(404),
         };
         abort_unless($path && Storage::disk('local')->exists($path), 404);

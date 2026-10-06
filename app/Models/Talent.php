@@ -27,7 +27,14 @@ class Talent extends Model
             'preferred_locations' => 'array',
             'skills' => 'array',
             'gpa' => 'decimal:2',
+            'is_visible' => 'boolean',
+            'skk_verified_at' => 'datetime',
         ];
+    }
+
+    public function isSkkVerified(): bool
+    {
+        return $this->skk_verified_at !== null;
     }
 
     public function getRouteKeyName(): string
@@ -118,6 +125,8 @@ class Talent extends Model
     public function scopeSearch(Builder $query, array $f): Builder
     {
         return $query
+            ->where('is_visible', true)
+            ->when($f['terverifikasi'] ?? null, fn ($q) => $q->whereNotNull('skk_verified_at'))
             ->when($f['q'] ?? null, fn ($q, $term) => $q->where(fn ($w) => $w
                 ->where('name', 'like', "%{$term}%")
                 ->orWhere('headline', 'like', "%{$term}%")

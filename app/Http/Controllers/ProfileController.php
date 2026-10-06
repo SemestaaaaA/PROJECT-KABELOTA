@@ -121,11 +121,21 @@ class ProfileController extends Controller
             }
             $talent->save();
 
+            $signature = fn () => $talent->certifications()->get()
+                ->map(fn ($c) => $c->jabatan_kerja.'|'.$c->jenjang.'|'.$c->registration_number.'|'.$c->expires_at->toDateString())
+                ->sort()->implode(';');
+            $before = $signature();
+
             $talent->certifications()->delete();
             if ($alumni) {
                 foreach ($skk as $c) {
                     $talent->certifications()->create($c + ['issued_at' => now()->subYear()->toDateString()]);
                 }
+            }
+
+            // A new scan or changed SKK data needs a fresh admin check.
+            if ($request->hasFile('skk_scan') || $signature() !== $before) {
+                $talent->update(['skk_verified_at' => null, 'skk_review_note' => null]);
             }
 
             $talent->projects()->delete();

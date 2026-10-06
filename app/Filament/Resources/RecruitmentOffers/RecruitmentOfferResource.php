@@ -37,7 +37,7 @@ class RecruitmentOfferResource extends Resource
                 TextColumn::make('talent.name')->label('Talenta')->searchable(),
                 TextColumn::make('company_name')->label('Perusahaan')->searchable(),
                 TextColumn::make('position')->label('Posisi')->wrap(),
-                TextColumn::make('status')->badge()->color(fn ($s) => ['menunggu' => 'warning', 'diterima' => 'success', 'ditolak' => 'danger'][$s] ?? 'gray'),
+                TextColumn::make('status')->badge()->color(fn ($state) => ['menunggu' => 'warning', 'diterima' => 'success', 'ditolak' => 'danger'][$state] ?? 'gray'),
                 TextColumn::make('created_at')->label('Dikirim')->since()->sortable(),
             ])
             ->filters([SelectFilter::make('status')->options(['menunggu' => 'Menunggu', 'diterima' => 'Diterima', 'ditolak' => 'Ditolak'])]);

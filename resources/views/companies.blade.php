@@ -9,7 +9,7 @@
                 <x-post-job-button class="btn btn-accent" />
             </div>
         </div>
-        <div class="ph chamfer" role="img" aria-label="Pekerja proyek berhelm kuning"></div>
+        <div class="ph chamfer" role="img" aria-label="{{ config('kabelota.photos.companies_page.alt') }}" style="background-image:url({{ config('kabelota.photos.companies_page.src') }})"></div>
     </div>
 
     <div class="co-points">

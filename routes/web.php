@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminFileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -47,6 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/email/verifikasi', [VerificationController::class, 'notice'])->name('verification.notice');
     Route::get('/email/verifikasi/{id}/{hash}', [VerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
     Route::post('/email/verifikasi/kirim-ulang', [VerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    Route::get('/akun', [AccountController::class, 'show'])->name('account');
+    Route::post('/akun/sandi', [AccountController::class, 'password'])->middleware('throttle:6,1')->name('account.password');
+    Route::post('/akun/email', [AccountController::class, 'email'])->middleware('throttle:6,1')->name('account.email');
+    Route::post('/akun/visibilitas', [AccountController::class, 'visibility'])->middleware('role:talenta')->name('account.visibility');
+    Route::delete('/akun', [AccountController::class, 'destroy'])->middleware('throttle:6,1')->name('account.destroy');
     Route::get('/talenta/{talent}/dokumen/{type}', [TalentController::class, 'document'])->name('talents.document');
     Route::get('/admin-file/{type}/{id}', AdminFileController::class)->name('admin.file');
 });
@@ -72,6 +78,7 @@ Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
     Route::get('/lowongan/pasang/{job}', [JobPostingFlowController::class, 'status'])->name('jobs.posting.status');
     Route::get('/perusahaan/tawaran', [CompanyDashboardController::class, 'offers'])->name('company.offers');
     Route::get('/perusahaan/lowongan', [CompanyDashboardController::class, 'jobs'])->name('company.jobs');
+    Route::post('/perusahaan/lowongan/{job}/tutup', [CompanyDashboardController::class, 'closeJob'])->name('company.jobs.close');
     Route::get('/perusahaan/lowongan/{job}/pelamar', [CompanyDashboardController::class, 'applicants'])->name('company.applicants');
     Route::post('/perusahaan/lamaran/{application}/status', [CompanyDashboardController::class, 'updateApplication'])->name('company.applications.update');
 });

@@ -24,6 +24,7 @@ class TalentController extends Controller
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::enum(Availability::class)],
             'view' => ['nullable', Rule::in(['grid', 'list'])],
+            'terverifikasi' => ['nullable', 'boolean'],
         ]);
 
         $talents = Talent::query()
@@ -47,8 +48,12 @@ class TalentController extends Controller
         ]);
     }
 
-    public function show(Talent $talent): View
+    public function show(Request $request, Talent $talent): View
     {
+        // Hidden profiles stay reachable for their owner and admins only.
+        $user = $request->user();
+        abort_unless($talent->is_visible || ($user && ($talent->user_id === $user->id || $user->isAdmin())), 404);
+
         $talent->load(['certifications', 'projects']);
 
         return view('talents.show', ['talent' => $talent]);

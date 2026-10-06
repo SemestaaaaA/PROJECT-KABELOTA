@@ -15,8 +15,8 @@
                     <h2>{{ $job->title }}</h2>
                     <p class="demo-note">{{ $job->packageLabel() }} · {{ $job->location }} · {{ $live ? 'tayang sampai '.$job->closes_at->translatedFormat('j M Y') : ($job->status === 'aktif' ? 'masa tayang habis' : '') }}</p>
                 </div>
-                <span @class(['badge', 'b-ok' => $live, 'b-contract' => $job->status === 'menunggu_verifikasi', 'b-bad' => $job->status === 'ditolak', 'b-off' => $job->status === 'aktif' && ! $live])>
-                    {{ ['menunggu_verifikasi' => 'Menunggu verifikasi', 'aktif' => $live ? 'Tayang' : 'Selesai', 'ditolak' => 'Pembayaran ditolak'][$job->status] ?? $job->status }}
+                <span @class(['badge', 'b-ok' => $live, 'b-contract' => $job->status === 'menunggu_verifikasi', 'b-bad' => $job->status === 'ditolak', 'b-off' => ($job->status === 'aktif' && ! $live) || $job->status === 'ditutup'])>
+                    {{ ['menunggu_verifikasi' => 'Menunggu verifikasi', 'aktif' => $live ? 'Tayang' : 'Selesai', 'ditolak' => 'Pembayaran ditolak', 'ditutup' => 'Ditutup'][$job->status] ?? $job->status }}
                 </span>
             </div>
             <div class="inbox-actions">
@@ -25,6 +25,12 @@
                 @else
                     <a class="btn btn-ink btn-sm" href="{{ route('company.applicants', $job) }}"><i class="ph ph-users" aria-hidden="true"></i> {{ $job->applications_count }} pelamar</a>
                     @if ($job->new_applications_count)<span class="badge b-new">{{ $job->new_applications_count }} baru</span>@endif
+                    @if ($live)
+                        <form method="post" action="{{ route('company.jobs.close', $job) }}" style="margin-left:auto" onsubmit="return confirm('Tutup lowongan ini sekarang? Lowongan tidak tampil lagi dan talenta tidak bisa melamar. Sisa masa tayang tidak dikembalikan.')">
+                            @csrf
+                            <button class="btn btn-line btn-sm" type="submit"><i class="ph ph-lock-simple" aria-hidden="true"></i> Tutup lowongan</button>
+                        </form>
+                    @endif
                 @endif
             </div>
         </article>

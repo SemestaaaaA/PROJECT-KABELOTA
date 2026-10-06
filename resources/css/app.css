@@ -338,7 +338,6 @@ footer.site .base { border-top: 1px solid #2E2E33; padding-block: 16px 24px; fon
 .b-ok { background: var(--ok-soft); color: var(--ok); }
 .b-plain { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
 .nav nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--yellow); text-underline-offset: 8px; }
-.shot { background-image: url("/images/hero-jakarta-web.jpg"); }
 .seg a { font: 600 13px var(--f-label); letter-spacing: .03em; background: var(--surface); color: var(--ink); padding: 7px 13px; }
 .seg a + a { border-left: 1px solid var(--line-strong); }
 .seg a[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
@@ -397,7 +396,7 @@ footer.site #kontak li { color: #C9C9C4; }
 /* ---------- untuk perusahaan page */
 .co-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: end; padding-top: 48px; }
 .co-hero h1 { font: 800 clamp(42px, 6vw, 76px)/.92 var(--f-display); text-transform: uppercase; }
-.co-hero .ph { aspect-ratio: 4 / 3; background: #2A2A2E url("/images/insinyur-banyumas-web.jpg") center / cover no-repeat; }
+.co-hero .ph { aspect-ratio: 4 / 3; background: #2A2A2E center / cover no-repeat; }
 .co-points { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; margin-top: 30px; border-top: 1px solid var(--line); }
 .co-points div { padding: 20px 20px 20px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
 .co-points .ph-icon { font-size: 26px; }
@@ -714,3 +713,20 @@ html.no-scroll { overflow: hidden; }
 .err-page .logo { margin-bottom: 28px; }
 .err-code { font-size: 15px; color: var(--muted); border-left: 4px solid var(--yellow); padding-left: 10px; }
 .err-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+/* account settings */
+.acct-sec { margin-top: 20px; }
+.acct-h { font: 700 20px/1.2 var(--f-body); }
+.acct-form { display: grid; gap: 14px; }
+.acct-form > .btn { justify-self: start; }
+.acct-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.acct-danger { border-color: var(--bad); }
+.btn-danger { background: var(--bad); color: #fff; }
+.btn-danger:hover { filter: brightness(1.08); }
+
+/* SKK verified */
+.verified-mark { color: #C99500; font-size: .9em; vertical-align: -1px; margin-left: 2px; }
+:root[data-theme="dark"] .verified-mark { color: var(--yellow); }
+.b-verified { background: #111113; color: #F5B800; }
+:root[data-theme="dark"] .b-verified { background: #F5B800; color: #111113; }
+.check-line { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }

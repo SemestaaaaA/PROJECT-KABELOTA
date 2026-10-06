@@ -6,6 +6,7 @@
         'jabatan' => $filters['jabatan'] ?? null,
         'pengalaman' => isset($filters['pengalaman']) ? 'Min. '.$filters['pengalaman'].' thn' : null,
         'lokasi' => $filters['lokasi'] ?? null,
+        'terverifikasi' => ! empty($filters['terverifikasi']) ? 'SKK terverifikasi' : null,
     ])->filter();
     $levels = array_map('intval', $filters['jenjang'] ?? []);
     $statuses = $filters['status'] ?? [];
@@ -77,6 +78,7 @@
                     @endforeach
                 </div>
             </fieldset>
+            <label class="check-line"><input type="checkbox" name="terverifikasi" value="1" @checked(! empty($filters['terverifikasi']))> <i class="ph ph-seal-check" aria-hidden="true"></i> Hanya SKK terverifikasi</label>
             <noscript><button class="btn btn-ink btn-sm" type="submit">Terapkan</button></noscript>
             <a class="textlink" href="{{ route('talents.index', ['view' => $view]) }}" style="font-size:14px">Hapus semua filter</a>
             </div>

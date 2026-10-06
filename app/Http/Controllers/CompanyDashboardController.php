@@ -29,6 +29,16 @@ class CompanyDashboardController extends Controller
         ]);
     }
 
+    public function closeJob(Request $request, JobPosting $job): RedirectResponse
+    {
+        abort_unless($job->company_id === $request->user()->company->id, 403);
+        abort_unless($job->status === 'aktif', 422);
+
+        $job->update(['status' => 'ditutup']);
+
+        return back()->with('status', "Lowongan \"{$job->title}\" ditutup. Pelamar yang sudah masuk tetap bisa Anda tinjau.");
+    }
+
     public function applicants(Request $request, JobPosting $job): View
     {
         abort_unless($job->company_id === $request->user()->company->id, 403);

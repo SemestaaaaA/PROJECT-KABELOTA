@@ -79,6 +79,7 @@
                         @elseif ($me->isAdmin())
                             <a role="menuitem" href="/admin"><i class="ph ph-gauge" aria-hidden="true"></i> Panel admin</a>
                         @endif
+                        <a role="menuitem" href="{{ route('account') }}"><i class="ph ph-gear-six" aria-hidden="true"></i> Pengaturan akun</a>
                         <form method="post" action="{{ route('logout') }}">@csrf<button role="menuitem" type="submit"><i class="ph ph-sign-out" aria-hidden="true"></i> Keluar</button></form>
                     </div>
                 </div>
@@ -126,6 +127,7 @@
                     @elseif ($me->isAdmin())
                         <a href="/admin"><i class="ph ph-gauge" aria-hidden="true"></i> Panel admin</a>
                     @endif
+                    <a href="{{ route('account') }}" @if (request()->routeIs('account')) aria-current="page" @endif><i class="ph ph-gear-six" aria-hidden="true"></i> Pengaturan akun</a>
                 </div>
             @endauth
             <div class="mnav-foot">

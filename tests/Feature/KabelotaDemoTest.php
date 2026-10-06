@@ -117,6 +117,9 @@ class KabelotaDemoTest extends TestCase
         $this->actingAs(User::where('role', 'admin')->first())->get('/admin')->assertOk();
         $this->actingAs(User::where('role', 'admin')->first())->get('/admin/companies')->assertOk()->assertSee('CV Lembah Palu Konsultan');
         $this->actingAs(User::where('role', 'admin')->first())->get('/admin/job-postings')->assertOk();
+        foreach (['/admin/talent', '/admin/job-applications', '/admin/recruitment-offers', '/admin/contact-messages'] as $page) {
+            $this->get($page)->assertOk();
+        }
         $this->actingAs($this->hrd())->get('/admin')->assertForbidden();
     }
 

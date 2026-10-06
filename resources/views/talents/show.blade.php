@@ -15,6 +15,13 @@
 <div class="wrap" x-data="{ open: @js($openModal), statusOpen: @js($errors->status->any()), pdf: null }" @keydown.escape.window="open = false; statusOpen = false; pdf = null">
     <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('talents.index') }}">&lsaquo; Kembali ke hasil pencarian</a></p>
 
+    @if ($isOwner && ! $talent->is_visible)
+        <div class="locked" role="status" style="margin-bottom:16px"><b>Profil Anda sedang disembunyikan.</b> Perusahaan tidak bisa menemukannya. <a class="textlink" href="{{ route('account') }}">Tampilkan lagi di Pengaturan akun</a></div>
+    @endif
+    @if ($isOwner && $talent->skk_review_note)
+        <div class="err-box" role="alert" style="margin-bottom:16px"><b>SKK belum bisa diverifikasi.</b> {{ $talent->skk_review_note }} <a class="textlink" href="{{ route('profile.edit') }}">Perbaiki profil</a></div>
+    @endif
+
     @if (session('offer_sent'))
         <div class="ok-banner" role="status">
             <b>Tawaran terkirim.</b> {{ $talent->name }} menerima tawaran untuk posisi "{{ session('offer_sent') }}". Kontaknya terbuka setelah ia memilih Terima.
@@ -30,6 +37,7 @@
                     <h1>{{ $talent->name }}</h1>
                     <p>{{ $talent->headline }} · {{ $talent->isAlumni() ? 'Alumni' : 'Mahasiswa' }} Teknik Sipil UNTAD</p>
                     <div class="chips" style="margin-top:8px">
+                        @if ($talent->isSkkVerified())<span class="badge b-verified" title="Scan SKK sudah dicocokkan admin Kabelota"><i class="ph ph-seal-check" aria-hidden="true"></i> SKK Terverifikasi</span>@endif
                         @unless ($talent->isAlumni())<span class="badge b-intern"><i class="ph ph-student" aria-hidden="true"></i> Intern for Hire</span>@endunless
                         <span @class(['badge', 'b-hmts' => $talent->isHmtsActive(), 'b-off' => ! $talent->isHmtsActive()]) title="Keanggotaan HMTS Universitas Tadulako">HMTS · {{ $talent->hmtsLabel() }}@if ($talent->hmts_position) · {{ $talent->hmts_position }}@endif</span>
                     </div>
@@ -60,6 +68,9 @@
             @if ($talent->isAlumni())
             <section class="cv-sec">
                 <h2>Sertifikat SKK Konstruksi</h2>
+                @if ($talent->certifications->isNotEmpty())
+                    <p class="demo-note" style="margin-bottom:8px">{{ $talent->isSkkVerified() ? 'Dicocokkan dengan scan SKK oleh admin Kabelota pada '.$talent->skk_verified_at->translatedFormat('j F Y').'.' : 'Belum diverifikasi admin. Cek nomor registrasi di sistem LPJK sebelum merekrut.' }}</p>
+                @endif
                 @forelse ($talent->certifications as $c)
                     <div class="skk">
                         <x-jenjang :level="$c->jenjang" />

@@ -133,8 +133,7 @@ Queue butuh worker: jalankan `composer dev` (server + queue + Vite sekaligus), a
 ## Belum ada
 
 - Pembayaran otomatis (QRIS/VA), notifikasi WhatsApp, Export CV format tender (Fase 2)
-- Hapus akun mandiri (sekarang lewat halaman Kontak)
-- Verifikasi SKK oleh admin
+- Rencana teknis sampai launch: Sprint 2 (siap produksi) dan Sprint 3 (SEO, analitik, CI) di docs/STATUS-DAN-LAUNCH.md
 
 
 ## Struktur

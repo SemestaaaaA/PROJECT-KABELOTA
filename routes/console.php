@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
 
 Artisan::command('kabelota:make-admin {email}', function (string $email) {
@@ -40,3 +41,26 @@ Artisan::command('kabelota:reset-demo {--force : Lewati konfirmasi}', function (
     $this->call('migrate:fresh', ['--seed' => true, '--force' => true]);
     $this->info('Data demo sudah bersih.');
 })->purpose('Kosongkan data dan unggahan, lalu isi ulang data contoh');
+
+Artisan::command('kabelota:close-expired', function () {
+    $closed = \App\Models\JobPosting::where('status', 'aktif')->whereDate('closes_at', '<', today())->update(['status' => 'ditutup']);
+    $this->info("{$closed} lowongan ditutup karena masa tayang habis.");
+})->purpose('Tutup lowongan yang masa tayangnya sudah habis');
+
+Artisan::command('kabelota:remind-skk', function () {
+    $due = \App\Models\Certification::query()
+        ->whereNull('reminded_at')
+        ->whereBetween('expires_at', [today(), today()->addDays(30)])
+        ->with('talent.user')
+        ->get();
+
+    foreach ($due as $certification) {
+        $certification->talent?->user?->notify(new \App\Notifications\SkkExpiring($certification));
+        $certification->update(['reminded_at' => now()]);
+    }
+
+    $this->info("{$due->count()} pengingat SKK dikirim.");
+})->purpose('Email talenta yang SKK-nya habis dalam 30 hari');
+
+Schedule::command('kabelota:close-expired')->dailyAt('00:10');
+Schedule::command('kabelota:remind-skk')->dailyAt('08:00');

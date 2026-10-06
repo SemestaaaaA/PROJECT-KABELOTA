@@ -9,6 +9,16 @@ return [
     // Server QA (APP_ENV=staging): pita "Versi QA" + tautan Google Form untuk melapor masalah.
     'qa_form_url' => env('KABELOTA_QA_FORM_URL'),
 
+    // Foto situs. Ganti foto stok dengan foto asli: taruh file di public/images, lalu ubah 'src' dan 'alt' di sini.
+    'photos' => [
+        'hero' => ['src' => '/images/hero-jakarta-web.jpg', 'alt' => 'Pekerja berhelm kuning di perancah proyek gedung'],
+        'talent' => ['src' => '/images/insinyur-banyumas-web.jpg', 'alt' => 'Barisan pekerja proyek berhelm kuning'],
+        'company' => ['src' => '/images/tim-proyek-web.jpg', 'alt' => 'Pekerja proyek berompi oranye'],
+        'cta' => ['src' => '/images/pekerja-tangga-web.jpg', 'alt' => 'Pekerja berompi oranye bekerja di samping tangga'],
+        'companies_page' => ['src' => '/images/insinyur-banyumas-web.jpg', 'alt' => 'Barisan pekerja proyek berhelm kuning'],
+        'about_page' => ['src' => '/images/tim-proyek-web.jpg', 'alt' => 'Barisan pekerja proyek berhelm kuning'],
+    ],
+
     // Sandi akun admin dan HRD contoh untuk seeder. Wajib diisi di server (kosong hanya boleh di lokal).
     'admin_password' => env('KABELOTA_ADMIN_PASSWORD'),
     'demo_password' => env('KABELOTA_DEMO_PASSWORD'),
