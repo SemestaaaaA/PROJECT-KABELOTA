@@ -1,4 +1,4 @@
-// Page motion: first-visit intro loader, navigation progress bar, list skeletons,
+// Page motion: intro loader (refresh and outside arrivals), navigation progress bar, list skeletons,
 // image fade-in and scroll reveal. Everything is transform/opacity only and is
 // skipped entirely when the visitor asks for reduced motion.
 
@@ -6,7 +6,7 @@ const root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
 
-/* ---------- 1. Intro loader (once per browser session, decided in <head>) ---------- */
+/* ---------- 1. Intro loader (on refresh and outside arrivals, decided in <head>) ---------- */
 
 const INTRO_MS = 2200; // counter runs 0 to 100 in this time
 const INTRO_MAX_MS = 3000; // never hold the page longer than this, even on a slow network

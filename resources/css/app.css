@@ -94,11 +94,11 @@ section { padding-block: 88px 0; }
 @media (max-width: 900px) { .nav nav { display: none; } .nav { justify-content: space-between; } }
 
 /* ---------- hero */
-.hero { padding-top: 64px; text-align: center; }
+.hero { padding-top: 96px; text-align: center; }
 .hero h1 { font: 800 clamp(46px, 8.4vw, 104px)/.9 var(--f-display); text-transform: uppercase; letter-spacing: -.01em; max-width: 20ch; margin-inline: auto; }
-.hero .sub { margin: 22px auto 0; max-width: 46ch; color: var(--muted); font-size: 18px; }
+.hero .sub { margin: 30px auto 0; max-width: 46ch; color: var(--muted); font-size: 18px; }
 .hero .marks { display: inline-block; padding: 10px 26px; }
-.stage { --nw: min(700px, 62%); --nh: 150px; position: relative; margin-top: 56px; text-align: left; }
+.stage { --nw: min(700px, 62%); --nh: 150px; position: relative; margin-top: 72px; text-align: left; }
 .shot { height: 520px; background: #2A2A2E center 38% / cover no-repeat; clip-path: polygon(0 var(--nh), var(--nw) var(--nh), calc(var(--nw) + 40px) calc(var(--nh) - 40px), calc(var(--nw) + 40px) 0, 100% 0, 100% 100%, 0 100%); }
 @media (prefers-reduced-motion: no-preference) { .shot { animation: slide .7s cubic-bezier(.16,1,.3,1) both; } }
 @keyframes slide { from { transform: translateX(-14px); } to { transform: none; } }
@@ -248,8 +248,8 @@ section { padding-block: 88px 0; }
 @media (max-width: 760px) { .final { grid-template-columns: 1fr; } }
 
 /* ---------- footer */
-footer.site { margin-top: 88px; background: #111113; color: #C9C9C4; }
-footer.site .hz { height: 10px; background: repeating-linear-gradient(-45deg, #F5B800 0 14px, #111113 14px 28px); }
+footer.site { margin-top: 88px; background: #1C1C20; color: #C9C9C4; box-shadow: inset 0 1px 0 #2E2E33; }
+footer.site .hz { height: 10px; background: repeating-linear-gradient(-45deg, #F5B800 0 14px, #1C1C20 14px 28px); }
 footer.site .in { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 32px; padding-block: 44px; }
 footer.site .wm { color: #F7F7F5; }
 footer.site p { margin-top: 12px; max-width: 34ch; font-size: 15px; }
@@ -767,7 +767,7 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 .kb-intro .intro { display: block; position: fixed; inset: 0; z-index: 200; cursor: pointer; }
 .kb-intro body { overflow: hidden; }
 .intro-wipe, .intro-panel { position: absolute; inset: 0; }
-.intro-wipe { background: #F5B800; }
+.intro-wipe { background: linear-gradient(180deg, #F5B800 70%, #FF7A1A); }
 .intro-panel {
     display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center;
     color: #F7F7F5; background-color: #111113;
@@ -779,10 +779,12 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 .intro-logo { width: 180px; height: auto; }
 .intro-count { display: flex; align-items: flex-start; font: 800 clamp(104px, 24vw, 230px)/.82 var(--f-display); letter-spacing: -.02em; font-feature-settings: "tnum"; }
 .intro-num { min-width: 2.7ch; text-align: right; }
-.intro-pct { font-size: .36em; color: #F5B800; margin: .1em 0 0 .06em; }
+.intro-pct { font-size: .36em; color: #FF7A1A; margin: .1em 0 0 .06em; }
+.intro-status::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: #FF7A1A; vertical-align: 1px; animation: introDot 1s ease-in-out infinite; }
+@keyframes introDot { 50% { opacity: .3; } }
 .intro-status { font: 600 12.5px var(--f-label); letter-spacing: .12em; text-transform: uppercase; color: #C9C9C4; min-height: 1.3em; }
 .intro-track { width: min(440px, 78vw); height: 4px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; }
-.intro-bar { display: block; height: 100%; background: #F5B800; transform: scaleX(0); transform-origin: left; }
+.intro-bar { display: block; height: 100%; background: linear-gradient(90deg, #F5B800 55%, #FF7A1A); transform: scaleX(0); transform-origin: left; }
 .intro-skip { font-size: 12px; color: #8E8E89; margin-top: 6px; }
 .kb-intro .intro-panel > :not(.intro-hazard) { animation: introIn .55s cubic-bezier(.16,1,.3,1) both; }
 .kb-intro .intro-panel > .intro-count { animation-delay: .06s; }
@@ -857,4 +859,40 @@ select.box option, select.box optgroup { background-color: var(--surface); color
     .nav-progress.is-on span { animation: none; transform: scaleX(.6); }
     .kb-page-in main, .kb-hero-in .hero > *, .kb-hero-in .hero .search, .kb-hero-in .hero .shot, .kb-hero-in .stats { animation: none; }
     .tcard:hover, .job:hover { transform: none; }
+}
+
+/* ===================== Hover =====================
+   Pointer devices only, 150-250ms, transform/color only. */
+@media (hover: hover) {
+    .btn { transition: transform .15s ease-out, background-color .15s ease, border-color .15s ease, box-shadow .2s ease-out; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(17,17,19,.14); }
+    .btn:active { transform: translateY(0); box-shadow: none; }
+    .btn .ph { transition: transform .2s ease-out; }
+    .btn:hover .ph-arrow-right, .btn:hover .ph-arrow-up-right, .btn:hover .ph-paper-plane-tilt { transform: translateX(3px); }
+
+    /* Nav links: yellow underline grows from the left instead of a plain underline. */
+    .nav nav a:not([aria-current="page"]) { background: linear-gradient(var(--yellow), var(--yellow)) left bottom / 0 3px no-repeat; padding-bottom: 4px; transition: background-size .25s ease-out; }
+    .nav nav a:not([aria-current="page"]):hover { text-decoration: none; background-size: 100% 3px; }
+
+    .textlink { transition: text-decoration-color .15s, text-underline-offset .15s; }
+    .textlink:hover { text-decoration-color: var(--yellow); text-underline-offset: 6px; }
+
+    footer.site a { transition: color .15s; }
+    footer.site a:hover { color: #F5B800; text-decoration: none; }
+
+    .theme-switch, .burger, .to-top { transition: transform .2s ease-out, border-color .15s; }
+    .theme-switch:hover { transform: rotate(-18deg); border-color: var(--ink); }
+    .to-top:hover { transform: translateY(-3px); }
+
+    .tcard .av, .job .strip { transition: transform .25s ease-out; }
+    .tcard:hover .av { transform: scale(1.06); }
+    .job:hover .strip { transform: scaleY(1.6); transform-origin: top; }
+    .tcard:hover, .job:hover { border-color: var(--ink); }
+
+    .chip-picks label, .status-pick label, .seg a, .channel { transition: transform .15s ease-out, border-color .15s; }
+    .chip-picks label:hover, .status-pick label:hover, .channel:hover { transform: translateY(-2px); border-color: var(--ink); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn:hover, .to-top:hover, .theme-switch:hover, .tcard:hover .av, .job:hover .strip, .chip-picks label:hover, .status-pick label:hover, .channel:hover { transform: none; }
+    .intro-status::before { animation: none; }
 }

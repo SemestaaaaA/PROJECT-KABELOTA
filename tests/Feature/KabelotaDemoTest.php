@@ -466,10 +466,10 @@ class KabelotaDemoTest extends TestCase
 
     public function test_layout_ships_loader_progress_bar_and_skeleton_hooks(): void
     {
-        // Loader markup is always present; the head script decides (once per session) whether it shows.
+        // Loader markup is always present; the head script decides (refresh or outside arrival) whether it shows.
         $this->get('/')->assertOk()
             ->assertSee('id="intro"', false)
-            ->assertSee("sessionStorage.getItem('kb-intro')", false)
+            ->assertSee("type === 'reload'", false)
             ->assertSee('prefers-reduced-motion: reduce', false)
             ->assertSee('class="nav-progress"', false);
 

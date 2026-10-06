@@ -21,7 +21,7 @@ Semua baris **GAGAL** harus hilang sebelum link dibagikan ke publik. Baris **CEK
   ```
 
 - [ ] **GitHub Actions.** Buka repo → tab **Actions** → workflow "Tes" harus hijau untuk SQLite dan MySQL. Repo privat, jadi hanya pemilik yang bisa melihatnya. Kalau merah, kirim log-nya.
-- [ ] **Google Form QA.** Salin pertanyaan dari [qa/FORM-QA.md](qa/FORM-QA.md) ke Google Forms, tautkan ke Google Sheets, lalu isi link form ke `KABELOTA_QA_FORM_URL` di server QA. Skenario uji untuk anggota: [qa/SKENARIO-QA.md](qa/SKENARIO-QA.md).
+- [ ] **Google Form QA.** Jalankan skrip [qa/buat-form-qa.gs](qa/buat-form-qa.gs) di script.google.com (form + Sheets rekap jadi otomatis; isi pertanyaan ada di [qa/FORM-QA.md](qa/FORM-QA.md)), tambahkan pertanyaan unggah screenshot secara manual, lalu isi link form ke `KABELOTA_QA_FORM_URL` di server QA. Skenario uji untuk anggota: [qa/SKENARIO-QA.md](qa/SKENARIO-QA.md).
 - [ ] **Railway (Trial, gratis 30 hari).** Buat service `kabelota-qa` (branch `qa`) dan, menjelang presentasi, `kabelota-demo` (branch `demo`). Langkah lengkap: [../deploy/PANDUAN-RAILWAY.md](../deploy/PANDUAN-RAILWAY.md). Deploy pertama sekaligus menguji Dockerfile; kalau gagal, kirim 20 baris terakhir log-nya.
 - [ ] **Brevo untuk email QA.** Daftar di brevo.com, verifikasi Gmail sebagai pengirim, buat API key, lalu isi `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` di service QA.
 - [ ] **Jadikan 1-2 anggota admin** setelah mereka daftar di link QA. Lewat `railway ssh`:

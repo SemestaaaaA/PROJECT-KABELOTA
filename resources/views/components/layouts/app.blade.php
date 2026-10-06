@@ -30,13 +30,16 @@
     <script>
         // Apply the saved theme before paint to avoid a flash.
         try { const t = localStorage.getItem('kabelota-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-        // Motion classes are set before paint so nothing flashes. The intro loader runs once per session.
+        // Motion classes are set before paint so nothing flashes. The intro loader runs on every refresh
+        // and on arrival from outside the site; clicking between pages inside Kabelota skips it.
         (function (d) {
             d.classList.add('js');
             try {
-                if (!sessionStorage.getItem('kb-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                var nav = performance.getEntriesByType('navigation')[0];
+                var type = nav ? nav.type : 'navigate';
+                var internal = document.referrer && new URL(document.referrer).origin === location.origin;
+                if (!matchMedia('(prefers-reduced-motion: reduce)').matches && type !== 'back_forward' && (type === 'reload' || !internal)) {
                     d.classList.add('kb-intro');
-                    sessionStorage.setItem('kb-intro', '1');
                 }
             } catch (e) {}
             if (!d.classList.contains('kb-intro')) d.classList.add('kb-page-in');
@@ -46,7 +49,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
-    {{-- First-visit loader (shown only when <html> has .kb-intro, see the head script) --}}
+    {{-- Intro loader, shown only when <html> has .kb-intro (see the head script) --}}
     <div class="intro" id="intro" role="status" aria-label="Memuat Kabelota">
         <div class="intro-wipe" aria-hidden="true"></div>
         <div class="intro-panel" aria-hidden="true">

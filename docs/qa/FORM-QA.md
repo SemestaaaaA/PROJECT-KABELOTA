@@ -1,6 +1,8 @@
 # Google Form: Laporan QA Kabelota
 
-Salin pertanyaan di bawah ke Google Forms (forms.google.com → Kosong). Setelah jadi:
+**Cara tercepat (2 menit):** jalankan skrip [buat-form-qa.gs](buat-form-qa.gs) di script.google.com. Skrip itu membuat form lengkap beserta Google Sheets rekap (kolom ID, Status, PIC, Rilis QA, Catatan). Langkahnya ada di bagian atas file. Satu-satunya yang ditambahkan manual adalah pertanyaan unggah screenshot.
+
+Atau buat manual: salin pertanyaan di bawah ke Google Forms (forms.google.com → Kosong). Setelah jadi:
 
 1. **Setelan → Respons:** aktifkan "Kumpulkan alamat email" (supaya tahu siapa pelapor kalau perlu tanya balik).
 2. **Respons → Tautkan ke Spreadsheet:** buat sheet baru, lalu tambah kolom rekap (bagian paling bawah).
