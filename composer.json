@@ -82,6 +82,12 @@
         "share:alt": [
             "Composer\\Config::disableProcessTimeout",
             "cloudflared tunnel --protocol http2 --edge-ip-version 4 --edge 198.41.192.77:7844 --edge 198.41.200.33:7844 --url http://127.0.0.1:8000"
+        ],
+        "demo": [
+            "Composer\\Config::disableProcessTimeout",
+            "rm -f public/hot",
+            "npm run build",
+            "npx concurrently -c \"#fbbf24,#93c5fd\" --names server,queue --kill-others \"PHP_INI_SCAN_DIR=php php artisan serve --port=8000\" \"php artisan queue:work --tries=1\""
         ]
     },
     "extra": {

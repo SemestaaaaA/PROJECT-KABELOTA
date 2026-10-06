@@ -55,8 +55,8 @@ Tes: `php artisan test`
 
 Laptop menjalankan Kabelota, Cloudflare memberi link publik `https://….trycloudflare.com`. Gratis, tanpa akun Cloudflare. Link hidup selama kedua terminal menyala.
 
-1. Terminal tab 1: `composer dev`, tunggu sampai muncul `Server running on [http://127.0.0.1:8000]`.
-2. Terminal tab 2 (Cmd+T): `composer share`, tunggu sekitar 10 detik sampai muncul link `https://….trycloudflare.com`.
+1. Terminal tab 1: `composer demo`, tunggu sampai muncul `Server running on [http://127.0.0.1:8000]`. **Jangan pakai `composer dev` untuk berbagi link**: mode itu memuat CSS dan JavaScript dari `127.0.0.1:5173` yang hanya ada di laptopmu, jadi di perangkat lain halaman tampil tanpa desain.
+2. Terminal tab 2 (Cmd+T): `composer share` (atau `composer share:alt` kalau DNS bermasalah), tunggu sekitar 10 detik sampai muncul link `https://….trycloudflare.com`.
 3. Buka link itu di HP pakai data seluler. Kalau beranda tampil, kirim link ke klien.
 4. Selesai demo: tekan Ctrl+C di kedua tab. Link langsung mati.
 
@@ -66,7 +66,7 @@ Kalau link tidak bisa dibuka dan log tunnel menulis `QUIC connection failed` ata
 cloudflared tunnel --protocol http2 --url http://127.0.0.1:8000
 ```
 
-Kalau log menulis `Failed to initialize DNS local resolver ... i/o timeout`, DNS dari provider internet (misalnya IndiHome) tidak menjawab pencarian alamat Cloudflare. Pilih salah satu:
+Baris `ERR Failed to initialize DNS local resolver` yang muncul **setelah** `Registered tunnel connection` tidak perlu dikhawatirkan; tunnel tetap jalan. Kalau error DNS muncul **sebelum** tunnel tersambung, DNS dari provider internet (misalnya IndiHome) tidak menjawab pencarian alamat Cloudflare. Pilih salah satu:
 
 - `composer share:alt`: tunnel langsung ke alamat IP Cloudflare tanpa DNS.
 - Ganti DNS Mac ke `1.1.1.1` dan `8.8.8.8` (System Settings → Wi-Fi → Details → DNS), lalu jalankan `composer share` lagi.
