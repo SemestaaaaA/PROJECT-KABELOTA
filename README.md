@@ -14,7 +14,8 @@ Diselenggarakan oleh **Himpunan Mahasiswa Teknik Sipil Universitas Tadulako**. P
 | Cari Talenta | `/talenta` | Filter jabatan SKK, jenjang 4-9, pengalaman (1 sampai 15+ tahun), konsentrasi, lokasi (termasuk Luar Sulteng), ketersediaan; tampilan Grid/List; 20 per halaman; mahasiswa ditandai **Intern for Hire** |
 | Profil Talenta | `/talenta/{slug}` | CV digital: SKK dan masa berlaku, riwayat proyek. Nomor HP dan email tidak pernah dikirim ke browser |
 | Ajukan Rekrut | `POST /talenta/{slug}/tawaran` | Khusus HRD; tawaran disimpan berstatus `menunggu` (email belum dikirim) |
-| Buat Profil | `/profil` | Formulir 4 langkah untuk talenta; status Alumni/Mahasiswa dipilih di sini |
+| Buat Profil | `/profil` | Formulir 4 langkah dengan pratinjau kartu langsung dan indikator kelengkapan; foto, CV, scan SKK/transkrip (privat), keahlian software; status Alumni/Mahasiswa dipilih di sini dan bisa diubah dari halaman profil |
+| Pasang Lowongan | `/lowongan/pasang` | Khusus HRD: detail, pilih paket, transfer dan unggah bukti, status menunggu verifikasi, lalu tayang (persetujuan admin masih disimulasikan) |
 | Lowongan | `/lowongan` | Filter posisi, lokasi, paket; paket Tenaga Ahli tampil paling atas |
 | Untuk Perusahaan | `/untuk-perusahaan` | Keunggulan, biaya lowongan (Rp50rb / Rp100rb / Rp200rb), cara memasang lowongan |
 | Tentang Kami | `/tentang` | Cerita nama, alasan HMTS memulai Kabelota (draf, menunggu konfirmasi HMTS), FAQ |
@@ -37,21 +38,41 @@ npm run build
 php artisan serve
 ```
 
-Buka http://127.0.0.1:8000. Saat mengubah tampilan, jalankan `npm run dev` di terminal terpisah.
+Atau `composer serve` supaya batas unggah 5 MB berlaku. Buka http://127.0.0.1:8000. Saat mengubah tampilan, jalankan `npm run dev` di terminal terpisah.
 
 Dengan Laravel Herd: `herd link kabelota`, lalu buka http://kabelota.test.
 
 Tes: `php artisan test`
 
-## Mode demo
+## Akun dan login
 
-Tombol **Masuk** membuka popup dengan pilihan **coba sebagai HRD** atau **Talenta**. Pilihan ini disimpan di session (`DemoSessionController`), bukan akun sungguhan.
+Login sungguhan per peran: **talenta**, **perusahaan**, dan **admin**. Pendaftaran lewat popup Daftar, lalu verifikasi email (di lokal, link verifikasi ada di `storage/logs/laravel.log`).
 
-- **HRD demo:** bisa Ajukan Rekrut ke talenta.
-- **Talenta demo:** langsung diarahkan ke Buat Profil; profil yang dibuat muncul di pencarian dan bisa diubah lagi.
-- Tanpa masuk: Ajukan Rekrut, Lamar, dan Pasang Lowongan membuka popup Masuk/Daftar.
+| Akun lokal (dari seeder) | Email | Kata sandi |
+|---|---|---|
+| Admin (panel `/admin`) | `admin@kabelota.test` | nilai `KABELOTA_ADMIN_PASSWORD` di `.env` |
+| HRD demo (perusahaan terverifikasi) | `hrd@demo.kabelota.test` | nilai `KABELOTA_DEMO_PASSWORD` di `.env` |
 
-Untuk demo ke klien: masuk sebagai Talenta, buat profil, keluar, lalu masuk sebagai HRD dan cari profil tadi.
+**Ganti kedua kata sandi itu sebelum demo dibuka ke publik.**
+
+Perusahaan baru berstatus *Menunggu verifikasi*. Setelah melengkapi profil dan mengunggah NIB/SBU, admin memverifikasi dari panel. Baru setelah itu perusahaan bisa Ajukan Rekrut, membuka CV, dan memasang lowongan.
+
+### Mode demo (`KABELOTA_DEMO=true`)
+
+Di popup Masuk ada tombol **coba sebagai HRD** (masuk ke akun HRD demo) dan **Talenta** (membuat akun talenta baru yang kosong setiap kali). Matikan dengan `KABELOTA_DEMO=false` saat launch.
+
+## Panel admin (Filament)
+
+`/admin`, khusus akun admin.
+
+- **Perusahaan:** lihat NIB/SBU, Verifikasi atau Tolak (dengan alasan)
+- **Lowongan:** lihat bukti transfer, Setujui (lowongan tayang) atau Tolak
+- **Talenta**, **Tawaran Rekrut** (pantau), **Pesan Kontak**
+- **Dasbor:** talenta terdaftar, antrean verifikasi, pendapatan lowongan bulan ini, tawaran rekrut
+
+## Batas unggah
+
+Foto 5 MB (otomatis dikompres jadi WebP 600x600), dokumen PDF 3 MB. PHP bawaan membatasi unggahan 2 MB, jadi jalankan server lokal dengan `composer serve` (memakai `php/kabelota.ini`). Di server produksi, set `upload_max_filesize` dan `post_max_size` yang sama di `php.ini`.
 
 ## Statistik di beranda
 
@@ -59,12 +80,10 @@ Dihitung langsung dari database (`HomeController`): talenta terdaftar, perusahaa
 
 ## Belum ada di DEMO#1
 
-- Login dan akun sungguhan per peran
-- Panel admin (Filament): verifikasi perusahaan, cek bukti transfer
-- Unggah CV, transkrip, dan scan SKK (penyimpanan privat)
-- Alur Terima/Tolak tawaran di sisi talenta
-- Posting lowongan dan unggah bukti transfer
-- Email notifikasi lewat queue
+- Terima/Tolak tawaran di sisi talenta, dan kontak terbuka untuk perusahaan
+- Lamaran yang tersimpan (tombol Lamar masih tampilan saja) dan daftar pelamar untuk perusahaan
+- Email notifikasi tawaran dan lamaran lewat queue
+- Lupa kata sandi
 
 ## Struktur
 
@@ -81,4 +100,4 @@ Foto di `public/images/` sementara dari Unsplash (Iqro Rinaldi, Mufid Majnun, He
 
 ## Stack
 
-Laravel 13 · SQLite (demo) · Tailwind CSS v4 · Alpine.js · Phosphor Icons · font Barlow dan IBM Plex Mono di-host sendiri.
+Laravel 13 · Filament 5 · SQLite (demo) · Tailwind CSS v4 · Alpine.js · Phosphor Icons · font Barlow dan IBM Plex Mono di-host sendiri.

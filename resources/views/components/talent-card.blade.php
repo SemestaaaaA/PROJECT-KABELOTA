@@ -2,7 +2,7 @@
 @php($cert = $talent->primaryCertification)
 <article @class(['tcard', 'intern' => ! $talent->isAlumni()])>
     <div class="top">
-        <div class="av" aria-hidden="true">{{ $talent->initials() }}</div>
+        <div class="av" aria-hidden="true">@if ($talent->photoUrl())<img src="{{ $talent->photoUrl() }}" alt="" loading="lazy">@else{{ $talent->initials() }}@endif</div>
         <div>
             <h3><a href="{{ route('talents.show', $talent) }}" style="text-decoration:none">{{ $talent->name }}</a></h3>
             <p class="role">{{ $talent->headline }}</p>

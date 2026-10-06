@@ -1,4 +1,4 @@
-@php($demoRole = session('demo_role'))
+@php($me = auth()->user())
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -14,7 +14,7 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body x-data @if (session('auth_required')) x-init="$store.auth.show({ tab: 'masuk', reason: '{{ session('auth_required') === 'perusahaan' ? 'Masuk sebagai perusahaan terverifikasi untuk mengajukan rekrut.' : 'Masuk sebagai talenta untuk membuat profil.' }}' })" @endif>
+<body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
     <div class="demo-ribbon"><b>Mode demo.</b> Semua nama talenta, perusahaan, dan proyek adalah data contoh.</div>
 
     <div class="topbar" x-data="{ scrolled: false }" @scroll.window.throttle.100ms="scrolled = window.scrollY > 8" :class="scrolled && 'scrolled'">
@@ -37,17 +37,20 @@
                 :aria-label="dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'" :title="dark ? 'Mode terang' : 'Mode gelap'">
                 <i class="ph" :class="dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
             </button>
-            @if ($demoRole)
-                @if ($demoRole === 'talenta')
-                    <a class="in menu-me" href="{{ route('profile.edit') }}">Profil Saya</a>
-                @else
-                    <span class="who">HRD demo</span>
+            @auth
+                @if ($me->isTalent())
+                    <a class="in menu-me" href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}">Profil Saya</a>
+                @elseif ($me->isCompany())
+                    <a class="in menu-me" href="{{ route('jobs.posting.create') }}">Pasang Lowongan</a>
+                    <a class="in" href="{{ route('company.profile') }}">Perusahaan</a>
+                @elseif ($me->isAdmin())
+                    <a class="in menu-me" href="/admin">Panel Admin</a>
                 @endif
-                <form method="post" action="{{ route('demo.logout') }}">@csrf<button class="btn btn-line btn-sm" type="submit">Keluar</button></form>
+                <form method="post" action="{{ route('logout') }}">@csrf<button class="btn btn-line btn-sm" type="submit">Keluar</button></form>
             @else
                 <button type="button" class="in" @click="$store.auth.show({ tab: 'masuk' })">Masuk</button>
                 <button type="button" class="btn btn-accent btn-sm" @click="$store.auth.show({ tab: 'daftar' })">Daftar</button>
-            @endif
+            @endauth
         </div>
     </header>
     </div>
@@ -120,32 +123,53 @@
                 </div>
             </header>
 
-            <div class="content" x-show="$store.auth.tab === 'masuk'">
-                <div class="fld"><label for="a-email">Email</label><input class="box" id="a-email" type="email" autocomplete="email"></div>
-                <div class="fld"><label for="a-pass">Kata sandi</label><input class="box" id="a-pass" type="password" autocomplete="current-password"></div>
-                <button type="button" class="btn btn-ink" disabled>Masuk</button>
-                <p class="demo-note">Login asli aktif saat launch. Untuk demo, coba sebagai:</p>
-                <div class="two">
-                    <form method="post" action="{{ route('demo.login') }}">@csrf<input type="hidden" name="role" value="perusahaan"><button class="btn btn-accent" type="submit" style="width:100%">HRD Perusahaan</button></form>
-                    <form method="post" action="{{ route('demo.login') }}">@csrf<input type="hidden" name="role" value="talenta"><button class="btn btn-line" type="submit" style="width:100%">Talenta</button></form>
-                </div>
-            </div>
+            <form class="content" x-show="$store.auth.tab === 'masuk'" method="post" action="{{ route('login.store') }}" novalidate>
+                @csrf
+                <div class="fld"><label for="a-email">Email</label>
+                    <input class="box @error('email', 'login') is-err @enderror" id="a-email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required>
+                    @error('email', 'login')<span class="err">{{ $message }}</span>@enderror</div>
+                <div class="fld"><label for="a-pass">Kata sandi</label>
+                    <input class="box @error('password', 'login') is-err @enderror" id="a-pass" name="password" type="password" autocomplete="current-password" required>
+                    @error('password', 'login')<span class="err">{{ $message }}</span>@enderror</div>
+                <label class="consent"><input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini</label>
+                <button type="submit" class="btn btn-ink">Masuk</button>
+                @if (config('kabelota.demo_mode'))
+                    <p class="demo-note">Untuk demo, coba tanpa akun sebagai:</p>
+                    <div class="two">
+                        <button class="btn btn-accent" type="submit" form="demo-hrd" style="width:100%">HRD Perusahaan</button>
+                        <button class="btn btn-line" type="submit" form="demo-talenta" style="width:100%">Talenta</button>
+                    </div>
+                @endif
+            </form>
 
-            <div class="content" x-show="$store.auth.tab === 'daftar'" x-cloak>
-                <div class="fld"><label for="r-name" x-text="$store.auth.role === 'perusahaan' ? 'Nama perusahaan' : 'Nama lengkap'">Nama lengkap</label><input class="box" id="r-name" autocomplete="name"></div>
-                <div class="fld"><label for="r-email">Email</label><input class="box" id="r-email" type="email" autocomplete="email"></div>
-                <div class="fld"><label for="r-pass">Kata sandi</label><input class="box" id="r-pass" type="password" autocomplete="new-password"></div>
+            <form class="content" x-show="$store.auth.tab === 'daftar'" x-cloak method="post" action="{{ route('register') }}" novalidate>
+                @csrf
+                <input type="hidden" name="role" :value="$store.auth.role === 'perusahaan' ? 'perusahaan' : 'talenta'">
+                <div class="fld"><label for="r-name" x-text="$store.auth.role === 'perusahaan' ? 'Nama perusahaan' : 'Nama lengkap'">Nama lengkap</label>
+                    <input class="box @error('name', 'register') is-err @enderror" id="r-name" name="name" value="{{ old('name') }}" autocomplete="name">
+                    @error('name', 'register')<span class="err">{{ $message }}</span>@enderror</div>
+                <div class="fld"><label for="r-email">Email</label>
+                    <input class="box @error('email', 'register') is-err @enderror" id="r-email" name="email" type="email" value="{{ old('email') }}" autocomplete="email">
+                    @error('email', 'register')<span class="err">{{ $message }}</span>@enderror</div>
+                <div class="fld"><label for="r-pass">Kata sandi</label>
+                    <input class="box @error('password', 'register') is-err @enderror" id="r-pass" name="password" type="password" autocomplete="new-password">
+                    <span class="demo-note">Minimal 8 karakter.</span>
+                    @error('password', 'register')<span class="err">{{ $message }}</span>@enderror</div>
                 <p class="demo-note" x-show="$store.auth.role !== 'perusahaan'">Status Alumni atau Mahasiswa dipilih saat membuat profil, jadi bisa diubah setelah Anda lulus.</p>
-                <p class="demo-note" x-show="$store.auth.role === 'perusahaan'">Perusahaan mengunggah NIB atau SBU setelah mendaftar. Admin mengeceknya sebelum akun aktif.</p>
-                <label class="consent"><input type="checkbox"> Saya setuju data saya diproses sesuai Kebijakan Privasi Kabelota (UU No. 27 Tahun 2022).</label>
-                <button type="button" class="btn btn-accent" disabled>Buat Akun</button>
+                <p class="demo-note" x-show="$store.auth.role === 'perusahaan'">Setelah mendaftar, lengkapi profil perusahaan dan unggah NIB atau SBU. Admin mengeceknya sebelum akun bisa merekrut.</p>
+                <label class="consent"><input type="checkbox" name="consent" value="1"> Saya setuju data saya diproses sesuai Kebijakan Privasi Kabelota (UU No. 27 Tahun 2022).</label>
+                @error('consent', 'register')<span class="err">{{ $message }}</span>@enderror
+                <button type="submit" class="btn btn-accent">Buat Akun</button>
                 <p class="demo-note">
                     <button type="button" class="textlink" style="background:none;border:0;padding:0;cursor:pointer;color:var(--ink)" @click="$store.auth.role = $store.auth.role === 'perusahaan' ? 'talenta' : 'perusahaan'"
                         x-text="$store.auth.role === 'perusahaan' ? 'Saya alumni atau mahasiswa' : 'Mewakili perusahaan? Daftar sebagai perusahaan'"></button>
                 </p>
-                <p class="demo-note">Pendaftaran dibuka saat launch. Untuk mencoba fitur, pilih tab Masuk lalu "coba sebagai".</p>
-            </div>
+            </form>
         </div>
     </div>
+    @if (config('kabelota.demo_mode'))
+        <form id="demo-hrd" method="post" action="{{ route('demo.login') }}" hidden>@csrf<input type="hidden" name="role" value="perusahaan"></form>
+        <form id="demo-talenta" method="post" action="{{ route('demo.login') }}" hidden>@csrf<input type="hidden" name="role" value="talenta"></form>
+    @endif
 </body>
 </html>

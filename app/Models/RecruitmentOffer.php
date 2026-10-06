@@ -11,7 +11,12 @@ class RecruitmentOffer extends Model
 
     protected function casts(): array
     {
-        return ['start_date' => 'date'];
+        return ['start_date' => 'date', 'responded_at' => 'datetime'];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function talent(): BelongsTo

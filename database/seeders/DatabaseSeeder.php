@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Company;
 use App\Models\JobPosting;
 use App\Models\Talent;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -49,7 +50,22 @@ class DatabaseSeeder extends Seeder
             ['PT Tanjung Karang Bangun', 'kontraktor', 'Palu'],
             ['CV Poso Rekayasa', 'konsultan', 'Poso'],
             ['PT Teluk Palu Engineering', 'kontraktor', 'Palu'],
-        ])->map(fn ($c) => Company::create(['name' => $c[0], 'type' => $c[1], 'city' => $c[2], 'verified_at' => now()]));
+        ])->map(fn ($c) => Company::create([
+            'name' => $c[0], 'type' => $c[1], 'city' => $c[2], 'status' => 'terverifikasi', 'verified_at' => now(),
+            'nib' => fake()->numerify('#############'), 'contact_name' => fake()->randomElement(['Rina Lamba', 'Arman Saleh', 'Dewi Pakaya']),
+            'contact_phone' => '0812'.fake()->numerify('########'),
+        ]));
+
+        // Local accounts. Change the passwords in .env before sharing a public demo.
+        User::create([
+            'name' => 'Admin Kabelota', 'email' => 'admin@kabelota.test', 'role' => 'admin',
+            'password' => env('KABELOTA_ADMIN_PASSWORD') ?: 'password', 'email_verified_at' => now(),
+        ]);
+        $hrd = User::create([
+            'name' => 'HRD Demo', 'email' => 'hrd@demo.kabelota.test', 'role' => 'perusahaan',
+            'password' => env('KABELOTA_DEMO_PASSWORD') ?: 'password', 'email_verified_at' => now(),
+        ]);
+        $companies->first()->update(['user_id' => $hrd->id, 'contact_name' => 'Rina Lamba']);
 
         Talent::factory(40)->create()->each(fn (Talent $t) => $this->fillAlumni($t));
         Talent::factory(10)->student()->create()->each(fn (Talent $t) => $this->fillStudent($t));

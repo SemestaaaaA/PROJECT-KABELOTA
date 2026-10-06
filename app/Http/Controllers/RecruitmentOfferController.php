@@ -11,8 +11,9 @@ class RecruitmentOfferController extends Controller
 {
     public function store(Request $request, Talent $talent): RedirectResponse
     {
-        if ($request->session()->get('demo_role') !== 'perusahaan') {
-            return redirect()->route('talents.show', $talent)->with('auth_required', 'perusahaan');
+        $company = $request->user()->company;
+        if (! $company?->isVerified()) {
+            return redirect()->route('company.profile')->with('status', 'Ajukan Rekrut terbuka setelah perusahaan Anda diverifikasi admin.');
         }
 
         abort_if($talent->availability === Availability::TidakTersedia, 422, 'Talenta sedang tidak menerima tawaran.');
@@ -34,7 +35,7 @@ class RecruitmentOfferController extends Controller
             'message' => 'pesan',
         ]);
 
-        $talent->offers()->create($data);
+        $talent->offers()->create($data + ['company_id' => $company->id]);
 
         // Fase 1: kirim email ke talenta lewat queue. Untuk demo, tawaran hanya disimpan.
         return redirect()

@@ -24,7 +24,7 @@
     </div>
     <div class="foot">
         <span>{{ $job->applicants_count }} pelamar</span>
-        @if (session('demo_role') === 'talenta')
+        @if (auth()->user()?->isTalent())
             <button type="button" x-data="{ sent: false }" @click="sent = true" :disabled="sent" x-text="sent ? 'Lamaran terkirim' : 'Lamar'" @class(['btn btn-sm', 'btn-accent' => $job->isHighlighted(), 'btn-line' => ! $job->isHighlighted()])>Lamar</button>
         @else
             <button type="button" @click="$store.auth.show({ tab: 'masuk', role: 'talenta', reason: 'Masuk sebagai talenta untuk melamar lowongan ini. Gratis.' })" @class(['btn btn-sm', 'btn-accent' => $job->isHighlighted(), 'btn-line' => ! $job->isHighlighted()])>Lamar</button>

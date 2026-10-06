@@ -463,3 +463,99 @@ a.channel:hover { border-color: var(--ink); }
 @media (max-width: 640px) { .three, .status-pick { grid-template-columns: 1fr; } }
 .form-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
 .err-box { border: 1px solid var(--bad); background: var(--bad-soft); padding: 12px 14px; border-radius: var(--r); font-size: 14px; }
+
+/* ---------- wizard layout (profile builder, job posting) */
+.wizard { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+.wizard .formcard { border-color: var(--line-strong); }
+.preview { position: sticky; top: 92px; display: grid; gap: 14px; }
+@media (max-width: 960px) { .wizard { grid-template-columns: 1fr; } .preview { position: static; order: -1; } }
+.steps-nav button { display: inline-flex; gap: 8px; align-items: center; }
+.steps-nav button .mono { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid currentColor; font-size: 11px; }
+.steps-nav button.done .mono { background: #F5B800; border-color: #F5B800; color: #111113; }
+.av { overflow: hidden; }
+.av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.meter { background: var(--surface); border: 1px solid var(--line-strong); padding: 16px; display: grid; gap: 10px; }
+.meter-h { display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; }
+.meter-h .mono { font-weight: 600; }
+.bar { height: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: #F5B800; transition: width .3s ease; }
+.meter ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+.meter li { display: flex; gap: 8px; align-items: center; }
+.meter li.done { color: var(--ink); }
+.meter li.done .ph { color: var(--ok); }
+.photo-row { display: flex; gap: 16px; align-items: center; }
+.photo-pick { width: 84px; height: 84px; flex: none; border-radius: var(--r-lg); background: #111113; color: #F5B800; display: grid; place-items: center; font-size: 26px; font-weight: 700; overflow: hidden; cursor: pointer; border: 1px solid var(--ink); }
+.photo-pick img { width: 100%; height: 100%; object-fit: cover; }
+.chip-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-picks label { font: 600 13.5px var(--f-label); letter-spacing: .02em; border: 1px solid var(--line-strong); border-radius: var(--r); padding: 7px 11px; cursor: pointer; background: var(--surface); user-select: none; }
+.chip-picks label.on { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.chip-picks label:focus-within { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.chip-picks input, .pkg input { position: absolute; opacity: 0; pointer-events: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+.docs { display: grid; gap: 10px; }
+.doc { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; border: 1px dashed var(--line-strong); padding: 12px 14px; border-radius: var(--r); background: var(--surface); }
+.doc > .ph { font-size: 28px; color: var(--muted); }
+.doc.ok { border-style: solid; border-color: var(--ok); }
+.doc.ok > .ph { color: var(--ok); }
+.doc div { display: grid; gap: 2px; min-width: 0; }
+.doc .demo-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc:focus-within { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.linkbtn { justify-self: start; display: inline-flex; gap: 6px; align-items: center; background: none; border: 0; padding: 0; cursor: pointer; color: var(--bad); font: 600 13.5px var(--f-body); }
+.doclinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.doclink { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: var(--r); padding: 9px 12px; font-weight: 600; font-size: 14.5px; text-decoration: none; color: var(--ink); background: var(--surface); }
+.doclink .ph { font-size: 20px; }
+.doclink small { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+a.doclink:hover { border-color: var(--ink); }
+.doclink.off { border-style: dashed; color: var(--muted); }
+.side .card.owner { border-color: var(--ink); box-shadow: 4px 4px 0 #F5B800; }
+
+/* ---------- job posting */
+.pkg { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--r); padding: 16px; cursor: pointer; background: var(--surface); }
+.pkg.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--yellow-soft); }
+.pkg:focus-within { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.pkg b { display: block; font-size: 17px; }
+.pkg small { color: var(--muted); font-size: 13.5px; }
+.pkg .amt { font-size: 18px; font-weight: 600; text-align: right; display: grid; }
+.pkg .amt small { font-size: 12.5px; }
+.bank { display: grid; gap: 2px; background: var(--paper); border: 1px solid var(--line-strong); padding: 16px; border-radius: var(--r); }
+.bank b { font-size: 17px; }
+.drop { display: grid; justify-items: center; gap: 4px; padding: 26px 16px; border: 1.5px dashed var(--line-strong); border-radius: var(--r); background: var(--surface); cursor: pointer; text-align: center; font-weight: 600; }
+.drop .ph { font-size: 30px; }
+.drop small { font-weight: 400; color: var(--muted); }
+.drop:hover { border-color: var(--ink); }
+.drop.is-err { border-color: var(--bad); }
+input.sr-only:focus-visible + * , .drop:focus-within { outline: 2px solid var(--yellow); }
+.sum { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #111113; color: #F7F7F5; }
+.sum b { color: #F5B800; font-size: 20px; }
+.timeline { list-style: none; padding: 0; margin: 28px 0 0; display: grid; }
+.timeline li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding-bottom: 22px; position: relative; }
+.timeline li:not(:last-child)::before { content: ""; position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: var(--line-strong); }
+.timeline li.done:not(:last-child)::before { background: #F5B800; }
+.timeline .dot { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); font-size: 18px; }
+.timeline li.done .dot { background: #F5B800; border-color: #F5B800; color: #111113; }
+.timeline b { display: block; font-size: 17px; padding-top: 8px; }
+.timeline span { color: var(--muted); font-size: 14.5px; }
+
+/* ---------- general polish */
+.tcard, .job { transition: transform .15s ease, box-shadow .15s ease; }
+.tcard:hover, .job:hover { transform: translateY(-2px); box-shadow: 4px 4px 0 var(--line-strong); }
+.btn:focus-visible, .box:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.box { transition: border-color .15s ease; }
+.box:hover { border-color: var(--ink); }
+.ok-banner { display: flex; gap: 8px; align-items: flex-start; }
+@media (prefers-reduced-motion: reduce) { .tcard, .job, .bar span { transition: none; } .tcard:hover, .job:hover { transform: none; } }
+
+/* ---------- HMTS membership, switch, pdf viewer */
+.b-hmts { background: #1E6FB0; color: #fff; }
+.hmts { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; background: var(--paper); }
+.switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; font-size: 15px; }
+.switch input { position: absolute; opacity: 0; }
+.switch .track { width: 40px; height: 22px; border-radius: 99px; background: var(--line-strong); position: relative; transition: background .15s ease; flex: none; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s ease; }
+.switch input:checked + .track { background: #111113; }
+:root[data-theme="dark"] .switch input:checked + .track { background: #F5B800; }
+.switch input:checked + .track::after { transform: translateX(18px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--yellow); outline-offset: 2px; }
+button.doclink { cursor: pointer; font-family: inherit; }
+.pdf-sheet { width: min(920px, 100%); height: min(88dvh, 1000px); display: flex; flex-direction: column; }
+.pdf-frame { flex: 1; width: 100%; border: 0; background: var(--paper); }

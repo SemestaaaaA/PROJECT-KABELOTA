@@ -3,6 +3,9 @@
 return [
     'tagline' => 'Kebaikan untuk bersama',
 
+    // Shows the "coba sebagai HRD/Talenta" buttons. Turn off for the real launch.
+    'demo_mode' => env('KABELOTA_DEMO', true),
+
     'concentrations' => ['Struktur', 'Transportasi', 'Keairan', 'Geoteknik', 'Manajemen Konstruksi'],
 
     // Jabatan kerja SKK yang paling relevan untuk tender di Sulawesi Tengah (dikonfirmasi ulang ke klien).
@@ -36,6 +39,23 @@ return [
     ],
 
     'per_page' => 20,
+
+    // HMTS membership levels. Confirm the exact terms with HMTS AD/ART.
+    'hmts_statuses' => [
+        'muda' => 'Anggota Muda',
+        'biasa' => 'Anggota Biasa',
+        'pengurus' => 'Pengurus',
+        'purna' => 'Purna Pengurus',
+        'alumni' => 'Alumni HMTS',
+        'pasif' => 'Pasif',
+    ],
+
+    'upload' => ['photo_kb' => 5120, 'document_kb' => 3072],
+
+    'skills' => ['AutoCAD', 'Civil 3D', 'Revit', 'SAP2000', 'ETABS', 'SketchUp', 'MS Project', 'Primavera P6', 'HEC-RAS', 'Global Mapper', 'Excel (RAB)', 'Total Station'],
+
+    // Placeholder account shown in the posting flow until the client confirms the real one.
+    'bank' => ['name' => 'Bank Mandiri', 'number' => '000-00-0000000-0', 'holder' => 'Kabelota (placeholder)'],
 
     'contact' => [
         'instagram' => 'https://www.instagram.com/hmts.tadulako/',

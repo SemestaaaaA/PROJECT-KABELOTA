@@ -12,7 +12,7 @@ class JobPosting extends Model
 
     protected function casts(): array
     {
-        return ['closes_at' => 'date'];
+        return ['closes_at' => 'date', 'approved_at' => 'datetime'];
     }
 
     public function company(): BelongsTo
@@ -22,7 +22,7 @@ class JobPosting extends Model
 
     public function scopeOpen(Builder $query): Builder
     {
-        return $query->whereDate('closes_at', '>=', today());
+        return $query->where('status', 'aktif')->whereDate('closes_at', '>=', today());
     }
 
     /** Tenaga Ahli first, then soonest closing. */
@@ -30,6 +30,11 @@ class JobPosting extends Model
     {
         return $query->orderByRaw("case package when 'tenaga_ahli' then 0 when 'reguler' then 1 else 2 end")
             ->orderBy('closes_at');
+    }
+
+    public function packagePrice(): int
+    {
+        return config("kabelota.packages.{$this->package}.price");
     }
 
     public function packageLabel(): string

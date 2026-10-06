@@ -18,13 +18,14 @@ class Talent extends Model
     protected $guarded = [];
 
     /** Contact data never leaves the server until a talent accepts an offer. */
-    protected $hidden = ['email', 'phone'];
+    protected $hidden = ['email', 'phone', 'cv_path', 'skk_scan_path', 'transcript_path'];
 
     protected function casts(): array
     {
         return [
             'availability' => Availability::class,
             'preferred_locations' => 'array',
+            'skills' => 'array',
             'gpa' => 'decimal:2',
         ];
     }
@@ -32,6 +33,11 @@ class Talent extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function certifications(): HasMany
@@ -62,6 +68,38 @@ class Talent extends Model
     public function experienceYears(): ?int
     {
         return $this->experience_since ? max(0, now()->year - $this->experience_since) : null;
+    }
+
+    public function hmtsLabel(): string
+    {
+        return config('kabelota.hmts_statuses')[$this->hmts_status] ?? 'Pasif';
+    }
+
+    public function isHmtsActive(): bool
+    {
+        return $this->hmts_status !== 'pasif';
+    }
+
+    public function photoUrl(): ?string
+    {
+        return $this->photo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->photo_path) : null;
+    }
+
+    /** Checklist used by the profile builder and the "Ini profil Anda" card. */
+    public function completeness(): array
+    {
+        $items = [
+            'Foto profil' => (bool) $this->photo_path,
+            'Ringkasan singkat' => filled($this->bio),
+            'CV (PDF)' => (bool) $this->cv_path,
+            'Keahlian software' => count($this->skills ?? []) > 0,
+            $this->isAlumni() ? 'Sertifikat SKK' : 'Transkrip nilai' => $this->isAlumni()
+                ? $this->certifications()->exists()
+                : (bool) $this->transcript_path,
+            $this->isAlumni() ? 'Riwayat proyek' : 'Organisasi atau kerja praktik' => $this->projects()->exists(),
+        ];
+
+        return ['items' => $items, 'percent' => (int) round(collect($items)->filter()->count() / count($items) * 100)];
     }
 
     public function initials(): string

@@ -6,7 +6,7 @@
             <p class="lead" style="margin-top:16px">Cari dan hubungi alumni Teknik Sipil UNTAD tanpa biaya. Bayar hanya kalau Anda memasang lowongan.</p>
             <div class="row" style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
                 <a class="btn btn-ink" href="{{ route('talents.index') }}">Cari Talenta</a>
-                <button type="button" class="btn btn-accent" @click="$store.auth.show({ tab: 'daftar', role: 'perusahaan', reason: 'Daftarkan perusahaan untuk memasang lowongan.' })">Pasang Lowongan</button>
+                <x-post-job-button class="btn btn-accent" />
             </div>
         </div>
         <div class="ph chamfer" role="img" aria-label="Pekerja proyek berhelm kuning"></div>
@@ -37,7 +37,7 @@
                     <span class="dur">{{ $pkg['days'] }} hari</span>
                 </div>
             @endforeach
-            <button type="button" class="btn btn-ink" @click="$store.auth.show({ tab: 'daftar', role: 'perusahaan', reason: 'Daftarkan perusahaan untuk memasang lowongan.' })">Pasang Lowongan</button>
+            <x-post-job-button class="btn btn-ink" />
         </div>
     </div>
 </section>
