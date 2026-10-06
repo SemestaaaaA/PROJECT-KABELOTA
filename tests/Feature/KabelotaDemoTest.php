@@ -422,4 +422,36 @@ class KabelotaDemoTest extends TestCase
         $this->get('/kebijakan-privasi')->assertOk()->assertSee('UU PDP');
         $this->get('/syarat-penggunaan')->assertOk()->assertSee('Hukum yang berlaku');
     }
+
+    public function test_branded_error_page_and_share_preview(): void
+    {
+        $this->get('/halaman-yang-tidak-ada')->assertNotFound()->assertSee('Halaman tidak ditemukan')->assertSee('Ke beranda');
+
+        $this->get('/')->assertOk()
+            ->assertSee('og:image', false)
+            ->assertSee('/images/og.jpg', false)
+            ->assertSee('<meta name="robots" content="noindex">', false)
+            ->assertSee('Mode demo.');
+    }
+
+    public function test_qa_server_shows_qa_ribbon_with_report_link(): void
+    {
+        $this->app['env'] = 'staging';
+        config(['kabelota.qa_form_url' => 'https://forms.gle/contoh']);
+
+        $this->get('/')->assertOk()
+            ->assertSee('Versi QA.')
+            ->assertSee('https://forms.gle/contoh', false)
+            ->assertDontSee('Mode demo.');
+    }
+
+    public function test_make_admin_command_promotes_registered_member(): void
+    {
+        $user = $this->talentUser(['email' => 'anggota@contoh.id']);
+
+        $this->artisan('kabelota:make-admin', ['email' => 'anggota@contoh.id'])->assertSuccessful();
+        $this->assertSame('admin', $user->fresh()->role);
+
+        $this->artisan('kabelota:make-admin', ['email' => 'tidak-ada@contoh.id'])->assertFailed();
+    }
 }

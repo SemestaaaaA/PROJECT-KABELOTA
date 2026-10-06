@@ -6,6 +6,13 @@ return [
     // Shows the "coba sebagai HRD/Talenta" buttons. Turn off for the real launch.
     'demo_mode' => env('KABELOTA_DEMO', true),
 
+    // Server QA (APP_ENV=staging): pita "Versi QA" + tautan Google Form untuk melapor masalah.
+    'qa_form_url' => env('KABELOTA_QA_FORM_URL'),
+
+    // Sandi akun admin dan HRD contoh untuk seeder. Wajib diisi di server (kosong hanya boleh di lokal).
+    'admin_password' => env('KABELOTA_ADMIN_PASSWORD'),
+    'demo_password' => env('KABELOTA_DEMO_PASSWORD'),
+
     'concentrations' => ['Struktur', 'Transportasi', 'Keairan', 'Geoteknik', 'Manajemen Konstruksi'],
 
     // Jabatan kerja SKK yang paling relevan untuk tender di Sulawesi Tengah (dikonfirmasi ulang ke klien).

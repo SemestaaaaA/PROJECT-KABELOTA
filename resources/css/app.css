@@ -331,6 +331,9 @@ footer.site .base { border-top: 1px solid #2E2E33; padding-block: 16px 24px; fon
 @media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
 .demo-ribbon { background: #111113; color: #C9C9C4; font-size: 13px; text-align: center; padding: 6px 12px; }
 .demo-ribbon b { color: #F5B800; }
+.qa-ribbon { background: #F5B800; color: #111113; }
+.qa-ribbon b { color: #111113; }
+.qa-ribbon a { color: #111113; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }
 .b-off { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
 .b-ok { background: var(--ok-soft); color: var(--ok); }
 .b-plain { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
@@ -705,3 +708,9 @@ html.no-scroll { overflow: hidden; }
   .to-top { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
   body:has(.wizard) .to-top { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* error pages */
+.err-page { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 18px; padding-block: 48px; }
+.err-page .logo { margin-bottom: 28px; }
+.err-code { font-size: 15px; color: var(--muted); border-left: 4px solid var(--yellow); padding-left: 10px; }
+.err-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }

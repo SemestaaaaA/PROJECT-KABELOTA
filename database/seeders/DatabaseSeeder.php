@@ -61,11 +61,11 @@ class DatabaseSeeder extends Seeder
         // Local accounts. Change the passwords in .env before sharing a public demo.
         User::create([
             'name' => 'Admin Kabelota', 'email' => 'admin@kabelota.test', 'role' => 'admin',
-            'password' => env('KABELOTA_ADMIN_PASSWORD') ?: 'password', 'email_verified_at' => now(),
+            'password' => $this->password('admin_password'), 'email_verified_at' => now(),
         ]);
         $hrd = User::create([
             'name' => 'HRD Demo', 'email' => 'hrd@demo.kabelota.test', 'role' => 'perusahaan',
-            'password' => env('KABELOTA_DEMO_PASSWORD') ?: 'password', 'email_verified_at' => now(),
+            'password' => $this->password('demo_password'), 'email_verified_at' => now(),
         ]);
         $companies->first()->update(['user_id' => $hrd->id, 'contact_name' => 'Rina Lamba']);
 
@@ -169,5 +169,16 @@ class DatabaseSeeder extends Seeder
             'year_start' => now()->year - 1,
             'year_end' => now()->year,
         ]);
+    }
+
+    private function password(string $key): string
+    {
+        $password = config("kabelota.$key");
+
+        if (blank($password) && ! app()->environment('local', 'testing')) {
+            throw new \RuntimeException("Isi KABELOTA_".strtoupper($key)." di .env sebelum mengisi data di server.");
+        }
+
+        return $password ?: 'password';
     }
 }

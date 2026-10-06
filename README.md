@@ -51,6 +51,21 @@ Dengan Laravel Herd: `herd link kabelota`, lalu buka http://kabelota.test.
 
 Tes: `php artisan test`
 
+## Versi demo, QA, dan pengerjaan
+
+Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pengerjaan berlanjut.
+
+| Branch | Untuk | Berubah kapan |
+|---|---|---|
+| `demo` (tag `DEMO-FINAL`) | Link demo klien | Hanya perbaikan darurat lewat `git cherry-pick` |
+| `qa` | Server QA anggota tim, pita kuning "Versi QA" | Saat rilis QA: `git checkout qa && git merge main` |
+| `main` | Pengerjaan harian | Setiap hari |
+
+- **Server gratis** (Oracle Cloud / Google Cloud) untuk demo + QA: [deploy/PANDUAN-SERVER-GRATIS.md](deploy/PANDUAN-SERVER-GRATIS.md)
+- **Template Google Form QA**: [docs/qa/FORM-QA.md](docs/qa/FORM-QA.md), dengan skenario uji di [docs/qa/SKENARIO-QA.md](docs/qa/SKENARIO-QA.md)
+- **Demo di laptop tanpa server:** folder `../app-demo` (worktree branch `demo`, database sendiri) menjalankan `composer demo` di port 8000. Folder pengerjaan `app` memakai port 8001 (`SERVER_PORT=8001` di `.env`).
+- `php artisan kabelota:reset-demo` mengosongkan data dan unggahan lalu mengisi ulang data contoh. `php artisan kabelota:make-admin email` menjadikan akun admin.
+
 ## Bagikan link demo (Cloudflare Tunnel)
 
 Laptop menjalankan Kabelota, Cloudflare memberi link publik `https://….trycloudflare.com`. Gratis, tanpa akun Cloudflare. Link hidup selama kedua terminal menyala.

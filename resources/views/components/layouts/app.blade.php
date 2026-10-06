@@ -6,6 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ $title ?? 'Kabelota · Cari Tenaga Ahli Teknik Sipil Sulawesi Tengah' }}</title>
     <meta name="description" content="{{ $description ?? 'Cari alumni dan mahasiswa Teknik Sipil UNTAD berdasarkan SKK, jenjang, dan pengalaman. Gratis untuk talenta.' }}">
+    {{-- Link previews (WhatsApp, LinkedIn, Telegram). --}}
+    <meta property="og:site_name" content="Kabelota">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ $title ?? 'Kabelota · Cari Tenaga Ahli Teknik Sipil Sulawesi Tengah' }}">
+    <meta property="og:description" content="{{ $description ?? 'Cari alumni dan mahasiswa Teknik Sipil UNTAD berdasarkan SKK, jenjang, dan pengalaman. Gratis untuk talenta.' }}">
+    <meta property="og:image" content="{{ url('/images/og.jpg') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    @unless (app()->isProduction())
+        <meta name="robots" content="noindex">
+    @endunless
     <link rel="icon" href="/favicon.ico">
     <script>
         // Apply the saved theme before paint to avoid a flash.
@@ -15,7 +29,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
-    <div class="demo-ribbon"><b>Mode demo.</b> Semua nama talenta, perusahaan, dan proyek adalah data contoh.</div>
+    @if (app()->environment('staging'))
+        <div class="demo-ribbon qa-ribbon"><b>Versi QA.</b> Ini server uji coba, bukan versi demo.
+            @if (config('kabelota.qa_form_url'))<a href="{{ config('kabelota.qa_form_url') }}" target="_blank" rel="noopener">Laporkan masalah</a>@endif
+        </div>
+    @elseif (config('kabelota.demo_mode'))
+        <div class="demo-ribbon"><b>Mode demo.</b> Semua nama talenta, perusahaan, dan proyek adalah data contoh.</div>
+    @endif
 
     <div class="topbar" x-data="{ scrolled: false, menu: false }" @scroll.window.throttle.100ms="scrolled = window.scrollY > 8"
         :class="{ scrolled, 'menu-open': menu }" @keydown.escape.window="menu = false" x-effect="document.documentElement.classList.toggle('no-scroll', menu)">
