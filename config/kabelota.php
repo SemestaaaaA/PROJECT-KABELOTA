@@ -1,0 +1,59 @@
+<?php
+
+return [
+    'tagline' => 'Kebaikan untuk bersama',
+
+    'concentrations' => ['Struktur', 'Transportasi', 'Keairan', 'Geoteknik', 'Manajemen Konstruksi'],
+
+    // Jabatan kerja SKK yang paling relevan untuk tender di Sulawesi Tengah (dikonfirmasi ulang ke klien).
+    'jabatan_kerja' => [
+        'Ahli Teknik Jalan' => 'Transportasi',
+        'Ahli Teknik Jembatan' => 'Struktur',
+        'Ahli Teknik Bangunan Gedung' => 'Struktur',
+        'Ahli Sumber Daya Air' => 'Keairan',
+        'Ahli Teknik Bendungan Besar' => 'Keairan',
+        'Ahli Geoteknik' => 'Geoteknik',
+        'Ahli K3 Konstruksi' => 'Manajemen Konstruksi',
+        'Ahli Manajemen Konstruksi' => 'Manajemen Konstruksi',
+    ],
+
+    // KKNI: 4-6 Teknisi/Analis, 7-9 Ahli.
+    'jenjang' => [4 => 'Teknisi/Analis', 5 => 'Teknisi/Analis', 6 => 'Teknisi/Analis', 7 => 'Ahli Muda', 8 => 'Ahli Madya', 9 => 'Ahli Utama'],
+
+    'experience_options' => [1, 2, 3, 4, 5, 10, 15],
+
+    'outside_region' => 'Luar Sulawesi Tengah',
+
+    'locations' => [
+        'Palu', 'Sigi', 'Donggala', 'Parigi Moutong', 'Poso', 'Morowali',
+        'Morowali Utara', 'Banggai', 'Tolitoli', 'Buol', 'Tojo Una-Una', 'Luar Sulawesi Tengah',
+    ],
+
+    'packages' => [
+        'magang' => ['label' => 'Magang', 'price' => 50000, 'days' => 14],
+        'reguler' => ['label' => 'Reguler', 'price' => 100000, 'days' => 30],
+        'tenaga_ahli' => ['label' => 'Tenaga Ahli', 'price' => 200000, 'days' => 30],
+    ],
+
+    'per_page' => 20,
+
+    'contact' => [
+        'instagram' => 'https://www.instagram.com/hmts.tadulako/',
+        'instagram_handle' => '@hmts.tadulako',
+        'email' => 'admin@kabelota.id', // placeholder
+        'whatsapp' => '+62 812-0000-0000', // placeholder
+    ],
+
+    'faq' => [
+        ['Apakah alumni dan mahasiswa perlu membayar?', 'Tidak. Talenta tidak pernah dipungut biaya, termasuk untuk melamar lowongan. Biaya hanya dikenakan ke perusahaan saat memasang lowongan.'],
+        ['Bagaimana nomor HP dan email saya dilindungi?', 'Kontak tidak tampil di profil. Perusahaan mengirim tawaran lewat sistem, Anda memilih Terima atau Tolak, dan kontak hanya terbuka untuk perusahaan yang Anda terima.'],
+        ['Apa itu SKK dan jenjang?', 'SKK (Sertifikat Kompetensi Kerja) Konstruksi menunjukkan jabatan kerja dan tingkat keahlian. Jenjang 4 sampai 6 untuk teknisi atau analis, jenjang 7 (Ahli Muda), 8 (Ahli Madya), dan 9 (Ahli Utama) untuk tenaga ahli. Dokumen tender biasanya menyebut jabatan dan jenjang minimal.'],
+        ['Bagaimana perusahaan diverifikasi?', 'Saat mendaftar, perusahaan mengunggah NIB atau SBU. Admin Kabelota mengeceknya sebelum akun bisa melihat profil lengkap dan mengunduh CV.'],
+        ['Bagaimana cara membayar lowongan?', 'Pilih paket, transfer ke rekening Kabelota, lalu unggah bukti transfer. Lowongan tayang setelah admin mengecek bukti, biasanya di hari kerja yang sama.'],
+        ['Saya belum punya SKK. Apakah tetap bisa mendaftar?', 'Bisa. Isi riwayat proyek dan pendidikan Anda. Banyak lowongan magang dan posisi pelaksana tidak mensyaratkan SKK, dan Anda bisa menambahkannya kapan saja.'],
+        ['Saya masih mahasiswa. Apa bedanya dengan alumni?', 'Saat membuat profil, Anda memilih status Mahasiswa. Profil Anda diberi tanda Intern for Hire sehingga perusahaan yang mencari tenaga magang langsung menemukan Anda.'],
+        ['Apakah lulusan kampus selain UNTAD boleh mendaftar?', 'Untuk tahap pilot, Kabelota fokus pada alumni dan mahasiswa Teknik Sipil Universitas Tadulako. Kampus lain akan dibuka setelah pilot dievaluasi.'],
+        ['Berapa lama lowongan tayang?', 'Paket Magang tayang 14 hari, Reguler dan Tenaga Ahli 30 hari. Lowongan tertutup sendiri ketika masa tayangnya habis.'],
+        ['Bagaimana cara menghapus akun dan data saya?', 'Buka pengaturan profil lalu pilih Hapus Akun, atau kirim permintaan lewat halaman Kontak. Data Anda dihapus sesuai UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi.'],
+    ],
+];
