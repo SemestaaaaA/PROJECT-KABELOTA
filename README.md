@@ -68,6 +68,7 @@ Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pen
 
 ## Produksi
 
+- Sebelum launch jalankan `php artisan kabelota:preflight` (semua GAGAL harus hilang). Tugas manual: [docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md).
 - `KABELOTA_DEMO=false` → seeder hanya membuat akun admin (`KABELOTA_ADMIN_EMAIL`, sandi minimal 12 karakter), tombol demo mati, admin wajib 2FA (aplikasi authenticator).
 - Backup harian (database + unggahan) ke `storage/app/backups`, simpan 14 hari. `BACKUP_DISK` bisa diarahkan ke S3/R2.
 - Email: `MAIL_MAILER=brevo` + `BREVO_API_KEY` (HTTPS, aman untuk Railway), atau SMTP biasa di VPS.
@@ -94,7 +95,7 @@ Baris `ERR Failed to initialize DNS local resolver` yang muncul **setelah** `Reg
 - `composer share:alt`: tunnel langsung ke alamat IP Cloudflare tanpa DNS.
 - Ganti DNS Mac ke `1.1.1.1` dan `8.8.8.8` (System Settings → Wi-Fi → Details → DNS), lalu jalankan `composer share` lagi.
 
-Kalau masih gagal, pindah ke hotspot HP. Link baru juga kadang butuh 15–30 detik sebelum bisa dibuka; error 530 di awal itu normal.
+Kalau masih gagal, pindah ke hotspot HP. Link baru juga kadang butuh 15-30 detik sebelum bisa dibuka; error 530 di awal itu normal.
 
 Catatan: link berganti setiap kali dijalankan ulang; laptop harus menyala, online, dan tidak sleep. Kata sandi akun demo ada di `.env`, jangan dibagikan selain ke orang yang perlu masuk sebagai admin. Vercel tidak cocok untuk Kabelota (unggahan file, database, dan queue butuh server yang jalan terus); untuk pilot gunakan VPS.
 

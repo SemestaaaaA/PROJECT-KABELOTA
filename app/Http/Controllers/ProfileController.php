@@ -185,22 +185,7 @@ class ProfileController extends Controller
     /** Up to 5 MB in, ~600px WebP out, so cards stay light. Falls back to the original file. */
     private function storePhoto(\Illuminate\Http\UploadedFile $file): string
     {
-        $src = @imagecreatefromstring(file_get_contents($file->getRealPath()));
-        if (! $src || ! function_exists('imagewebp')) {
-            return $file->store('photos', 'public');
-        }
-
-        $size = min(imagesx($src), imagesy($src));
-        $out = imagecreatetruecolor(600, 600);
-        imagecopyresampled($out, $src, 0, 0, (int) ((imagesx($src) - $size) / 2), (int) ((imagesy($src) - $size) / 2), 600, 600, $size, $size);
-
-        ob_start();
-        imagewebp($out, null, 82);
-        $path = 'photos/'.Str::random(32).'.webp';
-        Storage::disk('public')->put($path, ob_get_clean());
-        imagedestroy($src);
-        imagedestroy($out);
-
-        return $path;
+        // Undecodable images are rejected by validation first; the fallback keeps odd formats working.
+        return \App\Support\ImageStore::square($file, 'photos') ?? $file->store('photos', 'public');
     }
 }

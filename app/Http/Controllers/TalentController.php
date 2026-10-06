@@ -59,12 +59,14 @@ class TalentController extends Controller
         return view('talents.show', ['talent' => $talent]);
     }
 
-    /** Private documents: only a (demo) verified company or the owner may download. */
+    /** Private documents: the owner, admins, or a verified company while the profile is visible. */
     public function document(Request $request, Talent $talent, string $type)
     {
         $column = ['cv' => 'cv_path', 'skk' => 'skk_scan_path', 'transkrip' => 'transcript_path'][$type] ?? abort(404);
         $user = $request->user();
-        abort_unless($talent->user_id === $user->id || $user->isVerifiedCompany() || $user->isAdmin(), 403);
+        $isOwnerOrAdmin = $talent->user_id === $user->id || $user->isAdmin();
+        // Hidden profiles keep their documents private, even from verified companies.
+        abort_unless($isOwnerOrAdmin || ($user->isVerifiedCompany() && $talent->is_visible), 403);
         abort_unless($talent->{$column}, 404);
 
         $filename = \Illuminate\Support\Str::slug(\Illuminate\Support\Str::before($talent->name, ',')).'-'.$type.'.pdf';
@@ -77,6 +79,7 @@ class TalentController extends Controller
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="'.$filename.'"',
                 'X-Robots-Tag' => 'noindex, nofollow',
+                'Cache-Control' => 'private, no-store',
             ]);
     }
 }

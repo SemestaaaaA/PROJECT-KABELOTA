@@ -174,4 +174,19 @@ class AccountAndSkkTest extends TestCase
 
         Notification::assertSentToTimes($user, SkkExpiring::class, 1);
     }
+
+    public function test_user_can_download_own_data_and_consent_is_recorded(): void
+    {
+        $this->post('/daftar', ['role' => 'talenta', 'name' => 'Data Uji', 'email' => 'data@contoh.id', 'password' => 'rahasia123', 'consent' => '1']);
+        $this->assertNotNull(User::where('email', 'data@contoh.id')->value('consented_at'));
+
+        [$user] = $this->alumni();
+        $response = $this->actingAs($user)->get('/akun/data')->assertOk()->assertDownload();
+        $json = json_decode($response->streamedContent(), true);
+
+        $this->assertSame($user->email, $json['akun']['email']);
+        $this->assertSame('081200000001', $json['profil_talenta']['phone']);
+        $this->assertArrayNotHasKey('cv_path', $json['profil_talenta']);
+        $this->assertNotEmpty($json['profil_talenta']['certifications']);
+    }
 }

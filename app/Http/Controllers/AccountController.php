@@ -56,6 +56,28 @@ class AccountController extends Controller
         return redirect()->route('verification.notice')->with('status', 'Email diganti. Buka link verifikasi yang kami kirim ke alamat baru.');
     }
 
+    /** UU PDP right of access: everything Kabelota stores about this person, as JSON. */
+    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $user = $request->user();
+        $talent = Talent::with(['certifications', 'projects', 'offers', 'applications.jobPosting'])->where('user_id', $user->id)->first();
+        $company = $user->company?->load('jobPostings');
+
+        $data = [
+            'diunduh_pada' => now()->toIso8601String(),
+            'akun' => $user->only(['name', 'email', 'role', 'created_at', 'email_verified_at', 'consented_at']),
+            'profil_talenta' => $talent?->makeVisible(['email', 'phone'])->makeHidden(['cv_path', 'skk_scan_path', 'transcript_path'])->toArray(),
+            'perusahaan' => $company?->makeHidden(['legal_doc_path'])->toArray(),
+            'catatan' => 'File CV, scan SKK, transkrip, dan dokumen legalitas bisa diunduh dari profil masing-masing.',
+        ];
+
+        return response()->streamDownload(
+            fn () => print(json_encode(array_filter($data), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
+            'data-kabelota-'.now()->format('Ymd').'.json',
+            ['Content-Type' => 'application/json'],
+        );
+    }
+
     public function visibility(Request $request): RedirectResponse
     {
         $talent = Talent::where('user_id', $request->user()->id)->firstOrFail();

@@ -20,6 +20,12 @@ return [
     ],
 
     // Sandi akun admin dan HRD contoh untuk seeder. Wajib diisi di server (kosong hanya boleh di lokal).
+    // Umami (cookie-free analytics). The script only loads when both values are set.
+    'analytics' => [
+        'host' => env('UMAMI_HOST'), // e.g. https://cloud.umami.is
+        'website_id' => env('UMAMI_WEBSITE_ID'),
+    ],
+
     // Receives alerts: failed jobs and failed backups.
     'ops_email' => env('KABELOTA_OPS_EMAIL', 'admin@kabelota.id'),
 
@@ -75,14 +81,18 @@ return [
 
     'skills' => ['AutoCAD', 'Civil 3D', 'Revit', 'SAP2000', 'ETABS', 'SketchUp', 'MS Project', 'Primavera P6', 'HEC-RAS', 'Global Mapper', 'Excel (RAB)', 'Total Station'],
 
-    // Placeholder account shown in the posting flow until the client confirms the real one.
-    'bank' => ['name' => 'Bank Mandiri', 'number' => '000-00-0000000-0', 'holder' => 'Kabelota (placeholder)'],
+    // Transfer account shown in the posting flow. The defaults are placeholders; set the real account in .env.
+    'bank' => [
+        'name' => env('KABELOTA_BANK_NAME', 'Bank Mandiri'),
+        'number' => env('KABELOTA_BANK_NUMBER', '000-00-0000000-0'),
+        'holder' => env('KABELOTA_BANK_HOLDER', 'Kabelota (placeholder)'),
+    ],
 
     'contact' => [
         'instagram' => 'https://www.instagram.com/hmts.tadulako/',
         'instagram_handle' => '@hmts.tadulako',
-        'email' => 'admin@kabelota.id', // placeholder
-        'whatsapp' => '+62 812-0000-0000', // placeholder
+        'email' => env('KABELOTA_CONTACT_EMAIL', 'admin@kabelota.id'), // placeholder until the client confirms
+        'whatsapp' => env('KABELOTA_CONTACT_WHATSAPP', '+62 812-0000-0000'), // placeholder until the client confirms
     ],
 
     'faq' => [
@@ -95,6 +105,6 @@ return [
         ['Saya masih mahasiswa. Apa bedanya dengan alumni?', 'Saat membuat profil, Anda memilih status Mahasiswa. Profil Anda diberi tanda Intern for Hire sehingga perusahaan yang mencari tenaga magang langsung menemukan Anda.'],
         ['Apakah lulusan kampus selain UNTAD boleh mendaftar?', 'Untuk tahap pilot, Kabelota fokus pada alumni dan mahasiswa Teknik Sipil Universitas Tadulako. Kampus lain akan dibuka setelah pilot dievaluasi.'],
         ['Berapa lama lowongan tayang?', 'Paket Magang tayang 14 hari, Reguler dan Tenaga Ahli 30 hari. Lowongan tertutup sendiri ketika masa tayangnya habis.'],
-        ['Bagaimana cara menghapus akun dan data saya?', 'Buka pengaturan profil lalu pilih Hapus Akun, atau kirim permintaan lewat halaman Kontak. Data Anda dihapus sesuai UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi.'],
+        ['Bagaimana cara menghapus akun dan data saya?', 'Masuk, buka Pengaturan akun, lalu pilih Hapus akun. Di halaman yang sama Anda juga bisa mengunduh salinan data. Kalau tidak bisa masuk, kirim permintaan lewat halaman Kontak. Data Anda dihapus sesuai UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi.'],
     ],
 ];

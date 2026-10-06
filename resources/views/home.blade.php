@@ -1,4 +1,15 @@
 <x-layouts.app>
+<x-slot:head>
+    <script type="application/ld+json">{!! json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => 'Kabelota',
+        'url' => url('/'),
+        'logo' => asset('images/brand/kabelota-mail.png'),
+        'description' => 'Platform talenta Teknik Sipil Universitas Tadulako, diselenggarakan oleh HMTS Universitas Tadulako.',
+        'sameAs' => [config('kabelota.contact.instagram')],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+</x-slot:head>
 
 <section class="hero wrap" aria-labelledby="hero-h">
     <div class="marks">

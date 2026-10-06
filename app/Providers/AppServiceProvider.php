@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Notifications\JobFailedAlert;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
@@ -15,19 +17,16 @@ use Symfony\Component\Mailer\Transport\Dsn;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
-
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
+        // Behind Railway/Cloudflare the app sees plain HTTP; generate https:// links when APP_URL is https.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
+
+        // Catch N+1 queries while developing.
+        Model::preventLazyLoading(app()->environment('local'));
+
         // Brevo over HTTPS: Railway blocks outbound SMTP below the Pro plan.
         Mail::extend('brevo', fn () => (new BrevoTransportFactory)->create(
             new Dsn('brevo+api', 'default', config('services.brevo.key'))

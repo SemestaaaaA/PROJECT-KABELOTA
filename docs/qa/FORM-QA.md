@@ -67,6 +67,6 @@ Tips: Format → Pemformatan bersyarat, warnai baris "Kritis" merah dan "Tinggi"
 ## Ritme QA
 
 1. Nakita mengumumkan rilis QA baru di grup: nomor rilis, link server QA, daftar yang berubah.
-2. Anggota menguji 2–3 hari mengikuti [SKENARIO-QA.md](SKENARIO-QA.md), lalu mengisi form untuk tiap temuan.
+2. Anggota menguji 2-3 hari mengikuti [SKENARIO-QA.md](SKENARIO-QA.md), lalu mengisi form untuk tiap temuan.
 3. Triase: Kritis dan Tinggi dikerjakan dulu. Rendah boleh ditumpuk ke rilis berikutnya.
 4. Setelah diperbaiki dan dirilis ulang, pelapor mengecek lagi lalu status diubah ke Selesai.

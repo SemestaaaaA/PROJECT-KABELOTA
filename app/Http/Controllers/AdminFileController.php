@@ -22,6 +22,13 @@ class AdminFileController extends Controller
         };
         abort_unless($path && Storage::disk('local')->exists($path), 404);
 
-        return response()->file(Storage::disk('local')->path($path), ['X-Robots-Tag' => 'noindex, nofollow']);
+        // Uploaded files are untrusted: show only the types validation allows, download anything else.
+        $disk = Storage::disk('local');
+        $mime = $disk->mimeType($path);
+        $headers = ['X-Robots-Tag' => 'noindex, nofollow', 'Cache-Control' => 'private, no-store'];
+
+        return in_array($mime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true)
+            ? response()->file($disk->path($path), $headers + ['Content-Type' => $mime])
+            : $disk->download($path, basename($path), $headers);
     }
 }

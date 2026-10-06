@@ -39,7 +39,7 @@
     <li>Menarik persetujuan dan meminta penghapusan akun beserta datanya.</li>
     <li>Mengajukan keberatan atas pemrosesan data.</li>
 </ul>
-<p>Ajukan permintaan lewat <a class="textlink" href="{{ route('contact') }}">halaman Kontak</a> dengan topik "Hapus data saya", atau ke [email petugas pelindungan data]. Kami menanggapi paling lambat [jangka waktu] hari kerja.</p>
+<p>Salinan data dan penghapusan akun bisa Anda lakukan sendiri di <a class="textlink" href="{{ route('account') }}">Pengaturan akun</a> setelah masuk. Permintaan lain bisa diajukan lewat <a class="textlink" href="{{ route('contact') }}">halaman Kontak</a> dengan topik "Hapus data saya", atau ke [email petugas pelindungan data]. Kami menanggapi paling lambat [jangka waktu] hari kerja.</p>
 
 <h2>Keamanan dan kebocoran data</h2>
 <p>Kami memakai koneksi terenkripsi, pembatasan akses berdasarkan peran, dan penyimpanan dokumen privat. Kalau terjadi kegagalan pelindungan data, kami memberi tahu Anda dan otoritas terkait sesuai ketentuan UU PDP.</p>

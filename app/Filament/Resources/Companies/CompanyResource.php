@@ -69,6 +69,7 @@ class CompanyResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['user']))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('name')->label('Nama')->searchable()->description(fn (Company $r) => $r->user?->email),

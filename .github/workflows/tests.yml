@@ -43,6 +43,11 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build
 
+      - name: Audit keamanan dependensi
+        run: |
+          composer audit --no-interaction
+          npm audit --omit=dev --audit-level=high
+
       - name: Siapkan .env
         run: |
           cp .env.example .env

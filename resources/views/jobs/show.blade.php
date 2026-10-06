@@ -4,6 +4,37 @@
     $applied = $me?->isTalent() && in_array($job->id, $me->appliedJobIds());
 @endphp
 <x-layouts.app :title="$job->title.' · Lowongan Kabelota'" :description="$c->name.' membuka lowongan '.$job->title.' di '.$job->location.'.'">
+@php
+    // Google for Jobs structured data (schema.org/JobPosting).
+    $jobLd = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'JobPosting',
+        'title' => $job->title,
+        'description' => nl2br(e($job->description)),
+        'datePosted' => ($job->approved_at ?? $job->created_at)->toDateString(),
+        'validThrough' => $job->closes_at->endOfDay()->toIso8601String(),
+        'employmentType' => $job->package === 'magang' ? 'INTERN' : 'CONTRACTOR',
+        'hiringOrganization' => array_filter([
+            '@type' => 'Organization',
+            'name' => $c->name,
+            'sameAs' => $c->website,
+            'logo' => $c->logoUrl() ? url($c->logoUrl()) : null,
+        ]),
+        'jobLocation' => [
+            '@type' => 'Place',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $job->location,
+                'addressRegion' => 'Sulawesi Tengah',
+                'addressCountry' => 'ID',
+            ],
+        ],
+        'directApply' => true,
+    ]);
+@endphp
+<x-slot:head>
+    <script type="application/ld+json">{!! json_encode($jobLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+</x-slot:head>
 <div class="wrap">
     <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ route('jobs.index') }}">&lsaquo; Semua lowongan</a></p>
     <div class="profile">

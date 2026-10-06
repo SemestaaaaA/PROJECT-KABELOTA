@@ -56,6 +56,12 @@
         </form>
     </section>
 
+    <section class="formcard acct-sec" aria-labelledby="h-export">
+        <h2 id="h-export" class="acct-h">Unduh data saya</h2>
+        <p class="demo-note">Salinan semua data akun dan profil yang kami simpan, dalam satu file JSON. Persetujuan data Anda tercatat {{ $user->consented_at ? 'pada '.$user->consented_at->translatedFormat('j F Y') : 'saat mendaftar' }}.</p>
+        <a class="btn btn-line btn-sm" href="{{ route('account.export') }}" style="justify-self:start"><i class="ph ph-download-simple" aria-hidden="true"></i> Unduh data (JSON)</a>
+    </section>
+
     @unless ($user->isAdmin())
         <section class="formcard acct-sec acct-danger" aria-labelledby="h-del" x-data="{ open: {{ $errors->delete->any() ? 'true' : 'false' }} }">
             <h2 id="h-del" class="acct-h">Hapus akun</h2>

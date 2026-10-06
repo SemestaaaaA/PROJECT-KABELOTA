@@ -39,7 +39,7 @@ class CompanyProfileController extends Controller
 
         if ($request->hasFile('logo')) {
             $company->logo_path && Storage::disk('public')->delete($company->logo_path);
-            $company->logo_path = $request->file('logo')->store('logos', 'public');
+            $company->logo_path = \App\Support\ImageStore::fit($request->file('logo'), 'logos') ?? $request->file('logo')->store('logos', 'public');
         }
         if ($request->hasFile('legal_doc')) {
             $company->legal_doc_path && Storage::disk('local')->delete($company->legal_doc_path);

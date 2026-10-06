@@ -14,6 +14,7 @@ use App\Http\Controllers\JobPostingController;
 use App\Http\Controllers\JobPostingFlowController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecruitmentOfferController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\TalentController;
 use App\Http\Controllers\TalentInboxController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,8 @@ Route::get('/lowongan/{job}', [JobPostingController::class, 'show'])->whereNumbe
 Route::get('/mitra/{company}', [JobPostingController::class, 'company'])->name('companies.show');
 Route::view('/kebijakan-privasi', 'legal.privacy')->name('privacy');
 Route::view('/syarat-penggunaan', 'legal.terms')->name('terms');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 
 // Auth
 Route::middleware('guest')->group(function () {
@@ -41,7 +44,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/lupa-sandi', [PasswordResetController::class, 'request'])->name('password.request');
     Route::post('/lupa-sandi', [PasswordResetController::class, 'email'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-sandi/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
-    Route::post('/reset-sandi', [PasswordResetController::class, 'update'])->name('password.update');
+    Route::post('/reset-sandi', [PasswordResetController::class, 'update'])->middleware('throttle:6,1')->name('password.update');
 });
 Route::middleware('auth')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout'])->name('logout');
@@ -51,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/akun', [AccountController::class, 'show'])->name('account');
     Route::post('/akun/sandi', [AccountController::class, 'password'])->middleware('throttle:6,1')->name('account.password');
     Route::post('/akun/email', [AccountController::class, 'email'])->middleware('throttle:6,1')->name('account.email');
+    Route::get('/akun/data', [AccountController::class, 'export'])->middleware('throttle:6,1')->name('account.export');
     Route::post('/akun/visibilitas', [AccountController::class, 'visibility'])->middleware('role:talenta')->name('account.visibility');
     Route::delete('/akun', [AccountController::class, 'destroy'])->middleware('throttle:6,1')->name('account.destroy');
     Route::get('/talenta/{talent}/dokumen/{type}', [TalentController::class, 'document'])->name('talents.document');
@@ -60,10 +64,10 @@ Route::middleware('auth')->group(function () {
 // Talenta
 Route::middleware(['auth', 'verified', 'role:talenta'])->group(function () {
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profil', [ProfileController::class, 'store'])->name('profile.store');
-    Route::post('/profil/status', [ProfileController::class, 'updateStatus'])->name('profile.status');
+    Route::post('/profil', [ProfileController::class, 'store'])->middleware('throttle:20,1')->name('profile.store');
+    Route::post('/profil/status', [ProfileController::class, 'updateStatus'])->middleware('throttle:20,1')->name('profile.status');
     Route::get('/tawaran', [TalentInboxController::class, 'offers'])->name('talent.offers');
-    Route::post('/tawaran/{offer}/jawab', [TalentInboxController::class, 'respond'])->name('talent.offers.respond');
+    Route::post('/tawaran/{offer}/jawab', [TalentInboxController::class, 'respond'])->middleware('throttle:20,1')->name('talent.offers.respond');
     Route::get('/lamaran', [TalentInboxController::class, 'applications'])->name('talent.applications');
     Route::post('/lowongan/{job}/lamar', [TalentInboxController::class, 'apply'])->middleware('throttle:20,1')->name('jobs.apply');
 });
@@ -71,7 +75,7 @@ Route::middleware(['auth', 'verified', 'role:talenta'])->group(function () {
 // Perusahaan
 Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
     Route::get('/perusahaan/profil', [CompanyProfileController::class, 'edit'])->name('company.profile');
-    Route::post('/perusahaan/profil', [CompanyProfileController::class, 'update'])->name('company.profile.update');
+    Route::post('/perusahaan/profil', [CompanyProfileController::class, 'update'])->middleware('throttle:10,1')->name('company.profile.update');
     Route::post('/talenta/{talent}/tawaran', [RecruitmentOfferController::class, 'store'])->middleware('throttle:10,1')->name('offers.store');
     Route::get('/lowongan/pasang', [JobPostingFlowController::class, 'create'])->name('jobs.posting.create');
     Route::post('/lowongan/pasang', [JobPostingFlowController::class, 'store'])->middleware('throttle:10,1')->name('jobs.posting.store');
@@ -80,5 +84,5 @@ Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
     Route::get('/perusahaan/lowongan', [CompanyDashboardController::class, 'jobs'])->name('company.jobs');
     Route::post('/perusahaan/lowongan/{job}/tutup', [CompanyDashboardController::class, 'closeJob'])->name('company.jobs.close');
     Route::get('/perusahaan/lowongan/{job}/pelamar', [CompanyDashboardController::class, 'applicants'])->name('company.applicants');
-    Route::post('/perusahaan/lamaran/{application}/status', [CompanyDashboardController::class, 'updateApplication'])->name('company.applications.update');
+    Route::post('/perusahaan/lamaran/{application}/status', [CompanyDashboardController::class, 'updateApplication'])->middleware('throttle:60,1')->name('company.applications.update');
 });

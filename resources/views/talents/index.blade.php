@@ -85,6 +85,7 @@
         </form>
 
         <div class="results">
+            <h2 class="sr-only">Hasil pencarian</h2>
             <div class="toolbar">
                 <p style="font-size:15px;color:var(--muted)"><b class="mono" style="color:var(--ink)">{{ $talents->total() }}</b> talenta cocok</p>
                 <div class="seg" role="group" aria-label="Tampilan">

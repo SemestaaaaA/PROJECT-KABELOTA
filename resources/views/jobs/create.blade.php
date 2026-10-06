@@ -85,14 +85,14 @@
                 </div>
                 <x-file-drop name="payment_proof" id="j-proof" label="Bukti transfer" accept="image/jpeg,image/png,application/pdf"
                     placeholder="Pilih foto atau PDF bukti transfer" hint="JPG, PNG, atau PDF, maksimal 2 MB" />
-                <p class="demo-note">Mode demo: unggah gambar apa saja. Rekening di atas masih placeholder.</p>
+                @if (config('kabelota.demo_mode'))<p class="demo-note">Mode demo: unggah gambar apa saja. Rekening di atas masih placeholder.</p>@endif
             </div>
 
             <div class="form-actions">
                 <button type="button" class="btn btn-line" x-show="step > 1" @click="go(step - 1)">Sebelumnya</button>
                 <span x-show="step === 1"></span>
                 <button type="button" class="btn btn-ink" x-show="step < 3" @click="go(step + 1)">Lanjut</button>
-                <button type="submit" class="btn btn-accent" x-show="step === 3" x-cloak>Kirim untuk Verifikasi</button>
+                <button type="submit" class="btn btn-accent" x-show="step === 3" x-cloak data-umami-event="pasang-lowongan">Kirim untuk Verifikasi</button>
             </div>
         </form>
 

@@ -26,8 +26,8 @@ Yang **tidak** bisa: Railway memblokir SMTP di paket Trial, Free, dan Hobby. Kar
 Supaya tetap gratis:
 
 1. **Nyalakan Serverless di setiap service:** Service → Settings → Deploy → **Serverless** → aktifkan, lalu **Redeploy** (setelan baru berlaku setelah deploy ulang).
-   - Service tidur setelah sekitar 5–10 menit tanpa pengunjung, dan selama tidur tidak memakan kredit.
-   - Kunjungan pertama setelah tidur butuh 10–30 detik. Kadang muncul **502**; muat ulang halaman.
+   - Service tidur setelah sekitar 5-10 menit tanpa pengunjung, dan selama tidur tidak memakan kredit.
+   - Kunjungan pertama setelah tidur butuh 10-30 detik. Kadang muncul **502**; muat ulang halaman.
    - Kabelota memakai SQLite di volume, jadi tidak ada koneksi keluar yang membuatnya tetap terjaga.
 2. **Satu service dulu.** Kredit US$1 cukup untuk satu service yang sering tidur, tapi pas-pasan untuk dua.
    - Selama masa QA, nyalakan `kabelota-qa`.
@@ -86,7 +86,7 @@ Di kanvas project, klik kanan service `kabelota-demo` → **Attach volume**. Mou
 ## 4. Buka ke internet
 
 1. Service → **Settings → Networking → Generate Domain**. Isi port `8080` kalau ditanya.
-2. Railway akan deploy ulang. Buka tab **Deployments → View logs**. Deploy pertama 3–6 menit karena harus membangun aset dan mengisi data contoh.
+2. Railway akan deploy ulang. Buka tab **Deployments → View logs**. Deploy pertama 3-6 menit karena harus membangun aset dan mengisi data contoh.
 3. Kalau status **Active**, buka domain `kabelota-demo-xxxx.up.railway.app` dari HP. Ini link demo yang bisa disebar. Link ini tidak berubah walau server restart.
 
 ## 5. Service QA

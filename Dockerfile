@@ -4,7 +4,7 @@
 # 1) Front-end assets (Tailwind, Alpine, self-hosted fonts)
 FROM node:22-bookworm-slim AS assets
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --no-audit --no-fund
 COPY vite.config.js ./
 COPY resources ./resources

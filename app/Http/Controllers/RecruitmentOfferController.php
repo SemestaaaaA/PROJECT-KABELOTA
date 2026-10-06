@@ -42,7 +42,6 @@ class RecruitmentOfferController extends Controller
         $offer = $talent->offers()->create($data + ['company_id' => $company->id]);
         $talent->user?->notify(new \App\Notifications\OfferReceived($offer));
 
-        // Fase 1: kirim email ke talenta lewat queue. Untuk demo, tawaran hanya disimpan.
         return redirect()
             ->route('talents.show', $talent)
             ->with('offer_sent', $data['position']);

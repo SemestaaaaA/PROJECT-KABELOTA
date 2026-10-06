@@ -64,6 +64,7 @@ class JobPostingResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['company.user']))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('title')->label('Judul')->searchable()->wrap()->description(fn (JobPosting $r) => $r->company?->name),

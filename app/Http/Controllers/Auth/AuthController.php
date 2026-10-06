@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -32,6 +33,7 @@ class AuthController extends Controller
 
         $key = Str::lower($credentials['email']).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
+            Log::warning('Login dikunci karena terlalu banyak percobaan', ['email' => Str::lower($credentials['email']), 'ip' => $request->ip()]);
             throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.'])->errorBag('login');
         }
 
@@ -54,7 +56,8 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:120', Rule::unique('users')],
             'password' => ['required', Password::min(8)],
             'consent' => ['accepted'],
-        ], ['consent.accepted' => 'Centang persetujuan data untuk melanjutkan.'], ['name' => 'nama', 'password' => 'kata sandi']);
+            'kb_trap' => ['prohibited'],
+        ], ['consent.accepted' => 'Centang persetujuan data untuk melanjutkan.', 'kb_trap.prohibited' => 'Pendaftaran tidak bisa diproses.'], ['name' => 'nama', 'password' => 'kata sandi']);
 
         $user = User::create([
             'name' => $data['name'],
@@ -62,6 +65,7 @@ class AuthController extends Controller
             'password' => $data['password'],
             'role' => $data['role'],
         ]);
+        $user->forceFill(['consented_at' => now()])->save();
 
         if ($user->isCompany()) {
             Company::create(['user_id' => $user->id, 'name' => $data['name'], 'type' => 'kontraktor', 'city' => 'Palu', 'status' => 'menunggu']);

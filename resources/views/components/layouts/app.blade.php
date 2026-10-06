@@ -20,6 +20,12 @@
     @unless (app()->isProduction())
         <meta name="robots" content="noindex">
     @endunless
+    <link rel="canonical" href="{{ url()->current() }}">
+    @if (config('kabelota.analytics.host') && config('kabelota.analytics.website_id'))
+        {{-- Umami: cookie-free page view counts, no personal data. --}}
+        <script defer src="{{ rtrim(config('kabelota.analytics.host'), '/') }}/script.js" data-website-id="{{ config('kabelota.analytics.website_id') }}"></script>
+    @endif
+    {{ $head ?? '' }}
     <link rel="icon" href="/favicon.ico">
     <script>
         // Apply the saved theme before paint to avoid a flash.
@@ -52,7 +58,7 @@
             <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif>Kontak</a>
         </nav>
         <div class="right">
-            <button type="button" class="theme-switch desk-only" @click="$store.theme.toggle()"
+            <button type="button" class="theme-switch desk-only" aria-label="Ganti tema terang atau gelap" @click="$store.theme.toggle()"
                 :aria-label="$store.theme.dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'" :title="$store.theme.dark ? 'Mode terang' : 'Mode gelap'">
                 <i class="ph" :class="$store.theme.dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
             </button>
@@ -87,7 +93,7 @@
                 <button type="button" class="in desk-only" @click="$store.auth.show({ tab: 'masuk' })">Masuk</button>
                 <button type="button" class="btn btn-accent btn-sm" @click="$store.auth.show({ tab: 'daftar' })">Daftar</button>
             @endauth
-            <button type="button" class="burger" @click="menu = !menu" :aria-expanded="menu" aria-controls="mnav" :aria-label="menu ? 'Tutup menu' : 'Buka menu'">
+            <button type="button" class="burger" aria-label="Buka menu" @click="menu = !menu" :aria-expanded="menu" aria-controls="mnav" :aria-label="menu ? 'Tutup menu' : 'Buka menu'">
                 <i class="ph" :class="menu ? 'ph-x' : 'ph-list'" aria-hidden="true"></i>
                 @auth @if ($me->pendingOfferCount())<span class="dot-count" aria-hidden="true">{{ $me->pendingOfferCount() }}</span>@endif @endauth
             </button>
@@ -96,7 +102,7 @@
 
     {{-- Mobile menu (below 900px) --}}
     <div id="mnav" class="mnav" x-show="menu" x-cloak x-transition.opacity.duration.150ms @click.self="menu = false">
-        <div class="mnav-panel" x-trap="menu">
+        <div class="mnav-panel" role="dialog" aria-modal="true" aria-label="Menu" x-trap="menu">
             @auth
                 <div class="mnav-me">
                     <span class="acct-av" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
@@ -223,7 +229,7 @@
             <footer>
                 <button type="button" class="btn btn-line" @click="$store.apply.job = null">Batal</button>
                 @if ($me->talent)
-                    <button type="submit" class="btn btn-accent">Kirim Lamaran</button>
+                    <button type="submit" class="btn btn-accent" data-umami-event="kirim-lamaran">Kirim Lamaran</button>
                 @else
                     <a class="btn btn-accent" href="{{ route('profile.edit') }}">Buat Profil</a>
                 @endif
@@ -267,6 +273,7 @@
             </form>
 
             <form class="content" x-show="$store.auth.tab === 'daftar'" x-cloak method="post" action="{{ route('register') }}" novalidate>
+                <x-honeypot id="register" />
                 @csrf
                 <input type="hidden" name="role" :value="$store.auth.role === 'perusahaan' ? 'perusahaan' : 'talenta'">
                 <div class="fld"><label for="r-name" x-text="$store.auth.role === 'perusahaan' ? 'Nama perusahaan' : 'Nama lengkap'">Nama lengkap</label>
@@ -283,10 +290,10 @@
                 <p class="demo-note" x-show="$store.auth.role === 'perusahaan'">Setelah mendaftar, lengkapi profil perusahaan dan unggah NIB atau SBU. Admin mengeceknya sebelum akun bisa merekrut.</p>
                 <label class="consent"><input type="checkbox" name="consent" value="1"> Saya setuju dengan <a class="textlink" href="{{ route('terms') }}" target="_blank">Syarat Penggunaan</a> dan data saya diproses sesuai <a class="textlink" href="{{ route('privacy') }}" target="_blank">Kebijakan Privasi</a> (UU No. 27 Tahun 2022).</label>
                 @error('consent', 'register')<span class="err">{{ $message }}</span>@enderror
-                <button type="submit" class="btn btn-accent">Buat Akun</button>
+                <button type="submit" class="btn btn-accent" data-umami-event="daftar-akun">Buat Akun</button>
                 <p class="demo-note">
                     <button type="button" class="textlink" style="background:none;border:0;padding:0;cursor:pointer;color:var(--ink)" @click="$store.auth.role = $store.auth.role === 'perusahaan' ? 'talenta' : 'perusahaan'"
-                        x-text="$store.auth.role === 'perusahaan' ? 'Saya alumni atau mahasiswa' : 'Mewakili perusahaan? Daftar sebagai perusahaan'"></button>
+                        x-text="$store.auth.role === 'perusahaan' ? 'Saya alumni atau mahasiswa' : 'Mewakili perusahaan? Daftar sebagai perusahaan'">Mewakili perusahaan? Daftar sebagai perusahaan</button>
                 </p>
             </form>
         </div>

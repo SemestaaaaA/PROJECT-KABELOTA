@@ -26,10 +26,11 @@
         </div>
 
         <form class="formcard" method="post" action="{{ route('contact.store') }}" novalidate>
+            <x-honeypot id="contact" />
             @csrf
             <h2 style="font:700 20px var(--f-body)">Kirim pesan</h2>
             @if (session('contact_sent'))
-                <div class="ok-banner" role="status" style="margin-top:0">Pesan terkirim. Admin akan membalas ke email Anda. <span style="color:var(--muted)">(Mode demo: pesan disimpan, belum dikirim ke email.)</span></div>
+                <div class="ok-banner" role="status" style="margin-top:0">Pesan terkirim. Admin akan membalas ke email Anda.</div>
             @endif
             <div class="two">
                 <div class="fld"><label for="c-name">Nama</label>

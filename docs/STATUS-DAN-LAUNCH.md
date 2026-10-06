@@ -1,6 +1,6 @@
 # Kabelota: status demo dan rencana launching
 
-Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
+Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md). Demo ke klien sekitar 12 Oktober, target launch pilot awal November 2026.
 
 ## Status fitur di demo
 
@@ -19,7 +19,12 @@ Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot
 | Perusahaan | Pasang lowongan + bukti transfer, Lowongan Saya, Pelamar | ✅ Selesai |
 | Admin | Panel Filament: verifikasi perusahaan & pembayaran, talenta, lamaran, tawaran, pesan, dasbor | ✅ Selesai |
 | Sistem | Email notifikasi lewat queue (6 kejadian) | ✅ Selesai (lokal masuk log) |
-| Sistem | 42 tes otomatis | ✅ Lolos |
+| Sistem | Audit keamanan: CSP, honeypot anti-spam, dokumen profil tersembunyi terkunci, foto/logo di-encode ulang, rate limit semua form, link kembali anti-redirect, `composer audit` + `npm audit` bersih | ✅ Selesai |
+| Sistem | SEO: JobPosting (Google for Jobs), Organization, sitemap.xml, robots.txt, canonical, profil talenta noindex | ✅ Selesai |
+| Sistem | Analitik Umami (aktif kalau diisi), index database, cache statistik beranda, tes anti N+1 | ✅ Selesai |
+| Sistem | UU PDP: catatan waktu persetujuan, Unduh data saya (JSON), hapus akun mandiri | ✅ Selesai |
+| Sistem | `php artisan kabelota:preflight` mengecek setelan sebelum launch | ✅ Selesai |
+| Sistem | 54 tes otomatis | ✅ Lolos |
 | Legal | Kebijakan Privasi, Syarat Penggunaan | ⚠️ Draf, isian [kurung siku] menunggu klien + ahli hukum |
 | Konten | Foto hero dan section | ⚠️ Masih stok Unsplash, perlu foto asli |
 | Konten | Narasi HMTS di Tentang Kami, istilah status keanggotaan | ⚠️ Perlu konfirmasi HMTS |
@@ -46,8 +51,8 @@ Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot
 | 8 | Email sungguhan: SMTP (Brevo/Resend) + domain pengirim (SPF/DKIM) | DevOps | 24 Okt | Uji verifikasi & notifikasi masuk inbox, bukan spam |
 | 9 | Hapus akun mandiri + verifikasi SKK oleh admin | Nakita | 27 Okt | Hapus akun wajib menurut UU PDP |
 | 10 | Analitik: Umami + Google Search Console | DevOps | 27 Okt | Tanpa cookie, ramah UU PDP |
-| 11 | QA menyeluruh di HP Android/iPhone + desktop, kedua mode tema | QA | 28–31 Okt | Pakai skenario di README |
+| 11 | QA menyeluruh di HP Android/iPhone + desktop, kedua mode tema | QA | 28-31 Okt | Pakai skenario di README |
 | 12 | Daftarkan PSE Lingkup Privat di Komdigi | Klien | Sebelum launch | Karena memproses data pribadi & pembayaran |
-| 13 | Uji coba pilot: 20–30 alumni, 3–5 perusahaan | Nakita + HMTS | 3–8 Nov | Kumpulkan masukan |
+| 13 | Uji coba pilot: 20-30 alumni, 3-5 perusahaan | Nakita + HMTS | 3-8 Nov | Kumpulkan masukan |
 | 14 | Perbaikan dari pilot, lalu launch | Tim | Pertengahan Nov | Pelunasan 30% saat serah terima |
 | 15 | Fase 2 (upsell) | Tim | Setelah launch | Sesuai paket Standard/Pro |

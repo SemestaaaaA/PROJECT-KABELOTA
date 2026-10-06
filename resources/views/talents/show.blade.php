@@ -12,8 +12,12 @@
     $openModal = $errors->offer->any();
 @endphp
 <x-layouts.app :title="$talent->name.' · Kabelota'">
+<x-slot:head>
+    {{-- Personal profiles stay out of search engines (UU PDP); the search page itself can be indexed. --}}
+    @if (app()->isProduction())<meta name="robots" content="noindex, nofollow">@endif
+</x-slot:head>
 <div class="wrap" x-data="{ open: @js($openModal), statusOpen: @js($errors->status->any()), pdf: null }" @keydown.escape.window="open = false; statusOpen = false; pdf = null">
-    <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('talents.index') }}">&lsaquo; Kembali ke hasil pencarian</a></p>
+    <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ str_starts_with(url()->previous(), route('talents.index')) ? url()->previous() : route('talents.index') }}">&lsaquo; Kembali ke hasil pencarian</a></p>
 
     @if ($isOwner && ! $talent->is_visible)
         <div class="locked" role="status" style="margin-bottom:16px"><b>Profil Anda sedang disembunyikan.</b> Perusahaan tidak bisa menemukannya. <a class="textlink" href="{{ route('account') }}">Tampilkan lagi di Pengaturan akun</a></div>
@@ -25,7 +29,7 @@
     @if (session('offer_sent'))
         <div class="ok-banner" role="status">
             <b>Tawaran terkirim.</b> {{ $talent->name }} menerima tawaran untuk posisi "{{ session('offer_sent') }}". Kontaknya terbuka setelah ia memilih Terima.
-            <span style="color:var(--muted)">(Mode demo: email belum benar-benar dikirim.)</span>
+            @if (config('mail.default') === 'log')<span style="color:var(--muted)">(Mode demo: email belum benar-benar dikirim.)</span>@endif
         </div>
     @endif
 
@@ -215,7 +219,7 @@
             </div>
             <footer>
                 <button type="button" class="btn btn-line" @click="open = false">Batal</button>
-                <button type="submit" class="btn btn-accent">Kirim Tawaran</button>
+                <button type="submit" class="btn btn-accent" data-umami-event="kirim-tawaran">Kirim Tawaran</button>
             </footer>
         </form>
     </div>
