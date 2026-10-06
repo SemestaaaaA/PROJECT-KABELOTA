@@ -17,7 +17,8 @@
 <body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
     <div class="demo-ribbon"><b>Mode demo.</b> Semua nama talenta, perusahaan, dan proyek adalah data contoh.</div>
 
-    <div class="topbar" x-data="{ scrolled: false }" @scroll.window.throttle.100ms="scrolled = window.scrollY > 8" :class="scrolled && 'scrolled'">
+    <div class="topbar" x-data="{ scrolled: false, menu: false }" @scroll.window.throttle.100ms="scrolled = window.scrollY > 8"
+        :class="{ scrolled, 'menu-open': menu }" @keydown.escape.window="menu = false" x-effect="document.documentElement.classList.toggle('no-scroll', menu)">
     <header class="wrap nav">
         <a class="logo" href="{{ route('home') }}" aria-label="Kabelota, ke beranda">
             <img class="for-light" src="/images/brand/kabelota-hitam.webp" alt="Kabelota" width="140" height="30">
@@ -31,15 +32,13 @@
             <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif>Kontak</a>
         </nav>
         <div class="right">
-            <button type="button" class="theme-switch" x-data="{ dark: false }"
-                x-init="dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches"
-                @click="dark = !dark; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; try { localStorage.setItem('kabelota-theme', dark ? 'dark' : 'light') } catch (e) {}"
-                :aria-label="dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'" :title="dark ? 'Mode terang' : 'Mode gelap'">
-                <i class="ph" :class="dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
+            <button type="button" class="theme-switch desk-only" @click="$store.theme.toggle()"
+                :aria-label="$store.theme.dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'" :title="$store.theme.dark ? 'Mode terang' : 'Mode gelap'">
+                <i class="ph" :class="$store.theme.dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
             </button>
             @auth
                 @php($pending = $me->pendingOfferCount())
-                <div class="acct" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+                <div class="acct desk-only" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
                     <button type="button" class="acct-btn" @click="open = !open" :aria-expanded="open" aria-haspopup="menu">
                         <span class="acct-av" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
                         <span class="acct-name">{{ $me->isCompany() ? ($me->company?->name ?? $me->name) : \Illuminate\Support\Str::before($me->name, ',') }}</span>
@@ -64,11 +63,64 @@
                     </div>
                 </div>
             @else
-                <button type="button" class="in" @click="$store.auth.show({ tab: 'masuk' })">Masuk</button>
+                <button type="button" class="in desk-only" @click="$store.auth.show({ tab: 'masuk' })">Masuk</button>
                 <button type="button" class="btn btn-accent btn-sm" @click="$store.auth.show({ tab: 'daftar' })">Daftar</button>
             @endauth
+            <button type="button" class="burger" @click="menu = !menu" :aria-expanded="menu" aria-controls="mnav" :aria-label="menu ? 'Tutup menu' : 'Buka menu'">
+                <i class="ph" :class="menu ? 'ph-x' : 'ph-list'" aria-hidden="true"></i>
+                @auth @if ($me->pendingOfferCount())<span class="dot-count" aria-hidden="true">{{ $me->pendingOfferCount() }}</span>@endif @endauth
+            </button>
         </div>
     </header>
+
+    {{-- Mobile menu (below 900px) --}}
+    <div id="mnav" class="mnav" x-show="menu" x-cloak x-transition.opacity.duration.150ms @click.self="menu = false">
+        <div class="mnav-panel" x-trap="menu">
+            @auth
+                <div class="mnav-me">
+                    <span class="acct-av" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
+                    <div><b>{{ $me->isCompany() ? ($me->company?->name ?? $me->name) : \Illuminate\Support\Str::before($me->name, ',') }}</b>
+                        <span class="demo-note">{{ ['talenta' => 'Talenta', 'perusahaan' => 'Perusahaan', 'admin' => 'Admin'][$me->role] }}</span></div>
+                </div>
+            @endauth
+            <nav aria-label="Menu utama" class="mnav-links">
+                <a href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif><i class="ph ph-house" aria-hidden="true"></i> Beranda</a>
+                <a href="{{ route('talents.index') }}" @if (request()->routeIs('talents.*')) aria-current="page" @endif><i class="ph ph-users-three" aria-hidden="true"></i> Cari Talenta</a>
+                <a href="{{ route('jobs.index') }}" @if (request()->routeIs('jobs.index', 'jobs.show')) aria-current="page" @endif><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan</a>
+                <a href="{{ route('companies') }}" @if (request()->routeIs('companies')) aria-current="page" @endif><i class="ph ph-buildings" aria-hidden="true"></i> Untuk Perusahaan</a>
+                <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif><i class="ph ph-info" aria-hidden="true"></i> Tentang Kami</a>
+                <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif><i class="ph ph-chat-circle-text" aria-hidden="true"></i> Kontak</a>
+            </nav>
+            @auth
+                <div class="mnav-links mnav-acct">
+                    <span class="lbl">Akun saya</span>
+                    @if ($me->isTalent())
+                        <a href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}"><i class="ph ph-user" aria-hidden="true"></i> Profil saya</a>
+                        <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
+                        <a href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya</a>
+                    @elseif ($me->isCompany())
+                        <a href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
+                        <a href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
+                        <a href="{{ route('jobs.posting.create') }}"><i class="ph ph-plus" aria-hidden="true"></i> Pasang lowongan</a>
+                        <a href="{{ route('company.profile') }}"><i class="ph ph-identification-card" aria-hidden="true"></i> Profil perusahaan @unless ($me->isVerifiedCompany())<span class="count warn">!</span>@endunless</a>
+                    @elseif ($me->isAdmin())
+                        <a href="/admin"><i class="ph ph-gauge" aria-hidden="true"></i> Panel admin</a>
+                    @endif
+                </div>
+            @endauth
+            <div class="mnav-foot">
+                <button type="button" class="btn btn-line" @click="$store.theme.toggle()">
+                    <i class="ph" :class="$store.theme.dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
+                    <span x-text="$store.theme.dark ? 'Mode terang' : 'Mode gelap'">Mode gelap</span>
+                </button>
+                @auth
+                    <form method="post" action="{{ route('logout') }}">@csrf<button class="btn btn-ink" type="submit" style="width:100%"><i class="ph ph-sign-out" aria-hidden="true"></i> Keluar</button></form>
+                @else
+                    <button type="button" class="btn btn-ink" @click="menu = false; $store.auth.show({ tab: 'masuk' })">Masuk</button>
+                @endauth
+            </div>
+        </div>
+    </div>
     </div>
 
     @if (session('status'))

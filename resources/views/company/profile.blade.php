@@ -22,7 +22,8 @@
                 <template x-if="!logo"><i class="ph ph-buildings" aria-hidden="true"></i></template>
             </label>
             <div class="fld" style="flex:1"><label for="c-logo">Logo <span class="demo-note">(opsional)</span></label>
-                <input class="box" id="c-logo" name="logo" type="file" accept="image/*" @change="const f = $event.target.files[0]; if (f) logo = URL.createObjectURL(f)">
+                <input class="sr-only" id="c-logo" name="logo" type="file" accept="image/*" @change="const f = $event.target.files[0]; if (f) logo = URL.createObjectURL(f)">
+                <label for="c-logo" class="btn btn-line btn-sm" style="justify-self:start"><i class="ph ph-image" aria-hidden="true"></i> <span x-text="logo ? 'Ganti Logo' : 'Pilih Logo'">Pilih Logo</span></label>
                 @error('logo')<span class="err">{{ $message }}</span>@enderror</div>
         </div>
         <div class="two">

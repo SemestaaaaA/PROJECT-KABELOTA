@@ -18,11 +18,18 @@
     </div>
 
     <div class="explorer">
-        <form class="filters" method="get" action="{{ route('talents.index') }}" x-data @change="$el.requestSubmit()" aria-label="Filter talenta">
+        @php($activeCount = $active->except('q')->count() + count($levels) + count($statuses))
+        <form class="filters" method="get" action="{{ route('talents.index') }}" x-data="{ open: false }" @change="$el.requestSubmit()" aria-label="Filter talenta">
             <input type="hidden" name="view" value="{{ $view }}">
             <div class="fld"><label for="q">Nama atau proyek</label>
                 <div class="box-icon"><i class="ph ph-magnifying-glass" aria-hidden="true"></i>
                 <input class="box" id="q" name="q" type="search" value="{{ $filters['q'] ?? '' }}" placeholder="mis. preservasi jalan"></div></div>
+            <button type="button" class="btn btn-line filter-toggle" @click="open = !open" :aria-expanded="open" aria-controls="filter-body">
+                <i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Filter
+                @if ($activeCount)<span class="count">{{ $activeCount }}</span>@endif
+                <i class="ph" :class="open ? 'ph-caret-up' : 'ph-caret-down'" aria-hidden="true" style="margin-left:auto"></i>
+            </button>
+            <div id="filter-body" class="filter-body" :class="open && 'open'">
             <div class="fld"><label for="tipe">Tipe talenta</label>
                 <select class="box" id="tipe" name="tipe">
                     <option value="">Alumni dan mahasiswa</option>
@@ -72,6 +79,7 @@
             </fieldset>
             <noscript><button class="btn btn-ink btn-sm" type="submit">Terapkan</button></noscript>
             <a class="textlink" href="{{ route('talents.index', ['view' => $view]) }}" style="font-size:14px">Hapus semua filter</a>
+            </div>
         </form>
 
         <div class="results">

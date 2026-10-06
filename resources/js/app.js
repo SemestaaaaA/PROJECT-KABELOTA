@@ -24,6 +24,17 @@ document.addEventListener('alpine:init', () => {
     });
 });
 document.addEventListener('alpine:init', () => {
+    // Shared theme state so the header switch and the mobile menu stay in sync.
+    Alpine.store('theme', {
+        dark: document.documentElement.dataset.theme
+            ? document.documentElement.dataset.theme === 'dark'
+            : matchMedia('(prefers-color-scheme: dark)').matches,
+        toggle() {
+            this.dark = !this.dark;
+            document.documentElement.dataset.theme = this.dark ? 'dark' : 'light';
+            try { localStorage.setItem('kabelota-theme', this.dark ? 'dark' : 'light'); } catch (e) {}
+        },
+    });
     Alpine.store('apply', { job: null, show(job) { this.job = job; } });
 });
 window.addEventListener('auth', (e) => Alpine.store('auth').show(e.detail));

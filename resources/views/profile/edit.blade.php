@@ -78,6 +78,11 @@
         <div class="err-box" role="alert" style="margin-bottom:16px">Ada {{ $errors->count() }} isian yang perlu diperbaiki. Kolom yang bermasalah ditandai merah.</div>
     @endif
 
+    <div class="mobile-progress" aria-hidden="true">
+        <span>Kelengkapan profil</span><b class="mono" x-text="percent() + '%'"></b>
+        <div class="bar"><span :style="'width:' + percent() + '%'"></span></div>
+    </div>
+
     <div class="wizard">
     <form method="post" action="{{ route('profile.store') }}" enctype="multipart/form-data" class="formcard" novalidate>
         @csrf
@@ -98,7 +103,8 @@
                 </label>
                 <div class="fld" style="flex:1">
                     <label for="p-photo">Foto profil <span class="demo-note">(opsional, disarankan)</span></label>
-                    <input class="box @error('photo') is-err @enderror" id="p-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" @change="pickPhoto">
+                    <input class="sr-only" id="p-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" @change="pickPhoto">
+                    <label for="p-photo" class="btn btn-line btn-sm @error('photo') is-err @enderror" style="justify-self:start"><i class="ph ph-camera" aria-hidden="true"></i> <span x-text="photo ? 'Ganti Foto' : 'Pilih Foto'">Pilih Foto</span></label>
                     <span class="demo-note">Foto wajah dengan latar polos, JPG atau PNG maksimal 5 MB. Otomatis dipotong persegi.</span>
                     @error('photo')<span class="err">{{ $message }}</span>@enderror
                 </div>
