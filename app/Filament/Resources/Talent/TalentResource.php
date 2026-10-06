@@ -51,11 +51,11 @@ class TalentResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('name')->label('Nama')->searchable()->description(fn (Talent $r) => $r->headline),
-                TextColumn::make('type')->label('Status')->badge()->formatStateUsing(fn ($s) => $s === 'alumni' ? 'Alumni' : 'Mahasiswa')
-                    ->color(fn ($s) => $s === 'alumni' ? 'gray' : 'warning'),
+                TextColumn::make('type')->label('Status')->badge()->formatStateUsing(fn ($state) => $state === 'alumni' ? 'Alumni' : 'Mahasiswa')
+                    ->color(fn ($state) => $state === 'alumni' ? 'gray' : 'warning'),
                 TextColumn::make('city')->label('Domisili'),
-                TextColumn::make('availability')->label('Ketersediaan')->badge()->formatStateUsing(fn ($s) => $s->label()),
-                TextColumn::make('hmts_status')->label('HMTS')->formatStateUsing(fn ($s) => config("kabelota.hmts_statuses.$s"))->toggleable(),
+                TextColumn::make('availability')->label('Ketersediaan')->badge()->formatStateUsing(fn ($state) => $state->label()),
+                TextColumn::make('hmts_status')->label('HMTS')->formatStateUsing(fn ($state) => config("kabelota.hmts_statuses.$state"))->toggleable(),
                 TextColumn::make('created_at')->label('Daftar')->since()->sortable(),
             ])
             ->filters([
