@@ -2,6 +2,7 @@ import '@phosphor-icons/web/regular';
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
+import './motion';
 
 Alpine.plugin(collapse);
 Alpine.plugin(focus);

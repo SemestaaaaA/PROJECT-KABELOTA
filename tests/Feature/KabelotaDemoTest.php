@@ -463,4 +463,21 @@ class KabelotaDemoTest extends TestCase
 
         $this->artisan('kabelota:make-admin', ['email' => 'tidak-ada@contoh.id'])->assertFailed();
     }
+
+    public function test_layout_ships_loader_progress_bar_and_skeleton_hooks(): void
+    {
+        // Loader markup is always present; the head script decides (once per session) whether it shows.
+        $this->get('/')->assertOk()
+            ->assertSee('id="intro"', false)
+            ->assertSee("sessionStorage.getItem('kb-intro')", false)
+            ->assertSee('prefers-reduced-motion: reduce', false)
+            ->assertSee('class="nav-progress"', false);
+
+        $this->get('/talenta')->assertSee('data-skeleton="talent:9"', false);
+        $this->get('/talenta?view=list')->assertSee('data-skeleton="row:8"', false);
+        $this->get('/lowongan')->assertSee('data-skeleton="job:6"', false);
+
+        // Error pages use their own light layout without the loader.
+        $this->get('/tidak-ada')->assertNotFound()->assertDontSee('id="intro"', false);
+    }
 }

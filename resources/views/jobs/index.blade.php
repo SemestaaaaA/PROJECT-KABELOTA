@@ -21,7 +21,7 @@
         <div class="empty" style="margin-top:12px"><b style="display:block;color:var(--ink);font-size:17px;margin-bottom:6px">Belum ada lowongan yang cocok</b>Coba lokasi lain atau kosongkan kata kunci.</div>
     @else
         <h2 class="sr-only">Daftar lowongan</h2>
-        <div class="jobs" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+        <div class="jobs" data-skeleton="job:6" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
             @foreach ($jobs as $job)<x-job-card :job="$job" />@endforeach
         </div>
     @endif

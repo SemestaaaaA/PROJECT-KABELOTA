@@ -30,11 +30,36 @@
     <script>
         // Apply the saved theme before paint to avoid a flash.
         try { const t = localStorage.getItem('kabelota-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+        // Motion classes are set before paint so nothing flashes. The intro loader runs once per session.
+        (function (d) {
+            d.classList.add('js');
+            try {
+                if (!sessionStorage.getItem('kb-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    d.classList.add('kb-intro');
+                    sessionStorage.setItem('kb-intro', '1');
+                }
+            } catch (e) {}
+            if (!d.classList.contains('kb-intro')) d.classList.add('kb-page-in');
+        })(document.documentElement);
     </script>
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
+    {{-- First-visit loader (shown only when <html> has .kb-intro, see the head script) --}}
+    <div class="intro" id="intro" role="status" aria-label="Memuat Kabelota">
+        <div class="intro-wipe" aria-hidden="true"></div>
+        <div class="intro-panel" aria-hidden="true">
+            <span class="intro-hazard"></span>
+            <img class="intro-logo" src="/images/brand/kabelota-putih.webp" alt="" width="200" height="43">
+            <div class="intro-count"><span class="intro-num" data-intro-num>0</span><span class="intro-pct">%</span></div>
+            <p class="intro-status" data-intro-status>Menyiapkan peta proyek Sulawesi Tengah</p>
+            <div class="intro-track"><span class="intro-bar" data-intro-bar></span></div>
+            <p class="intro-skip">Ketuk di mana saja untuk lewati</p>
+            <span class="intro-hazard bottom"></span>
+        </div>
+    </div>
+    <div class="nav-progress" aria-hidden="true"><span></span></div>
     @if (app()->environment('staging'))
         <div class="demo-ribbon qa-ribbon"><b>Versi QA.</b> Ini server uji coba, bukan versi demo.
             @if (config('kabelota.qa_form_url'))<a href="{{ config('kabelota.qa_form_url') }}" target="_blank" rel="noopener">Laporkan masalah</a>@endif

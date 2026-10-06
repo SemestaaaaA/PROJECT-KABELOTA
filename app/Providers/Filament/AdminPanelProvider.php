@@ -8,6 +8,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Panel;
+use Filament\View\PanelsRenderHook;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -26,6 +27,19 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Shimmer on lazy widget placeholders so the dashboard reads as "loading", not empty.
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => <<<'HTML'
+                <style>
+                    .fi-loading-section { position: relative; overflow: hidden; }
+                    .fi-loading-section::after {
+                        content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+                        background: linear-gradient(90deg, transparent, rgba(245, 184, 0, .10), transparent);
+                        animation: kb-shimmer 1.2s ease-in-out infinite;
+                    }
+                    @keyframes kb-shimmer { to { transform: translateX(100%); } }
+                    @media (prefers-reduced-motion: reduce) { .fi-loading-section::after { animation: none; } }
+                </style>
+                HTML)
             ->profile(isSimple: false)
             // Authenticator-app 2FA; required for admins once the demo is switched off.
             ->multiFactorAuthentication(

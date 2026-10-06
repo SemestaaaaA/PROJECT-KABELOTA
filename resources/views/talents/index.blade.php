@@ -114,7 +114,7 @@
                     Coba hapus salah satu filter, atau pilih jenjang dan pengalaman yang lebih rendah.
                 </div>
             @elseif ($view === 'list')
-                <div class="tlist-wrap">
+                <div class="tlist-wrap" data-skeleton="row:8">
                     <table class="tlist">
                         <thead><tr><th>Nama</th><th>Jabatan kerja</th><th>Jenjang</th><th>Pengalaman</th><th>Lulus</th><th>Lokasi</th><th>Status</th></tr></thead>
                         <tbody>
@@ -134,7 +134,7 @@
                     </table>
                 </div>
             @else
-                <div class="tgrid wide">
+                <div class="tgrid wide" data-skeleton="talent:9">
                     @foreach ($talents as $talent)<x-talent-card :talent="$talent" />@endforeach
                 </div>
             @endif
