@@ -88,7 +88,7 @@
         @csrf
 
         {{-- 1. Data diri --}}
-        <div x-show="step === 1" style="display:grid;gap:16px">
+        <div x-show="step === 1" class="stack" style="gap:20px">
             <fieldset style="border:0;padding:0;margin:0">
                 <legend class="fld-legend">Status saya sekarang</legend>
                 <div class="status-pick">
@@ -149,7 +149,7 @@
         </div>
 
         {{-- 2. Akademik & dokumen --}}
-        <div x-show="step === 2" x-cloak style="display:grid;gap:16px">
+        <div x-show="step === 2" x-cloak class="stack" style="gap:20px">
             <div class="two">
                 <div class="fld"><label for="p-conc">Konsentrasi</label>
                     <select class="box @error('concentration') is-err @enderror" id="p-conc" name="concentration" x-model="conc">
@@ -196,8 +196,8 @@
         </div>
 
         {{-- 3. Pengalaman --}}
-        <div x-show="step === 3" x-cloak style="display:grid;gap:16px">
-            <div x-show="type === 'alumni'" style="display:grid;gap:10px">
+        <div x-show="step === 3" x-cloak class="stack" style="gap:20px">
+            <div x-show="type === 'alumni'" class="stack" style="gap:14px">
                 <span class="fld-legend">Sertifikat SKK Konstruksi <span class="demo-note">(lewati kalau belum punya)</span></span>
                 <template x-for="(c, i) in skk" :key="i">
                     <div class="rep">
@@ -245,7 +245,7 @@
         </div>
 
         {{-- 4. Ketersediaan --}}
-        <div x-show="step === 4" x-cloak style="display:grid;gap:18px">
+        <div x-show="step === 4" x-cloak class="stack" style="gap:20px">
             <fieldset style="border:0;padding:0;margin:0">
                 <legend class="fld-legend">Status ketersediaan</legend>
                 <div class="checks">

@@ -59,12 +59,8 @@
                 <input class="box @error('website') is-err @enderror" id="c-web" name="website" value="{{ old('website', $c->website) }}" placeholder="https://">
                 @error('website')<span class="err">{{ $message }}</span>@enderror</div>
         </div>
-        <div class="fld" x-data="{ file: @js($c->legal_doc_path ? 'Sudah diunggah. Pilih file baru untuk mengganti.' : '') }">
-            <label for="c-legal">Dokumen legalitas (NIB atau SBU, PDF maks. 3 MB)</label>
-            <label class="drop @error('legal_doc') is-err @enderror" for="c-legal"><i class="ph ph-file-arrow-up" aria-hidden="true"></i><span x-text="file || 'Pilih PDF'"></span><small>Hanya admin Kabelota yang bisa melihat dokumen ini.</small></label>
-            <input class="sr-only" id="c-legal" name="legal_doc" type="file" accept="application/pdf" @change="file = $event.target.files[0]?.name || file">
-            @error('legal_doc')<span class="err">{{ $message }}</span>@enderror
-        </div>
+        <x-file-drop name="legal_doc" id="c-legal" label="Dokumen legalitas (NIB atau SBU, PDF maks. 3 MB)" accept="application/pdf"
+            placeholder="Pilih PDF" hint="Hanya admin Kabelota yang bisa melihat dokumen ini." icon="ph-file-arrow-up" :current="$c->legal_doc_path" />
         <button class="btn btn-accent" type="submit" style="justify-self:start">{{ $c->isVerified() ? 'Simpan' : 'Simpan dan Ajukan Verifikasi' }}</button>
     </form>
 </div>
