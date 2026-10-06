@@ -146,6 +146,12 @@ class KabelotaDemoTest extends TestCase
         ])->assertRedirect(route('talents.show', $talent))->assertSessionHas('offer_sent');
 
         $this->assertDatabaseHas('recruitment_offers', ['talent_id' => $talent->id, 'company_id' => $this->hrd()->company->id, 'status' => 'menunggu']);
+
+        // QA: duration is always whole months; free text like "1 tahun" is rejected.
+        $base = ['company_name' => 'CV Uji', 'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Drafter', 'message' => 'Kami membutuhkan drafter untuk paket gedung sekolah.'];
+        $this->post(route('offers.store', $talent), $base + ['duration' => '1 tahun'])->assertSessionHasErrorsIn('offer', 'duration');
+        $this->post(route('offers.store', $talent), $base + ['duration' => '24'])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('recruitment_offers', ['talent_id' => $talent->id, 'position' => 'Drafter', 'duration' => '24 bulan']);
     }
 
     public function test_unavailable_talent_cannot_receive_offers(): void

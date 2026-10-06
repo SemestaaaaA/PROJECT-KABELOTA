@@ -10,7 +10,6 @@
         f: { title: @js(old('title', '')), location: @js(old('location', 'Palu')), duration: @js(old('duration_months', '6')), jenjang: @js(old('min_jenjang', '')), exp: @js(old('min_experience', '')) },
         pkg: @js(old('package', 'reguler')),
         pkgs: @js($pkgs),
-        proof: '',
         go(n) { this.step = n; window.scrollTo({ top: 0, behavior: 'smooth' }) },
         rupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID') },
     }">
@@ -32,7 +31,7 @@
     <div class="wizard">
         <form method="post" action="{{ route('jobs.posting.store') }}" enctype="multipart/form-data" class="formcard" novalidate>
             @csrf
-            <div x-show="step === 1" style="display:grid;gap:14px">
+            <div x-show="step === 1" class="stack" style="gap:20px">
                 <div class="fld"><label for="j-title">Judul posisi</label>
                     <input class="box @error('title') is-err @enderror" id="j-title" name="title" x-model="f.title" placeholder="mis. Site Engineer Jalan, Paket Preservasi Ruas Tawaeli - Toboli">
                     @error('title')<span class="err">{{ $message }}</span>@enderror</div>
@@ -64,7 +63,7 @@
                     @error('description')<span class="err">{{ $message }}</span>@enderror</div>
             </div>
 
-            <div x-show="step === 2" x-cloak style="display:grid;gap:12px">
+            <div x-show="step === 2" x-cloak class="stack" style="gap:14px">
                 <span class="fld-legend">Pilih paket tayang</span>
                 @foreach ($pkgs as $key => $pkg)
                     <label class="pkg" :class="pkg === '{{ $key }}' && 'on'">
@@ -76,7 +75,7 @@
                 @endforeach
             </div>
 
-            <div x-show="step === 3" x-cloak style="display:grid;gap:14px">
+            <div x-show="step === 3" x-cloak class="stack" style="gap:20px">
                 <div class="bank">
                     <span class="lbl">Transfer ke</span>
                     <b>{{ config('kabelota.bank.name') }} <span class="mono">{{ config('kabelota.bank.number') }}</span></b>
@@ -84,14 +83,8 @@
                     <span class="lbl" style="margin-top:8px">Jumlah</span>
                     <b class="mono" style="font-size:24px" x-text="rupiah(pkgs[pkg].price)"></b>
                 </div>
-                <div class="fld"><label for="j-proof">Bukti transfer</label>
-                    <label class="drop @error('payment_proof') is-err @enderror" for="j-proof">
-                        <i class="ph ph-upload-simple" aria-hidden="true"></i>
-                        <span x-text="proof || 'Pilih foto atau PDF bukti transfer'"></span>
-                        <small>JPG, PNG, atau PDF, maksimal 2 MB</small>
-                    </label>
-                    <input class="sr-only" id="j-proof" name="payment_proof" type="file" accept="image/jpeg,image/png,application/pdf" @change="proof = $event.target.files[0]?.name || ''">
-                    @error('payment_proof')<span class="err">{{ $message }}</span>@enderror</div>
+                <x-file-drop name="payment_proof" id="j-proof" label="Bukti transfer" accept="image/jpeg,image/png,application/pdf"
+                    placeholder="Pilih foto atau PDF bukti transfer" hint="JPG, PNG, atau PDF, maksimal 2 MB" />
                 <p class="demo-note">Mode demo: unggah gambar apa saja. Rekening di atas masih placeholder.</p>
             </div>
 

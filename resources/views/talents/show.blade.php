@@ -192,8 +192,10 @@
                     <div class="fld"><label for="start_date">Mulai</label>
                         <input class="box @error('start_date', 'offer') is-err @enderror" id="start_date" name="start_date" type="date" value="{{ old('start_date') }}">
                         @error('start_date', 'offer')<span class="err">{{ $message }}</span>@enderror</div>
-                    <div class="fld"><label for="duration">Durasi</label>
-                        <input class="box" id="duration" name="duration" value="{{ old('duration') }}" placeholder="mis. 8 bulan"></div>
+                    <div class="fld"><label for="duration">Durasi kontrak</label>
+                        <div class="box-suffix"><input class="box mono @error('duration', 'offer') is-err @enderror" id="duration" name="duration" type="number" inputmode="numeric" min="1" max="60" step="1" value="{{ old('duration') }}" placeholder="mis. 24"><span aria-hidden="true">bulan</span></div>
+                        <span class="demo-note">Dalam bulan. 1 tahun = 12 bulan.</span>
+                        @error('duration', 'offer')<span class="err">{{ $message }}</span>@enderror</div>
                 </div>
                 <div class="fld"><label for="message">Pesan untuk talenta</label>
                     <textarea class="box @error('message', 'offer') is-err @enderror" id="message" name="message" rows="4" placeholder="Jelaskan proyek, lokasi, dan fasilitas.">{{ old('message') }}</textarea>

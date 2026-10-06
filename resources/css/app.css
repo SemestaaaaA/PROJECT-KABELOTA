@@ -714,3 +714,27 @@ html.no-scroll { overflow: hidden; }
 .err-page .logo { margin-bottom: 28px; }
 .err-code { font-size: 15px; color: var(--muted); border-left: 4px solid var(--yellow); padding-left: 10px; }
 .err-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+/* Layout for x-show blocks: Alpine clears inline display when showing, so grid must come from a class. */
+.stack { display: grid; }
+
+/* Upload confirmation (QA: show clearly that a file was picked) */
+.drop.ok { border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
+.drop.ok > .ph { color: var(--ok); }
+.drop.has-current { border-style: solid; }
+.drop-thumb { max-width: 100%; max-height: 160px; object-fit: contain; border-radius: var(--r); border: 1px solid var(--line); background: var(--paper); }
+.drop-name { word-break: break-word; }
+.doc.ok .demo-note { color: var(--ok); font-weight: 600; }
+
+/* Native dropdown lists follow the theme (Brave/Chrome on Windows and Linux showed light text on white). */
+select.box option, select.box optgroup { background-color: var(--surface); color: var(--ink); }
+
+/* More breathing room between form fields */
+.fld { gap: 8px; }
+.two, .three { gap: 16px; }
+.formcard { gap: 18px; }
+
+/* Number input with a unit ("24 bulan") */
+.box-suffix { position: relative; }
+.box-suffix .box { padding-right: 64px; }
+.box-suffix > span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); pointer-events: none; }
