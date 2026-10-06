@@ -61,10 +61,18 @@ Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pen
 | `qa` | Server QA anggota tim, pita kuning "Versi QA" | Saat rilis QA: `git checkout qa && git merge main` |
 | `main` | Pengerjaan harian | Setiap hari |
 
-- **Server gratis** (Oracle Cloud / Google Cloud) untuk demo + QA: [deploy/PANDUAN-SERVER-GRATIS.md](deploy/PANDUAN-SERVER-GRATIS.md)
+- **Online di Railway** (demo + QA, auto-deploy dari branch): [deploy/PANDUAN-RAILWAY.md](deploy/PANDUAN-RAILWAY.md). Cadangan untuk VPS: [deploy/PANDUAN-SERVER-GRATIS.md](deploy/PANDUAN-SERVER-GRATIS.md)
 - **Template Google Form QA**: [docs/qa/FORM-QA.md](docs/qa/FORM-QA.md), dengan skenario uji di [docs/qa/SKENARIO-QA.md](docs/qa/SKENARIO-QA.md)
 - **Demo di laptop tanpa server:** folder `../app-demo` (worktree branch `demo`, database sendiri) menjalankan `composer demo` di port 8000. Folder pengerjaan `app` memakai port 8001 (`SERVER_PORT=8001` di `.env`).
 - `php artisan kabelota:reset-demo` mengosongkan data dan unggahan lalu mengisi ulang data contoh. `php artisan kabelota:make-admin email` menjadikan akun admin.
+
+## Produksi
+
+- `KABELOTA_DEMO=false` → seeder hanya membuat akun admin (`KABELOTA_ADMIN_EMAIL`, sandi minimal 12 karakter), tombol demo mati, admin wajib 2FA (aplikasi authenticator).
+- Backup harian (database + unggahan) ke `storage/app/backups`, simpan 14 hari. `BACKUP_DISK` bisa diarahkan ke S3/R2.
+- Email: `MAIL_MAILER=brevo` + `BREVO_API_KEY` (HTTPS, aman untuk Railway), atau SMTP biasa di VPS.
+- Alert ke `KABELOTA_OPS_EMAIL` saat job gagal atau backup bermasalah.
+- CI GitHub Actions menjalankan semua tes di SQLite dan MySQL setiap push.
 
 ## Bagikan link demo (Cloudflare Tunnel)
 

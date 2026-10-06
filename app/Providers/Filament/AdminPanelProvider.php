@@ -7,6 +7,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -27,6 +28,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->profile(isSimple: false)
+            // Authenticator-app 2FA; required for admins once the demo is switched off.
+            ->multiFactorAuthentication(
+                AppAuthentication::make()->recoverable()->brandName('Kabelota'),
+                isRequired: fn () => ! config('kabelota.demo_mode'),
+            )
             ->brandName('Kabelota Admin')
             ->brandLogo(asset('images/brand/kabelota-hitam.webp'))
             ->darkModeBrandLogo(asset('images/brand/kabelota-putih.webp'))

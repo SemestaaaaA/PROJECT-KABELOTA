@@ -20,6 +20,10 @@ return [
     ],
 
     // Sandi akun admin dan HRD contoh untuk seeder. Wajib diisi di server (kosong hanya boleh di lokal).
+    // Receives alerts: failed jobs and failed backups.
+    'ops_email' => env('KABELOTA_OPS_EMAIL', 'admin@kabelota.id'),
+
+    'admin_email' => env('KABELOTA_ADMIN_EMAIL', 'admin@kabelota.id'),
     'admin_password' => env('KABELOTA_ADMIN_PASSWORD'),
     'demo_password' => env('KABELOTA_DEMO_PASSWORD'),
 

@@ -64,3 +64,18 @@ Artisan::command('kabelota:remind-skk', function () {
 
 Schedule::command('kabelota:close-expired')->dailyAt('00:10');
 Schedule::command('kabelota:remind-skk')->dailyAt('08:00');
+
+// Database dump + uploaded files, kept on the 'backups' disk (see config/backup.php).
+Schedule::command('backup:clean')->dailyAt('01:00');
+Schedule::command('backup:run')->dailyAt('01:30');
+Schedule::command('backup:monitor')->dailyAt('09:00');
+
+Artisan::command('kabelota:seed-if-empty', function () {
+    if (User::exists()) {
+        $this->info('Database sudah berisi data, seeding dilewati.');
+
+        return 0;
+    }
+
+    $this->call('db:seed', ['--force' => true]);
+})->purpose('Isi database hanya saat pertama kali deploy (masih kosong)');

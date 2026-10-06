@@ -19,7 +19,7 @@ Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot
 | Perusahaan | Pasang lowongan + bukti transfer, Lowongan Saya, Pelamar | ✅ Selesai |
 | Admin | Panel Filament: verifikasi perusahaan & pembayaran, talenta, lamaran, tawaran, pesan, dasbor | ✅ Selesai |
 | Sistem | Email notifikasi lewat queue (6 kejadian) | ✅ Selesai (lokal masuk log) |
-| Sistem | 36 tes otomatis | ✅ Lolos |
+| Sistem | 42 tes otomatis | ✅ Lolos |
 | Legal | Kebijakan Privasi, Syarat Penggunaan | ⚠️ Draf, isian [kurung siku] menunggu klien + ahli hukum |
 | Konten | Foto hero dan section | ⚠️ Masih stok Unsplash, perlu foto asli |
 | Konten | Narasi HMTS di Tentang Kami, istilah status keanggotaan | ⚠️ Perlu konfirmasi HMTS |
@@ -27,7 +27,8 @@ Diperbarui 7 Oktober 2026. Demo ke klien sekitar 12 Oktober, target launch pilot
 | Admin | Verifikasi SKK talenta (badge + filter Terverifikasi, reset otomatis saat SKK diubah) | ✅ Selesai |
 | Sistem | Lowongan kedaluwarsa ditutup otomatis, perusahaan bisa tutup lebih awal, pengingat SKK habis 30 hari | ✅ Selesai |
 | Sistem | Halaman error bergaya Kabelota, pratinjau link WhatsApp | ✅ Selesai |
-| Sistem | Server gratis demo + QA (skrip siap di `deploy/`) | ⚠️ Menunggu VM Oracle |
+| Sistem | Demo + QA online di Railway (Dockerfile, volume, auto-deploy per branch) | ⚠️ Kit siap, menunggu akun Railway |
+| Sistem | Siap produksi: seeder produksi, backup harian, header keamanan, 2FA admin, email bermerek via Brevo API, alert job gagal, CI SQLite + MySQL | ✅ Selesai |
 | Sistem | Server produksi, domain, email SMTP sungguhan | ❌ Belum |
 | Fase 2 | QRIS/VA otomatis, WhatsApp, Export CV tender, Mode Kebutuhan Tender, impor Excel | ❌ Belum (upsell) |
 
