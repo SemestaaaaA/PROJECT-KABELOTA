@@ -51,6 +51,25 @@ Dengan Laravel Herd: `herd link kabelota`, lalu buka http://kabelota.test.
 
 Tes: `php artisan test`
 
+## Bagikan link demo (Cloudflare Tunnel)
+
+Laptop menjalankan Kabelota, Cloudflare memberi link publik `https://….trycloudflare.com`. Gratis, tanpa akun Cloudflare. Link hidup selama kedua terminal menyala.
+
+1. Terminal tab 1: `composer dev`, tunggu sampai muncul `Server running on [http://127.0.0.1:8000]`.
+2. Terminal tab 2 (Cmd+T): `composer share`, tunggu sekitar 10 detik sampai muncul link `https://….trycloudflare.com`.
+3. Buka link itu di HP pakai data seluler. Kalau beranda tampil, kirim link ke klien.
+4. Selesai demo: tekan Ctrl+C di kedua tab. Link langsung mati.
+
+Kalau link tidak bisa dibuka dan log tunnel menulis `QUIC connection failed` atau `Allow outbound QUIC traffic on port 7844`, jaringanmu (biasanya WiFi kampus atau kantor) memblokir port itu. Hentikan dengan Ctrl+C lalu jalankan versi HTTP/2:
+
+```bash
+cloudflared tunnel --protocol http2 --url http://127.0.0.1:8000
+```
+
+Kalau masih gagal, pindah ke hotspot HP. Link baru juga kadang butuh 15–30 detik sebelum bisa dibuka; error 530 di awal itu normal.
+
+Catatan: link berganti setiap kali dijalankan ulang; laptop harus menyala, online, dan tidak sleep. Kata sandi akun demo ada di `.env`, jangan dibagikan selain ke orang yang perlu masuk sebagai admin. Vercel tidak cocok untuk Kabelota (unggahan file, database, dan queue butuh server yang jalan terus); untuk pilot gunakan VPS.
+
 ## Akun dan login
 
 Login sungguhan per peran: **talenta**, **perusahaan**, dan **admin**. Pendaftaran lewat popup Daftar, lalu verifikasi email (di lokal, link verifikasi ada di `storage/logs/laravel.log`).

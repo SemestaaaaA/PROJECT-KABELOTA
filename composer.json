@@ -74,6 +74,10 @@
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "PHP_INI_SCAN_DIR=php php artisan serve"
+        ],
+        "share": [
+            "Composer\\Config::disableProcessTimeout",
+            "cloudflared tunnel --url http://127.0.0.1:8000"
         ]
     },
     "extra": {
