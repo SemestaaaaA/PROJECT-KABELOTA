@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Availability;
 use App\Models\Talent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -25,26 +26,45 @@ class TalentController extends Controller
             'status.*' => [Rule::enum(Availability::class)],
             'view' => ['nullable', Rule::in(['grid', 'list'])],
             'terverifikasi' => ['nullable', 'boolean'],
+            'urut' => ['nullable', Rule::in(['relevan', 'jenjang', 'pengalaman', 'terbaru'])],
         ]);
 
-        $talents = Talent::query()
-            ->with('primaryCertification')
-            ->search($filters)
-            ->orderByRaw("case availability when 'tersedia' then 0 when 'terikat_kontrak' then 1 else 2 end")
-            ->orderByDesc(
-                \App\Models\Certification::select('jenjang')
-                    ->whereColumn('talent_id', 'talents.id')
-                    ->orderByDesc('jenjang')
-                    ->limit(1)
-            )
-            ->orderBy('experience_since')
-            ->paginate(config('kabelota.per_page'))
-            ->withQueryString();
+        $topLevel = \App\Models\Certification::select('jenjang')
+            ->whereColumn('talent_id', 'talents.id')
+            ->orderByDesc('jenjang')
+            ->limit(1);
+
+        $query = Talent::query()->with('primaryCertification')->search($filters);
+
+        // Summary of the whole filtered set, not just this page.
+        $summary = (clone $query)->toBase()->reorder()
+            ->selectRaw("sum(case when type = 'alumni' then 1 else 0 end) as alumni")
+            ->selectRaw("sum(case when type = 'mahasiswa' then 1 else 0 end) as mahasiswa")
+            ->selectRaw("sum(case when availability = 'tersedia' then 1 else 0 end) as tersedia")
+            ->first();
+
+        $sort = $filters['urut'] ?? 'relevan';
+        match ($sort) {
+            'jenjang' => $query->orderByDesc($topLevel)->orderBy('experience_since'),
+            'pengalaman' => $query->orderByRaw('experience_since is null')->orderBy('experience_since'),
+            'terbaru' => $query->latest(),
+            // Available first, then highest SKK level, then most experience.
+            default => $query->orderByRaw("case availability when 'tersedia' then 0 when 'terikat_kontrak' then 1 else 2 end")
+                ->orderByDesc($topLevel)->orderBy('experience_since'),
+        };
 
         return view('talents.index', [
-            'talents' => $talents,
+            'talents' => $query->paginate(config('kabelota.per_page'))->withQueryString(),
             'filters' => $filters,
             'view' => $filters['view'] ?? 'grid',
+            'sort' => $sort,
+            'summary' => $summary,
+            // Page header numbers: the whole visible pool, independent of filters.
+            'pool' => Cache::remember('talent-pool-stats', now()->addMinutes(10), fn () => [
+                'total' => Talent::where('is_visible', true)->count(),
+                'tersedia' => Talent::where('is_visible', true)->where('availability', 'tersedia')->count(),
+                'verified' => Talent::where('is_visible', true)->whereNotNull('skk_verified_at')->count(),
+            ]),
         ]);
     }
 

@@ -896,3 +896,128 @@ select.box option, select.box optgroup { background-color: var(--surface); color
     .btn:hover, .to-top:hover, .theme-switch:hover, .tcard:hover .av, .job:hover .strip, .chip-picks label:hover, .status-pick label:hover, .channel:hover { transform: none; }
     .intro-status::before { animation: none; }
 }
+
+/* ===================== /talenta ===================== */
+.page-h-split { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
+.pool { display: flex; gap: 0; margin: 0; border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--surface); }
+.pool > div { padding: 10px 16px; }
+.pool > div + div { border-left: 1px solid var(--line); }
+.pool dt { font: 600 11px var(--f-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pool dd { margin: 2px 0 0; font-size: 22px; font-weight: 700; }
+
+/* Sidebar stays in view while scrolling the results. */
+@media (min-width: 861px) {
+    .filters { position: sticky; top: 76px; align-self: start; max-height: calc(100dvh - 92px); overflow-y: auto; scrollbar-width: thin; border-radius: var(--r-lg) 0 0 var(--r-lg); }
+}
+.filters-h { display: flex; align-items: center; gap: 8px; margin-bottom: -6px; }
+.filters-h .textlink { margin-left: auto; font-size: 13px; }
+@media (max-width: 860px) { .filters-h { display: none; } }
+.box-search { position: relative; }
+.box-search .box { padding-right: 42px; }
+.box-go { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--r); background: var(--ink); color: var(--on-ink); cursor: pointer; font-size: 15px; }
+.checks label { padding: 3px 4px; margin-inline: -4px; border-radius: var(--r); }
+
+.quick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--line-strong); }
+.quick-chip { display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--f-body); padding: 7px 12px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--surface); color: var(--ink); text-decoration: none; }
+.quick-chip .ph { font-size: 15px; color: var(--muted); }
+.quick-chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.quick-chip[aria-pressed="true"] .ph { color: #F5B800; }
+
+.result-count { font-size: 15px; color: var(--muted); display: grid; gap: 2px; }
+.result-count b { color: var(--ink); font-size: 17px; }
+.result-count .rc-sub { font-size: 13px; }
+.result-count .rc-main { font-size: 15px; }
+.toolbar-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sort { position: relative; display: flex; align-items: center; }
+.sort .ph { position: absolute; left: 10px; color: var(--muted); pointer-events: none; }
+.sort .box { padding: 7px 10px 7px 32px; font-size: 14px; width: auto; }
+.seg a { display: inline-flex; align-items: center; gap: 6px; }
+
+.active-filters a.clear-all { border-style: dashed; color: var(--muted); }
+.active-filters a.clear-all::after { content: ""; }
+
+.empty-rich { display: grid; justify-items: center; gap: 8px; padding: 40px 20px; }
+.empty-rich > .ph { font-size: 40px; color: var(--muted); }
+.empty-rich b { color: var(--ink); font-size: 18px; }
+.empty-rich p { max-width: 46ch; }
+.empty-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; }
+
+/* Talent card: the whole card is the link (stretched name link), tags under the role. */
+.tcard { position: relative; }
+.card-link { text-decoration: none; color: inherit; }
+.card-link::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); }
+.card-link:focus-visible { outline: none; }
+.tcard:has(.card-link:focus-visible) { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.tag { font: 600 11px var(--f-mono); padding: 2px 6px; border-radius: 3px; background: var(--paper); border: 1px solid var(--line); color: var(--muted); }
+.tag-warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; display: inline-flex; align-items: center; gap: 3px; }
+.tag-more { border-style: dashed; }
+.card-cta { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; text-decoration: underline; text-underline-offset: 4px; }
+.card-cta .ph { transition: transform .2s ease-out; }
+.tlist tbody tr[data-href] { cursor: pointer; }
+
+@media (max-width: 600px) {
+    .pool { width: 100%; }
+    .pool > div { flex: 1; padding: 8px 10px; }
+    .pool dd { font-size: 18px; }
+    .quick { flex-wrap: nowrap; overflow-x: auto; margin-inline: -14px; padding-inline: 14px; scrollbar-width: none; }
+    .quick-chip { flex: none; }
+    .toolbar { align-items: flex-start; }
+    .toolbar-r { width: 100%; flex-wrap: nowrap; }
+    .sort { flex: 1; min-width: 0; }
+    .sort .box { width: 100%; }
+}
+
+/* ===================== Hover, round 2 (site-wide) ===================== */
+@media (hover: hover) {
+    .tcard:hover { border-color: #F5B800; box-shadow: 6px 6px 0 #F5B800; transform: translate(-2px, -2px); }
+    .tcard:hover .card-cta .ph, .job:hover .ph-arrow-right { transform: translateX(4px); }
+    .tcard:hover h3 { text-decoration: underline; text-decoration-color: #F5B800; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+    .quick-chip { transition: transform .15s ease-out, border-color .15s, background-color .15s; }
+    .quick-chip:hover { transform: translateY(-2px); border-color: var(--ink); }
+    .quick-chip:not([aria-pressed="true"]):hover .ph { color: #FF7A1A; }
+    .active-filters a { transition: background-color .15s, color .15s; }
+    .active-filters a:not(.clear-all):hover { background: var(--ink); color: var(--on-ink); text-decoration: line-through; }
+    .seg a:not([aria-pressed="true"]):hover, .seg button:not([aria-pressed="true"]):hover { background: var(--yellow-soft); }
+    .checks label:hover { background: var(--paper); }
+    .box-go { transition: background-color .15s, transform .15s; }
+    .box-go:hover { background: #F5B800; color: #111113; }
+    .box-go:hover .ph { transform: translateX(2px); }
+    .box { transition: border-color .15s ease, box-shadow .15s ease; }
+    .box:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow) 22%, transparent); }
+    .pool > div { transition: background-color .15s; }
+    .pool > div:hover { background: var(--yellow-soft); }
+
+    .tlist tbody tr { transition: background-color .12s; }
+    .tlist tbody tr:hover { background: var(--yellow-soft); }
+    .tlist tbody tr:hover b { text-decoration: underline; text-underline-offset: 3px; }
+
+    .pager a { transition: transform .15s, background-color .15s, border-color .15s; }
+    .pager a:not(.off):hover { transform: translateY(-2px); border-color: var(--ink); background: var(--yellow-soft); }
+
+    .badge { transition: transform .15s; }
+    .tcard:hover .badge, .job:hover .badge { transform: scale(1.04); }
+
+    .logo img { transition: transform .25s ease-out; }
+    .logo:hover img { transform: scale(1.04) rotate(-1deg); }
+    .acct-btn { transition: border-color .15s, background-color .15s; }
+    .acct-btn:hover { border-color: var(--ink); }
+    .acct-menu a, .acct-menu button, .mnav-links a { transition: background-color .12s, padding-left .15s; }
+    .acct-menu a:hover, .acct-menu button:hover { background: var(--yellow-soft); }
+
+    details summary { transition: color .15s; }
+    details summary:hover { color: #C99500; }
+    :root[data-theme="dark"] details summary:hover { color: #F5B800; }
+
+    .inbox-card, .formcard.acct-sec, .doc { transition: border-color .15s, box-shadow .2s; }
+    .inbox-card:hover { border-color: var(--ink); box-shadow: 4px 4px 0 var(--line-strong); }
+    .doc:hover { border-color: var(--ink); }
+
+    footer.site .brand-logos img, footer.site img { transition: filter .2s, transform .2s; }
+    footer.site img:hover { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tcard:hover { transform: none; }
+    .quick-chip:hover, .pager a:not(.off):hover, .logo:hover img, footer.site img:hover, .tcard:hover .badge, .job:hover .badge { transform: none; }
+}

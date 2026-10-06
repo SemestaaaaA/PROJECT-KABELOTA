@@ -26,7 +26,8 @@ Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [CATATAN-MANUAL.m
 | Sistem | `php artisan kabelota:preflight` mengecek setelan sebelum launch | ✅ Selesai |
 | Admin | Dashboard: antrean tindakan, 6 KPI 30 hari dengan tren, pendaftaran mingguan, pendapatan per paket, konsentrasi, jenjang SKK, alur rekrutmen, domisili, perusahaan teraktif, lowongan segera berakhir, kualitas data, panel Umami | ✅ Selesai |
 | Publik | Animasi: loader 0-100% setiap refresh dan kunjungan dari luar (±2,2 detik, bisa dilewati, aksen oranye), hero muncul bertahap, bar progres antar halaman, skeleton saat filter/halaman berganti, foto fade-in, reveal saat scroll, animasi hover; mati otomatis kalau pengguna memilih kurangi gerakan | ✅ Selesai |
-| Sistem | 57 tes otomatis | ✅ Lolos |
+| Publik | Cari Talenta v2: filter menempel saat scroll, filter cepat (Tersedia, Ahli Muda+, Intern, SKK terverifikasi, Palu), urutkan (relevan, jenjang, pengalaman, terbaru), ringkasan hasil, kartu bisa diklik penuh + keahlian + peringatan SKK kedaluwarsa, baris List bisa diklik, empty state dengan aksi | ✅ Selesai |
+| Sistem | 58 tes otomatis | ✅ Lolos |
 | Legal | Kebijakan Privasi, Syarat Penggunaan | ⚠️ Draf, isian [kurung siku] menunggu klien + ahli hukum |
 | Konten | Foto hero dan section | ⚠️ Masih stok Unsplash, perlu foto asli |
 | Konten | Narasi HMTS di Tentang Kami, istilah status keanggotaan | ⚠️ Perlu konfirmasi HMTS |

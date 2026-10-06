@@ -133,6 +133,15 @@ document.addEventListener('submit', (e) => {
     startNavigation(url);
 });
 
+// Table rows with data-href open the profile; the name link inside stays the keyboard path.
+document.addEventListener('click', (e) => {
+    const row = e.target.closest('tr[data-href]');
+    if (!row || e.target.closest('a, button, input, select, label')) return;
+    if (e.metaKey || e.ctrlKey) return void open(row.dataset.href, '_blank');
+    startNavigation(new URL(row.dataset.href, location.href));
+    location.href = row.dataset.href;
+});
+
 // Coming back with the browser's back button restores the old page from cache: clean up.
 addEventListener('pageshow', (e) => {
     if (!e.persisted) return;

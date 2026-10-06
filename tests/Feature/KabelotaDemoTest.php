@@ -480,4 +480,20 @@ class KabelotaDemoTest extends TestCase
         // Error pages use their own light layout without the loader.
         $this->get('/tidak-ada')->assertNotFound()->assertDontSee('id="intro"', false);
     }
+
+    public function test_talent_search_sorting_quick_filters_and_summary(): void
+    {
+        $this->get('/talenta')->assertOk()
+            ->assertSee('Tersedia sekarang')->assertSee('Ahli Muda ke atas')->assertSee('Paling relevan')
+            ->assertSee(Talent::where('type', 'alumni')->count().' alumni', false);
+
+        // Sorted by experience: the most experienced alumni comes first.
+        $top = Talent::where('is_visible', true)->whereNotNull('experience_since')->orderBy('experience_since')->first();
+        $this->get('/talenta?urut=pengalaman&view=list')->assertOk()->assertSeeInOrder([e($top->name)], false);
+        $this->get('/talenta?urut=tidak-ada')->assertSessionHasErrors('urut');
+
+        // Quick chip turns on and its pressed state is announced.
+        $this->get('/talenta?status[]=tersedia')->assertOk()->assertSee('aria-pressed="true"', false);
+        $this->get('/talenta?q=tidakadayangcocok')->assertOk()->assertSee('Belum ada talenta yang cocok')->assertSee('Hapus semua filter');
+    }
 }
