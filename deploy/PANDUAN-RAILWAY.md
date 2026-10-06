@@ -16,6 +16,41 @@ Pantau pemakaian di menu **Usage**.
 
 Yang **tidak** bisa: Railway memblokir SMTP di paket Trial, Free, dan Hobby. Karena itu email QA dikirim lewat API Brevo (sudah disiapkan di kode).
 
+## Mode gratis (tanpa kartu)
+
+| Tahap | Kredit | Batas per service | Catatan |
+|---|---|---|---|
+| Trial, 30 hari pertama | US$5 sekali | 1 GB RAM, volume 500 MB, maks. 5 service per project | Daftar pakai GitHub, tanpa kartu |
+| Free, setelah trial | US$1 per bulan (tidak menumpuk) | 0,5 GB RAM, volume 500 MB | Otomatis pindah ke Free saat trial habis |
+
+Supaya tetap gratis:
+
+1. **Nyalakan Serverless di setiap service:** Service → Settings → Deploy → **Serverless** → aktifkan, lalu **Redeploy** (setelan baru berlaku setelah deploy ulang).
+   - Service tidur setelah sekitar 5–10 menit tanpa pengunjung, dan selama tidur tidak memakan kredit.
+   - Kunjungan pertama setelah tidur butuh 10–30 detik. Kadang muncul **502**; muat ulang halaman.
+   - Kabelota memakai SQLite di volume, jadi tidak ada koneksi keluar yang membuatnya tetap terjaga.
+2. **Satu service dulu.** Kredit US$1 cukup untuk satu service yang sering tidur, tapi pas-pasan untuk dua.
+   - Selama masa QA, nyalakan `kabelota-qa`.
+   - Service demo dinyalakan hanya menjelang presentasi ke klien.
+   - Untuk mematikan service: klik service → **Settings → Danger → Remove** (data volume ikut hilang), atau cukup biarkan Serverless menidurkannya.
+3. **Pantau Usage** seminggu sekali. Kalau angka "Estimated" mendekati kredit, matikan service yang tidak dipakai.
+4. **Unduh backup sebelum trial habis.** Railway menghapus volume buatan akun Trial 30 hari setelah kredit trial habis. Dari laptop:
+
+   ```bash
+   railway ssh --service kabelota-qa
+   ```
+
+   Di dalam server:
+
+   ```bash
+   php artisan backup:run && ls storage/app/backups/Kabelota
+   ```
+
+   Untuk QA, kehilangan data uji tidak masalah. Untuk data asli (pilot), pindah ke Hobby.
+5. **Yang tidak jalan saat tidur:** jadwal otomatis (tutup lowongan kedaluwarsa, backup harian, pengingat SKK). Semuanya jalan lagi saat ada pengunjung. Untuk demo dan QA ini tidak masalah.
+
+Kapan harus Hobby (US$5/bulan): saat pilot dengan alumni dan perusahaan sungguhan, karena data harus aman, server tidak boleh tidur, dan jadwal otomatis harus jalan.
+
 ---
 
 ## 1. Buat akun dan project (±10 menit)
