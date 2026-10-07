@@ -15,6 +15,12 @@ abstract class KabelotaMail extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    // Retry when the mail server is briefly unavailable (Gmail rate limits, network blips).
+    public int $tries = 3;
+
+    /** @var array<int, int> */
+    public array $backoff = [30, 120];
+
     public function via(object $notifiable): array
     {
         return ['mail'];

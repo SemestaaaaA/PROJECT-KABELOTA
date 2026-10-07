@@ -14,7 +14,7 @@ use App\Notifications\ApplicationReceived;
 use App\Notifications\ApplicationStatusChanged;
 use App\Notifications\OfferAnswered;
 use App\Notifications\OfferReceived;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword as ResetPassword;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;

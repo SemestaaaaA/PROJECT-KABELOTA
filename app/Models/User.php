@@ -33,6 +33,17 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         ];
     }
 
+    // Auth emails go through the queue (see QueuedVerifyEmail / QueuedResetPassword).
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\QueuedVerifyEmail);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\QueuedResetPassword($token));
+    }
+
     // Admin two-factor login (authenticator app) for the Filament panel.
     public function getAppAuthenticationSecret(): ?string
     {
