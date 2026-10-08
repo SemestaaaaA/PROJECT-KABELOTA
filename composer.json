@@ -91,7 +91,7 @@
             "Composer\\Config::disableProcessTimeout",
             "rm -f public/hot",
             "npm run build",
-            "npx concurrently -c \"#fbbf24,#93c5fd\" --names server,queue --kill-others \"PHP_INI_SCAN_DIR=php php artisan serve --port=8000\" \"php artisan queue:listen --tries=1\""
+            "npx concurrently -c \"#fbbf24,#93c5fd\" --names server,queue --kill-others \"PHP_INI_SCAN_DIR=php php artisan serve --port=8000\" \"while true; do php artisan queue:work --tries=1; sleep 1; done\""
         ]
     },
     "extra": {

@@ -16,6 +16,9 @@ case "$ORIGINAL_URL" in *trycloudflare.com*) ORIGINAL_URL=http://localhost:8000 
 set_app_url() {
     sed -i '' -E "s#^APP_URL=.*#APP_URL=$1#" "$ENV_FILE"
     php artisan config:clear >/dev/null 2>&1
+    # Worker queue menyimpan APP_URL lama di memori; minta ia berhenti dengan rapi,
+    # loop di `composer demo` langsung menyalakannya lagi dengan APP_URL baru.
+    php artisan queue:restart >/dev/null 2>&1
 }
 
 restore() {
