@@ -13,10 +13,16 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $title ?? 'Kabelota · Cari Tenaga Ahli Teknik Sipil Sulawesi Tengah' }}">
     <meta property="og:description" content="{{ $description ?? 'Cari alumni dan mahasiswa Teknik Sipil UNTAD berdasarkan SKK, jenjang, dan pengalaman. Gratis untuk talenta.' }}">
-    <meta property="og:image" content="{{ url('/images/og.jpg') }}">
+    {{-- ?v= changes with the file so WhatsApp refetches a new image instead of its cached one. --}}
+    <meta property="og:image" content="{{ url('/images/og.jpg') }}?v={{ @filemtime(public_path('images/og.jpg')) }}">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Kabelota: tenaga ahli daerah, membangun daerahnya. Talenta Teknik Sipil Universitas Tadulako.">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $title ?? 'Kabelota · Cari Tenaga Ahli Teknik Sipil Sulawesi Tengah' }}">
+    <meta name="twitter:description" content="{{ $description ?? 'Cari alumni dan mahasiswa Teknik Sipil UNTAD berdasarkan SKK, jenjang, dan pengalaman. Gratis untuk talenta.' }}">
+    <meta name="theme-color" content="#111113">
     @unless (app()->isProduction())
         <meta name="robots" content="noindex">
     @endunless
