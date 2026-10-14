@@ -29,7 +29,7 @@ return [
     ],
 
     // Receives alerts: failed jobs and failed backups.
-    'ops_email' => env('KABELOTA_OPS_EMAIL', 'admin@kabelota.id'),
+    'ops_email' => env('KABELOTA_OPS_EMAIL') ?: 'admin@kabelota.id',
 
     'admin_email' => env('KABELOTA_ADMIN_EMAIL', 'admin@kabelota.id'),
     'admin_password' => env('KABELOTA_ADMIN_PASSWORD'),

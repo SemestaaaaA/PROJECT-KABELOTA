@@ -233,7 +233,7 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => env('KABELOTA_OPS_EMAIL', 'admin@kabelota.id'),
+            'to' => env('KABELOTA_OPS_EMAIL') ?: 'admin@kabelota.id',
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
