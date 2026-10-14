@@ -28,3 +28,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Berkas variabel berisi rahasia (kunci, sandi) untuk ditempel ke Railway
+*.local.env
