@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobPostingController;
 use App\Http\Controllers\JobPostingFlowController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuickLoginController;
 use App\Http\Controllers\RecruitmentOfferController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\TalentController;
@@ -38,6 +39,7 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::middleware('guest')->group(function () {
     Route::get('/masuk', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/masuk', [AuthController::class, 'login'])->name('login.store');
+    Route::post('/masuk-cepat', [QuickLoginController::class, 'store'])->middleware('throttle:20,1')->name('quick.login');
     Route::post('/daftar', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('register');
     Route::get('/lupa-sandi', [PasswordResetController::class, 'request'])->name('password.request');
     Route::post('/lupa-sandi', [PasswordResetController::class, 'email'])->middleware('throttle:5,1')->name('password.email');

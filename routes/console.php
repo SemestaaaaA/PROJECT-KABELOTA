@@ -67,6 +67,7 @@ Artisan::command('kabelota:preflight', function () {
     config('app.debug') ? $add('fail', 'APP_DEBUG menyala', 'Set APP_DEBUG=false') : $add('ok', 'APP_DEBUG=false');
     filled(config('app.key')) ? $add('ok', 'APP_KEY terisi') : $add('fail', 'APP_KEY kosong', 'php artisan key:generate --show');
     str_starts_with((string) config('app.url'), 'https://') ? $add('ok', 'APP_URL memakai https') : $add('fail', 'APP_URL bukan https: '.config('app.url'), 'Isi domain asli, mis. https://kabelota.id');
+    config('kabelota.quick_login') ? $add('fail', 'Masuk cepat (HRD/Talenta tanpa akun) menyala', 'Set KABELOTA_QUICK_LOGIN=false') : $add('ok', 'Masuk cepat mati');
     config('session.secure') ? $add('ok', 'Cookie sesi hanya lewat https') : $add('warn', 'SESSION_SECURE_COOKIE belum true');
     config('queue.default') === 'sync' ? $add('warn', 'QUEUE_CONNECTION=sync, email memperlambat halaman') : $add('ok', 'Queue: '.config('queue.default'));
 

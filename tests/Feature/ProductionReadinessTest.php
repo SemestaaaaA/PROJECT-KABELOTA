@@ -62,11 +62,36 @@ class ProductionReadinessTest extends TestCase
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
-    public function test_demo_login_route_no_longer_exists(): void
+    public function test_quick_login_is_closed_by_default(): void
     {
-        $this->post('/demo/masuk', ['role' => 'perusahaan']);
+        $this->post('/masuk-cepat', ['role' => 'perusahaan'])->assertNotFound();
         $this->assertGuest();
-        $this->assertFalse(\Illuminate\Support\Facades\Route::has('demo.login'));
+        $this->get('/')->assertDontSee('Masuk tanpa akun', false)->assertDontSee('form="quick-hrd"', false);
+    }
+
+    public function test_quick_login_works_on_a_server_with_only_the_admin(): void
+    {
+        config(['kabelota.admin_password' => 'sandi-admin-yang-panjang', 'kabelota.quick_login' => true]);
+        $this->app['env'] = 'production';
+        $this->runSeeder(); // admin only; no sample HRD exists yet
+        $this->app['env'] = 'testing'; // production would turn CSRF checks back on
+
+        $this->get('/')->assertSee('form="quick-hrd"', false);
+
+        $this->post('/masuk-cepat', ['role' => 'perusahaan']);
+        $this->assertTrue(auth()->user()->isCompany());
+        $this->assertTrue(auth()->user()->company->isVerified());
+        $this->post('/keluar');
+
+        $this->post('/masuk-cepat', ['role' => 'talenta'])->assertRedirect(route('profile.edit'));
+        $this->assertTrue(auth()->user()->isTalent());
+        $this->assertNotNull(auth()->user()->email_verified_at);
+    }
+
+    public function test_preflight_fails_while_quick_login_is_on(): void
+    {
+        config(['kabelota.quick_login' => true]);
+        $this->artisan('kabelota:preflight')->expectsOutputToContain('Masuk cepat')->assertFailed();
     }
 
     public function test_admin_two_factor_is_required_only_outside_local_and_testing(): void

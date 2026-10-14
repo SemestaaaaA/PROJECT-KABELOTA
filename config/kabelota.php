@@ -3,6 +3,9 @@
 return [
     'tagline' => 'Kebaikan untuk bersama',
 
+    // Tombol "coba tanpa akun sebagai HRD / Talenta" di popup Masuk. Nyalakan untuk demo dan QA, matikan saat launch.
+    'quick_login' => (bool) env('KABELOTA_QUICK_LOGIN', false),
+
     // Server QA (APP_ENV=staging): pita "Versi QA" + tautan Google Form untuk melapor masalah.
     'qa_form_url' => env('KABELOTA_QA_FORM_URL'),
 

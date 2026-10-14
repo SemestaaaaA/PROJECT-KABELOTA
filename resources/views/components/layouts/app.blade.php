@@ -295,6 +295,13 @@
                     <a class="textlink" href="{{ route('password.request') }}" style="font-size:13.5px">Lupa kata sandi?</a>
                 </div>
                 <button type="submit" class="btn btn-ink">Masuk</button>
+                @if (config('kabelota.quick_login'))
+                    <p class="demo-note">Untuk uji coba, masuk tanpa akun sebagai:</p>
+                    <div class="two">
+                        <button class="btn btn-accent" type="submit" form="quick-hrd" style="width:100%">HRD Perusahaan</button>
+                        <button class="btn btn-line" type="submit" form="quick-talenta" style="width:100%">Talenta</button>
+                    </div>
+                @endif
             </form>
 
             <form class="content" x-show="$store.auth.tab === 'daftar'" x-cloak method="post" action="{{ route('register') }}" novalidate>
@@ -323,5 +330,9 @@
             </form>
         </div>
     </div>
+    @if (config('kabelota.quick_login'))
+        <form id="quick-hrd" method="post" action="{{ route('quick.login') }}" hidden>@csrf<input type="hidden" name="role" value="perusahaan"></form>
+        <form id="quick-talenta" method="post" action="{{ route('quick.login') }}" hidden>@csrf<input type="hidden" name="role" value="talenta"></form>
+    @endif
 </body>
 </html>
