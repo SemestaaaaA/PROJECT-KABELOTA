@@ -50,7 +50,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/brand/kabelota-hitam.webp'))
             ->darkModeBrandLogo(asset('images/brand/kabelota-putih.webp'))
             ->brandLogoHeight('1.8rem')
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('favicon-32.png'))
             ->colors([
                 'primary' => Color::Amber,
                 'gray' => Color::Zinc,

@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex">
     <title>@yield('code') · Kabelota</title>
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
     <script>
         try { const t = localStorage.getItem('kabelota-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     </script>

@@ -32,7 +32,10 @@
         <script defer src="{{ rtrim(config('kabelota.analytics.host'), '/') }}/script.js" data-website-id="{{ config('kabelota.analytics.website_id') }}"></script>
     @endif
     {{ $head ?? '' }}
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
     <script>
         // Apply the saved theme before paint to avoid a flash.
         try { const t = localStorage.getItem('kabelota-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
