@@ -85,7 +85,6 @@
                 </div>
                 <x-file-drop name="payment_proof" id="j-proof" label="Bukti transfer" accept="image/jpeg,image/png,application/pdf"
                     placeholder="Pilih foto atau PDF bukti transfer" hint="JPG, PNG, atau PDF, maksimal 2 MB" />
-                @if (config('kabelota.demo_mode'))<p class="demo-note">Mode demo: unggah gambar apa saja. Rekening di atas masih placeholder.</p>@endif
             </div>
 
             <div class="form-actions">

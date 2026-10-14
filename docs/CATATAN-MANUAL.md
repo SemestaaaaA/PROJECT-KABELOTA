@@ -88,7 +88,7 @@ Kode sudah siap. Script Umami hanya dimuat kalau dua variabel di bawah diisi, da
 
 ## 6. Hari launch
 
-- [ ] Deploy `main` ke `kabelota-prod` dengan `KABELOTA_DEMO=false` dan `APP_KEY` baru. Jangan pakai kunci demo atau QA.
+- [ ] Deploy `main` ke `kabelota-prod` dengan `APP_ENV=production` dan `APP_KEY` baru. Jangan pakai kunci demo atau QA.
 - [ ] Lewat `railway ssh`, jalankan `php artisan kabelota:preflight` sampai tidak ada **GAGAL**.
 - [ ] Login admin, pasang 2FA (Google Authenticator), dan **simpan kode pemulihan** di tempat aman.
 - [ ] Uji dari HP dengan data seluler:
@@ -108,7 +108,7 @@ Kode sudah siap. Script Umami hanya dimuat kalau dua variabel di bawah diisi, da
 
 - Folder `app` memakai **MySQL MAMP** (port 8889, user dan sandi `root`, database `kabelota`). Nyalakan MAMP dulu sebelum `composer dev`, atau halaman akan error koneksi database.
 - Email lokal masuk ke **Mailpit**: http://localhost:8025. Mailpit menyala otomatis lewat `brew services`.
-- Server pengerjaan jalan di port **8001** (`composer dev`). Versi demo ada di folder `app-demo`: `composer demo` di port 8000, ditambah `composer share:alt` untuk link Cloudflare.
+- Server pengerjaan jalan di port **8001** (`composer dev`). Versi demo beku ada di folder `app-demo`: `composer demo` (di branch demo) di port 8000, ditambah `composer share:alt` untuk link Cloudflare.
 - Data contoh bisa direset kapan saja dengan `php artisan migrate:fresh --seed`. Data contoh sengaja tersebar di 12 minggu terakhir supaya grafik admin terisi.
 - Push dari panel Claude kadang menunggu izin **Keychain** macOS. Kalau muncul popup, klik **Always Allow**.
 

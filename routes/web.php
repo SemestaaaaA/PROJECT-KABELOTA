@@ -8,7 +8,6 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CompanyDashboardController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\DemoSessionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobPostingController;
 use App\Http\Controllers\JobPostingFlowController;
@@ -40,7 +39,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/masuk', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/masuk', [AuthController::class, 'login'])->name('login.store');
     Route::post('/daftar', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('register');
-    Route::post('/demo/masuk', [DemoSessionController::class, 'store'])->name('demo.login');
     Route::get('/lupa-sandi', [PasswordResetController::class, 'request'])->name('password.request');
     Route::post('/lupa-sandi', [PasswordResetController::class, 'email'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-sandi/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');

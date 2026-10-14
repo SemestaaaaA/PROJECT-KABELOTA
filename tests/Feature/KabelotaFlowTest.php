@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class KabelotaDemoTest extends TestCase
+class KabelotaFlowTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -256,17 +256,6 @@ class KabelotaDemoTest extends TestCase
         $this->get('/lowongan')->assertSee('Site Engineer Uji Coba');
     }
 
-    public function test_demo_buttons_log_into_real_accounts(): void
-    {
-        $this->post('/demo/masuk', ['role' => 'perusahaan']);
-        $this->assertAuthenticatedAs($this->hrd());
-        $this->post('/keluar');
-
-        $this->post('/demo/masuk', ['role' => 'talenta'])->assertRedirect(route('profile.edit'));
-        $this->assertTrue(auth()->user()->isTalent());
-        $this->assertNotNull(auth()->user()->email_verified_at);
-    }
-
     /** Talent with a profile, for inbox / apply tests. */
     private function talentWithProfile(): array
     {
@@ -440,7 +429,7 @@ class KabelotaDemoTest extends TestCase
             ->assertSee('og:image', false)
             ->assertSee('/images/og.jpg', false)
             ->assertSee('<meta name="robots" content="noindex">', false)
-            ->assertSee('Mode demo.');
+            ->assertDontSee('Mode demo.');
     }
 
     public function test_qa_server_shows_qa_ribbon_with_report_link(): void

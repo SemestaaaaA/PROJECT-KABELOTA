@@ -70,11 +70,9 @@
     </div>
     <div class="nav-progress" aria-hidden="true"><span></span></div>
     @if (app()->environment('staging'))
-        <div class="demo-ribbon qa-ribbon"><b>Versi QA.</b> Ini server uji coba, bukan versi demo.
+        <div class="demo-ribbon qa-ribbon"><b>Versi QA.</b> Ini server uji coba, data bisa direset sewaktu-waktu.
             @if (config('kabelota.qa_form_url'))<a href="{{ config('kabelota.qa_form_url') }}" target="_blank" rel="noopener">Laporkan masalah</a>@endif
         </div>
-    @elseif (config('kabelota.demo_mode'))
-        <div class="demo-ribbon"><b>Mode demo.</b> Semua nama talenta, perusahaan, dan proyek adalah data contoh.</div>
     @endif
 
     <div class="topbar" x-data="{ scrolled: false, menu: false }" @scroll.window.throttle.100ms="scrolled = window.scrollY > 8"
@@ -297,13 +295,6 @@
                     <a class="textlink" href="{{ route('password.request') }}" style="font-size:13.5px">Lupa kata sandi?</a>
                 </div>
                 <button type="submit" class="btn btn-ink">Masuk</button>
-                @if (config('kabelota.demo_mode'))
-                    <p class="demo-note">Untuk demo, coba tanpa akun sebagai:</p>
-                    <div class="two">
-                        <button class="btn btn-accent" type="submit" form="demo-hrd" style="width:100%">HRD Perusahaan</button>
-                        <button class="btn btn-line" type="submit" form="demo-talenta" style="width:100%">Talenta</button>
-                    </div>
-                @endif
             </form>
 
             <form class="content" x-show="$store.auth.tab === 'daftar'" x-cloak method="post" action="{{ route('register') }}" novalidate>
@@ -332,9 +323,5 @@
             </form>
         </div>
     </div>
-    @if (config('kabelota.demo_mode'))
-        <form id="demo-hrd" method="post" action="{{ route('demo.login') }}" hidden>@csrf<input type="hidden" name="role" value="perusahaan"></form>
-        <form id="demo-talenta" method="post" action="{{ route('demo.login') }}" hidden>@csrf<input type="hidden" name="role" value="talenta"></form>
-    @endif
 </body>
 </html>

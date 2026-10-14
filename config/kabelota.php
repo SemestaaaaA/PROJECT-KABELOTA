@@ -3,9 +3,6 @@
 return [
     'tagline' => 'Kebaikan untuk bersama',
 
-    // Shows the "coba sebagai HRD/Talenta" buttons. Turn off for the real launch.
-    'demo_mode' => env('KABELOTA_DEMO', true),
-
     // Server QA (APP_ENV=staging): pita "Versi QA" + tautan Google Form untuk melapor masalah.
     'qa_form_url' => env('KABELOTA_QA_FORM_URL'),
 
@@ -33,7 +30,6 @@ return [
 
     'admin_email' => env('KABELOTA_ADMIN_EMAIL', 'admin@kabelota.id'),
     'admin_password' => env('KABELOTA_ADMIN_PASSWORD'),
-    'demo_password' => env('KABELOTA_DEMO_PASSWORD'),
 
     'concentrations' => ['Struktur', 'Transportasi', 'Keairan', 'Geoteknik', 'Manajemen Konstruksi'],
 

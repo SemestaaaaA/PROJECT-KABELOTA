@@ -57,9 +57,8 @@ for site in demo qa; do
         sudo -u "$APP_USER" cp "$dir/deploy/env.$site.example" "$dir/.env"
         sed -i "s#^APP_URL=.*#APP_URL=https://$site.$HOST_SUFFIX#" "$dir/.env"
         if [ "$site" = qa ]; then sed -i "s#^DB_PASSWORD=.*#DB_PASSWORD=$QA_DB_PASS#" "$dir/.env"; fi
-        # Random passwords for the seeded admin and HRD accounts.
+        # Random password for the seeded admin account.
         sed -i "s#^KABELOTA_ADMIN_PASSWORD=.*#KABELOTA_ADMIN_PASSWORD=$(openssl rand -base64 12 | tr -d '/+=')#" "$dir/.env"
-        sed -i "s#^KABELOTA_DEMO_PASSWORD=.*#KABELOTA_DEMO_PASSWORD=$(openssl rand -base64 12 | tr -d '/+=')#" "$dir/.env"
     fi
 done
 

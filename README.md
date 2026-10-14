@@ -64,12 +64,12 @@ Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pen
 - **Online di Railway** (demo + QA, auto-deploy dari branch): [deploy/PANDUAN-RAILWAY.md](deploy/PANDUAN-RAILWAY.md). Cadangan untuk VPS: [deploy/PANDUAN-SERVER-GRATIS.md](deploy/PANDUAN-SERVER-GRATIS.md)
 - **Template Google Form QA**: [docs/qa/FORM-QA.md](docs/qa/FORM-QA.md), dengan skenario uji di [docs/qa/SKENARIO-QA.md](docs/qa/SKENARIO-QA.md)
 - **Demo di laptop tanpa server:** folder `../app-demo` (worktree branch `demo`, database sendiri) menjalankan `composer demo` di port 8000. Folder pengerjaan `app` memakai port 8001 (`SERVER_PORT=8001` di `.env`).
-- `php artisan kabelota:reset-demo` mengosongkan data dan unggahan lalu mengisi ulang data contoh. `php artisan kabelota:make-admin email` menjadikan akun admin.
+- Data contoh (50 talenta, 5 perusahaan) hanya diisi di lokal dan tes: `php artisan migrate:fresh --seed`. Server yang online hanya berisi akun admin. `php artisan kabelota:make-admin email` menjadikan akun admin.
 
 ## Produksi
 
 - Sebelum launch jalankan `php artisan kabelota:preflight` (semua GAGAL harus hilang). Tugas manual: [docs/CATATAN-MANUAL.md](docs/CATATAN-MANUAL.md).
-- `KABELOTA_DEMO=false` → seeder hanya membuat akun admin (`KABELOTA_ADMIN_EMAIL`, sandi minimal 12 karakter), tombol demo mati, admin wajib 2FA (aplikasi authenticator).
+- Di server (`APP_ENV` bukan `local`), seeder hanya membuat akun admin (`KABELOTA_ADMIN_EMAIL`, sandi minimal 12 karakter) dan admin wajib 2FA (aplikasi authenticator).
 - Backup harian (database + unggahan) ke `storage/app/backups`, simpan 14 hari. `BACKUP_DISK` bisa diarahkan ke S3/R2.
 - Email: `MAIL_MAILER=brevo` + `BREVO_API_KEY` (HTTPS, aman untuk Railway), atau SMTP biasa di VPS.
 - Alert ke `KABELOTA_OPS_EMAIL` saat job gagal atau backup bermasalah.
@@ -79,7 +79,7 @@ Satu repo, tiga branch. Link demo yang sudah disebar tidak ikut berubah saat pen
 
 Laptop menjalankan Kabelota, Cloudflare memberi link publik `https://….trycloudflare.com`. Gratis, tanpa akun Cloudflare. Link hidup selama kedua terminal menyala.
 
-1. Terminal tab 1: `composer demo`, tunggu sampai muncul `Server running on [http://127.0.0.1:8000]`. **Jangan pakai `composer dev` untuk berbagi link**: mode itu memuat CSS dan JavaScript dari `127.0.0.1:5173` yang hanya ada di laptopmu, jadi di perangkat lain halaman tampil tanpa desain.
+1. Terminal tab 1: `composer local`, tunggu sampai muncul `Server running on [http://127.0.0.1:8000]`. **Jangan pakai `composer dev` untuk berbagi link**: mode itu memuat CSS dan JavaScript dari `127.0.0.1:5173` yang hanya ada di laptopmu, jadi di perangkat lain halaman tampil tanpa desain.
 2. Terminal tab 2 (Cmd+T): `composer share` (atau `composer share:alt` kalau DNS bermasalah), tunggu sekitar 10 detik sampai muncul link `https://….trycloudflare.com`.
 3. Buka link itu di HP pakai data seluler. Kalau beranda tampil, kirim link ke klien.
 4. Selesai demo: tekan Ctrl+C di kedua tab. Link langsung mati.
@@ -97,7 +97,7 @@ Baris `ERR Failed to initialize DNS local resolver` yang muncul **setelah** `Reg
 
 Kalau masih gagal, pindah ke hotspot HP. Link baru juga kadang butuh 15-30 detik sebelum bisa dibuka; error 530 di awal itu normal.
 
-Catatan: link berganti setiap kali dijalankan ulang; laptop harus menyala, online, dan tidak sleep. Kata sandi akun demo ada di `.env`, jangan dibagikan selain ke orang yang perlu masuk sebagai admin. Vercel tidak cocok untuk Kabelota (unggahan file, database, dan queue butuh server yang jalan terus); untuk pilot gunakan VPS.
+Catatan: link berganti setiap kali dijalankan ulang; laptop harus menyala, online, dan tidak sleep. Vercel tidak cocok untuk Kabelota (unggahan file, database, dan queue butuh server yang jalan terus); untuk pilot gunakan VPS.
 
 ## Akun dan login
 
@@ -106,15 +106,11 @@ Login sungguhan per peran: **talenta**, **perusahaan**, dan **admin**. Pendaftar
 | Akun lokal (dari seeder) | Email | Kata sandi |
 |---|---|---|
 | Admin (panel `/admin`) | `admin@kabelota.test` | nilai `KABELOTA_ADMIN_PASSWORD` di `.env` |
-| HRD demo (perusahaan terverifikasi) | `hrd@demo.kabelota.test` | nilai `KABELOTA_DEMO_PASSWORD` di `.env` |
+| HRD contoh (perusahaan terverifikasi) | `hrd@demo.kabelota.test` | `password` (hanya lokal) |
 
-**Ganti kedua kata sandi itu sebelum demo dibuka ke publik.**
+Akun contoh ini hanya ada di lokal. Server online tidak memilikinya.
 
 Perusahaan baru berstatus *Menunggu verifikasi*. Setelah melengkapi profil dan mengunggah NIB/SBU, admin memverifikasi dari panel. Baru setelah itu perusahaan bisa Ajukan Rekrut, membuka CV, dan memasang lowongan.
-
-### Mode demo (`KABELOTA_DEMO=true`)
-
-Di popup Masuk ada tombol **coba sebagai HRD** (masuk ke akun HRD demo) dan **Talenta** (membuat akun talenta baru yang kosong setiap kali). Matikan dengan `KABELOTA_DEMO=false` saat launch.
 
 ## Panel admin (Filament)
 

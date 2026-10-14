@@ -71,7 +71,7 @@
             </div>
         @endforeach
     </div>
-    <p class="stats-note">Angka dihitung langsung dari database. Saat ini berisi data demo.</p>
+    <p class="stats-note">Angka dihitung langsung dari database.</p>
 </div>
 
 @php($flows = [

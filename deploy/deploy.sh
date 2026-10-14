@@ -2,7 +2,7 @@
 # Ambil versi terbaru dari branch situs, lalu build dan migrasi.
 #   bash deploy.sh demo          update situs demo (branch demo)
 #   bash deploy.sh qa            update situs QA (branch qa)
-#   bash deploy.sh qa --fresh    pertama kali / reset: hapus semua data, isi data contoh
+#   bash deploy.sh qa --fresh    pertama kali / reset: hapus semua data, buat ulang akun admin
 set -euo pipefail
 umask 002
 
@@ -26,7 +26,7 @@ grep -q '^APP_KEY=base64' .env || php artisan key:generate --force
 
 php artisan down --retry=15 || true
 if [ "$fresh" = "--fresh" ]; then
-    php artisan kabelota:reset-demo --force
+    php artisan migrate:fresh --seed --force
 else
     php artisan migrate --force
 fi

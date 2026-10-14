@@ -41,10 +41,10 @@ class AdminPanelProvider extends PanelProvider
                 </style>
                 HTML)
             ->profile(isSimple: false)
-            // Authenticator-app 2FA; required for admins once the demo is switched off.
+            // Authenticator-app 2FA; required for admins everywhere except local development and tests.
             ->multiFactorAuthentication(
                 AppAuthentication::make()->recoverable()->brandName('Kabelota'),
-                isRequired: fn () => ! config('kabelota.demo_mode'),
+                isRequired: fn () => ! app()->environment(['local', 'testing']),
             )
             ->brandName('Kabelota Admin')
             ->brandLogo(asset('images/brand/kabelota-hitam.webp'))

@@ -18,30 +18,6 @@ Artisan::command('kabelota:make-admin {email}', function (string $email) {
     $this->info("{$email} sekarang admin. Panel: ".url('/admin'));
 })->purpose('Jadikan akun yang sudah terdaftar sebagai admin (untuk anggota QA)');
 
-Artisan::command('kabelota:reset-demo {--force : Lewati konfirmasi}', function () {
-    if (! config('kabelota.demo_mode')) {
-        $this->error('Hanya bisa dijalankan saat KABELOTA_DEMO=true.');
-
-        return 1;
-    }
-
-    if (! $this->option('force') && ! $this->confirm('Semua data dan file unggahan akan dihapus lalu diisi data contoh. Lanjut?')) {
-        return 0;
-    }
-
-    // Uploaded files live in these folders on the public and local disks.
-    foreach (['public', 'local'] as $disk) {
-        foreach (Storage::disk($disk)->directories() as $dir) {
-            if (! str_starts_with($dir, '.')) {
-                Storage::disk($disk)->deleteDirectory($dir);
-            }
-        }
-    }
-
-    $this->call('migrate:fresh', ['--seed' => true, '--force' => true]);
-    $this->info('Data demo sudah bersih.');
-})->purpose('Kosongkan data dan unggahan, lalu isi ulang data contoh');
-
 Artisan::command('kabelota:close-expired', function () {
     $closed = \App\Models\JobPosting::where('status', 'aktif')->whereDate('closes_at', '<', today())->update(['status' => 'ditutup']);
     $this->info("{$closed} lowongan ditutup karena masa tayang habis.");
@@ -91,7 +67,6 @@ Artisan::command('kabelota:preflight', function () {
     config('app.debug') ? $add('fail', 'APP_DEBUG menyala', 'Set APP_DEBUG=false') : $add('ok', 'APP_DEBUG=false');
     filled(config('app.key')) ? $add('ok', 'APP_KEY terisi') : $add('fail', 'APP_KEY kosong', 'php artisan key:generate --show');
     str_starts_with((string) config('app.url'), 'https://') ? $add('ok', 'APP_URL memakai https') : $add('fail', 'APP_URL bukan https: '.config('app.url'), 'Isi domain asli, mis. https://kabelota.id');
-    config('kabelota.demo_mode') ? $add('fail', 'Mode demo menyala', 'Set KABELOTA_DEMO=false') : $add('ok', 'Mode demo mati (2FA admin wajib)');
     config('session.secure') ? $add('ok', 'Cookie sesi hanya lewat https') : $add('warn', 'SESSION_SECURE_COOKIE belum true');
     config('queue.default') === 'sync' ? $add('warn', 'QUEUE_CONNECTION=sync, email memperlambat halaman') : $add('ok', 'Queue: '.config('queue.default'));
 

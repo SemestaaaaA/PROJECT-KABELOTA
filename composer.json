@@ -87,7 +87,7 @@
             "Composer\\Config::disableProcessTimeout",
             "bash scripts/share.sh alt"
         ],
-        "demo": [
+        "local": [
             "Composer\\Config::disableProcessTimeout",
             "rm -f public/hot",
             "npm run build",

@@ -17,14 +17,21 @@ class ProductionReadinessTest extends TestCase
     // Same seeded database as the other feature tests; assertions below count changes, not totals.
     protected bool $seed = true;
 
+    /** Calls the seeder directly: `db:seed` would ask for confirmation once the env is production. */
+    private function runSeeder(): void
+    {
+        app(DatabaseSeeder::class)->setContainer(app())->__invoke();
+    }
+
     public function test_production_seeder_creates_only_the_admin(): void
     {
-        config(['kabelota.demo_mode' => false, 'kabelota.admin_password' => 'sandi-admin-yang-panjang', 'kabelota.admin_email' => 'admin@kabelota.id']);
+        $this->app['env'] = 'production'; // deployed servers seed only the admin
+        config(['kabelota.admin_password' => 'sandi-admin-yang-panjang', 'kabelota.admin_email' => 'admin@kabelota.id']);
 
         $before = [User::count(), Talent::count(), Company::count()];
 
-        $this->seed(DatabaseSeeder::class);
-        $this->seed(DatabaseSeeder::class); // safe to run twice
+        $this->runSeeder();
+        $this->runSeeder(); // safe to run twice
 
         $this->assertSame([$before[0] + 1, $before[1], $before[2]], [User::count(), Talent::count(), Company::count()]);
         $this->assertSame('admin', User::where('email', 'admin@kabelota.id')->value('role'));
@@ -32,10 +39,11 @@ class ProductionReadinessTest extends TestCase
 
     public function test_production_seeder_refuses_a_weak_admin_password(): void
     {
-        config(['kabelota.demo_mode' => false, 'kabelota.admin_password' => 'pendek']);
+        $this->app['env'] = 'production';
+        config(['kabelota.admin_password' => 'pendek']);
 
         $this->expectException(\RuntimeException::class);
-        $this->seed(DatabaseSeeder::class);
+        $this->runSeeder();
     }
 
     public function test_demo_seeder_fills_sample_data(): void
@@ -54,23 +62,20 @@ class ProductionReadinessTest extends TestCase
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
-    public function test_demo_login_is_closed_when_demo_mode_is_off(): void
+    public function test_demo_login_route_no_longer_exists(): void
     {
-        config(['kabelota.demo_mode' => false]);
-
-        $response = $this->post('/demo/masuk', ['role' => 'perusahaan']);
+        $this->post('/demo/masuk', ['role' => 'perusahaan']);
         $this->assertGuest();
-        $this->assertContains($response->status(), [403, 404]);
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('demo.login'));
     }
 
-    public function test_admin_two_factor_is_required_only_outside_demo(): void
+    public function test_admin_two_factor_is_required_only_outside_local_and_testing(): void
     {
         $panel = Filament::getPanel('admin');
 
-        config(['kabelota.demo_mode' => true]);
         $this->assertFalse($panel->isMultiFactorAuthenticationRequired());
 
-        config(['kabelota.demo_mode' => false]);
+        $this->app['env'] = 'production';
         $this->assertTrue($panel->isMultiFactorAuthenticationRequired());
     }
 
@@ -103,10 +108,10 @@ class ProductionReadinessTest extends TestCase
         $this->get('/')->assertSee('https://cloud.umami.is/script.js', false)->assertSee('data-website-id="abc-123"', false);
     }
 
-    public function test_preflight_blocks_launch_with_demo_settings(): void
+    public function test_preflight_blocks_launch_with_placeholder_settings(): void
     {
         $this->artisan('kabelota:preflight')
-            ->expectsOutputToContain('Mode demo menyala')
+            ->expectsOutputToContain('APP_ENV=testing')
             ->expectsOutputToContain('Rekening pembayaran masih placeholder')
             ->assertFailed();
     }

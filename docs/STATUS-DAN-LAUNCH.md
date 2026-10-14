@@ -50,7 +50,7 @@ Diperbarui 7 Oktober 2026. Daftar tugas manual sebelum launch: [CATATAN-MANUAL.m
 | 4 | Kumpulkan dari klien/HMTS: foto asli, logo izin UNTAD & HMTS, rekening badan usaha, konfirmasi narasi | Klien + HMTS | 17 Okt | Ganti foto Unsplash |
 | 5 | Lengkapi Kebijakan Privasi & Syarat Penggunaan, tinjau ahli hukum | Klien | 24 Okt | Isi semua [kurung siku] |
 | 6 | Sewa VPS (Hostinger KVM 2) + domain + SSL | DevOps | 20 Okt | Lokasi server terdekat Indonesia |
-| 7 | Deploy produksi: MySQL, `APP_ENV=production`, `APP_DEBUG=false`, `KABELOTA_DEMO=false`, Supervisor untuk queue, backup harian | DevOps | 24 Okt | Set `upload_max_filesize=8M`, `post_max_size=20M` |
+| 7 | Deploy produksi: MySQL, `APP_ENV=production`, `APP_DEBUG=false`, Supervisor untuk queue, backup harian | DevOps | 24 Okt | Set `upload_max_filesize=8M`, `post_max_size=20M` |
 | 8 | Email sungguhan: SMTP (Brevo/Resend) + domain pengirim (SPF/DKIM) | DevOps | 24 Okt | Uji verifikasi & notifikasi masuk inbox, bukan spam |
 | 9 | Hapus akun mandiri + verifikasi SKK oleh admin | Nakita | 27 Okt | Hapus akun wajib menurut UU PDP |
 | 10 | Analitik: Umami + Google Search Console | DevOps | 27 Okt | Tanpa cookie, ramah UU PDP |

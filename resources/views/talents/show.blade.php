@@ -29,7 +29,7 @@
     @if (session('offer_sent'))
         <div class="ok-banner" role="status">
             <b>Tawaran terkirim.</b> {{ $talent->name }} menerima tawaran untuk posisi "{{ session('offer_sent') }}". Kontaknya terbuka setelah ia memilih Terima.
-            @if (config('mail.default') === 'log')<span style="color:var(--muted)">(Mode demo: email belum benar-benar dikirim.)</span>@endif
+            @if (config('mail.default') === 'log')<span style="color:var(--muted)">(Mode lokal: email dicatat di log, belum benar-benar dikirim.)</span>@endif
         </div>
     @endif
 

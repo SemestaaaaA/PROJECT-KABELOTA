@@ -60,14 +60,14 @@ class DemoSeeder extends Seeder
             'contact_phone' => '0812'.fake()->numerify('########'),
         ]));
 
-        // Local accounts. Change the passwords in .env before sharing a public demo.
+        // Local development and test accounts only; deployed servers never run this seeder.
         User::create([
             'name' => 'Admin Kabelota', 'email' => 'admin@kabelota.test', 'role' => 'admin',
             'password' => $this->password('admin_password'), 'email_verified_at' => now(),
         ]);
         $hrd = User::create([
             'name' => 'HRD Demo', 'email' => 'hrd@demo.kabelota.test', 'role' => 'perusahaan',
-            'password' => $this->password('demo_password'), 'email_verified_at' => now(),
+            'password' => 'password', 'email_verified_at' => now(),
         ]);
         $companies->first()->update(['user_id' => $hrd->id, 'contact_name' => 'Rina Lamba']);
 
