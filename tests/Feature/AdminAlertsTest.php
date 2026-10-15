@@ -117,4 +117,35 @@ class AdminAlertsTest extends TestCase
         $this->assertStringContainsString('SKK', $this->latestAdminTitle());
         $this->assertStringContainsString('Sari Uji', $this->admin()->notifications()->latest()->first()->data['body']);
     }
+
+    public function test_contact_messages_track_read_state(): void
+    {
+        $message = \App\Models\ContactMessage::create(['name' => 'Rina', 'email' => 'rina@contoh.id', 'topic' => 'Pertanyaan umum', 'message' => 'Halo, mau tanya soal pilot.']);
+        $this->assertSame(1, \App\Models\ContactMessage::unread()->count());
+
+        $message->markAsRead();
+
+        $this->assertNotNull($message->fresh()->read_at);
+        $this->assertSame(0, \App\Models\ContactMessage::unread()->count());
+        $this->assertNull(\App\Filament\Resources\ContactMessages\ContactMessageResource::getNavigationBadge());
+    }
+
+    public function test_opening_a_contact_message_marks_it_read(): void
+    {
+        $first = \App\Models\ContactMessage::create(['name' => 'Rina', 'email' => 'rina@contoh.id', 'topic' => 'Pertanyaan umum', 'message' => 'Halo, mau tanya soal pilot.']);
+        $second = \App\Models\ContactMessage::create(['name' => 'Budi', 'email' => 'budi@contoh.id', 'topic' => 'Kendala akun', 'message' => 'Tidak bisa masuk ke akun saya.']);
+        $this->assertSame('2', \App\Filament\Resources\ContactMessages\ContactMessageResource::getNavigationBadge());
+
+        $this->actingAs($this->admin());
+        $list = \App\Filament\Resources\ContactMessages\Pages\ListContactMessages::class;
+        \Livewire\Livewire::test($list)
+            ->assertSee('Baru')
+            ->mountTableAction('view', $first)
+            ->assertSee('Halo, mau tanya soal pilot.');
+        \Livewire\Livewire::test($list)->callTableAction('baca', $second);
+
+        $this->assertNotNull($first->fresh()->read_at);
+        $this->assertNotNull($second->fresh()->read_at);
+        $this->get('/admin/contact-messages')->assertOk();
+    }
 }
