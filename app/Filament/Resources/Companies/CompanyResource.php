@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Companies;
 
 use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
+use App\Filament\Resources\Companies\Widgets\CompanyStats;
+use App\Filament\Support\DateRangeFilter;
 use App\Models\Company;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -17,7 +19,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class CompanyResource extends Resource
@@ -33,6 +37,8 @@ class CompanyResource extends Resource
     protected static ?int $navigationSort = 1;
 
     public const STATUSES = ['menunggu' => 'Menunggu verifikasi', 'terverifikasi' => 'Terverifikasi', 'ditolak' => 'Ditolak'];
+
+    public const TYPES = ['konsultan' => 'Konsultan', 'kontraktor' => 'Kontraktor', 'pemilik_proyek' => 'Pemilik proyek', 'lainnya' => 'Lainnya'];
 
     public static function getNavigationBadge(): ?string
     {
@@ -51,7 +57,7 @@ class CompanyResource extends Resource
         return $schema->components([
             Section::make('Data perusahaan')->columns(2)->schema([
                 TextInput::make('name')->label('Nama')->required(),
-                Select::make('type')->label('Jenis')->options(['konsultan' => 'Konsultan', 'kontraktor' => 'Kontraktor', 'pemilik_proyek' => 'Pemilik proyek', 'lainnya' => 'Lainnya'])->required(),
+                Select::make('type')->label('Jenis')->options(self::TYPES)->required(),
                 TextInput::make('nib')->label('NIB'),
                 Select::make('city')->label('Kota')->options(array_combine(config('kabelota.locations'), config('kabelota.locations'))),
                 TextInput::make('contact_name')->label('Penanggung jawab'),
@@ -83,6 +89,14 @@ class CompanyResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')->options(self::STATUSES),
+                SelectFilter::make('city')->label('Kota')
+                    ->options(fn () => Company::query()->distinct()->orderBy('city')->pluck('city', 'city')->all()),
+                SelectFilter::make('type')->label('Jenis')->options(self::TYPES),
+                TernaryFilter::make('legal_doc')->label('Dokumen NIB/SBU')->attribute('legal_doc_path')->nullable()
+                    ->trueLabel('Ada dokumen')->falseLabel('Belum ada dokumen'),
+                Filter::make('has_live_job')->label('Punya lowongan tayang')
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereHas('jobPostings', fn ($q) => $q->open())),
+                DateRangeFilter::make('created_at', 'Tanggal daftar'),
             ])
             ->recordActions([
                 Action::make('dokumen')->label('NIB/SBU')->icon(Heroicon::OutlinedDocumentText)->color('gray')
@@ -106,6 +120,11 @@ class CompanyResource extends Resource
                     }),
                 EditAction::make(),
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [CompanyStats::class];
     }
 
     public static function getPages(): array
