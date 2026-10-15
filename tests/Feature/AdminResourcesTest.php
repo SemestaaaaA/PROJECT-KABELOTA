@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Widgets\CompanyStats;
+use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
+use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
+use App\Models\JobApplication;
 use App\Models\Company;
 use App\Models\JobPosting;
 use App\Models\User;
@@ -103,5 +106,59 @@ class AdminResourcesTest extends TestCase
             'Terverifikasi', (string) Company::where('status', 'terverifikasi')->count(),
             'Lowongan tayang', (string) $live,
         ]);
+    }
+
+    public function test_job_posting_filters(): void
+    {
+        $company = $this->company(['status' => 'terverifikasi']);
+        $live = $this->job($company, ['package' => 'tenaga_ahli', 'concentration' => 'Geoteknik']);
+        $expired = $this->job($company, ['package' => 'magang', 'closes_at' => today()->subDay()]);
+        $waiting = $this->job($company, ['status' => 'menunggu_verifikasi', 'payment_proof_path' => 'bukti/a.jpg']);
+        $noProof = $this->job($company, ['status' => 'menunggu_verifikasi']);
+
+        Livewire::test(ListJobPostings::class)
+            ->filterTable('package', 'tenaga_ahli')
+            ->assertCanSeeTableRecords([$live])
+            ->assertCanNotSeeTableRecords([$expired, $waiting]);
+
+        Livewire::test(ListJobPostings::class)
+            ->filterTable('concentration', 'Geoteknik')
+            ->assertCanSeeTableRecords([$live])
+            ->assertCanNotSeeTableRecords([$expired]);
+
+        Livewire::test(ListJobPostings::class)
+            ->filterTable('live')
+            ->assertCanSeeTableRecords([$live])
+            ->assertCanNotSeeTableRecords([$expired, $waiting, $noProof]);
+
+        Livewire::test(ListJobPostings::class)
+            ->filterTable('payment_pending')
+            ->assertCanSeeTableRecords([$waiting])
+            ->assertCanNotSeeTableRecords([$live, $noProof]);
+
+        Livewire::test(ListJobPostings::class)
+            ->filterTable('location', 'Palu')
+            ->assertCanSeeTableRecords([$live]);
+    }
+
+    public function test_job_posting_stats(): void
+    {
+        $company = $this->company(['status' => 'terverifikasi']);
+        $this->job($company, ['package' => 'tenaga_ahli', 'approved_at' => now()]);
+        $this->job($company, ['package' => 'magang', 'approved_at' => now()]);
+        $this->job($company, ['package' => 'reguler', 'approved_at' => now()->subMonthsNoOverflow(2)]);
+        $this->job($company, ['status' => 'menunggu_verifikasi', 'payment_proof_path' => 'bukti/b.jpg']);
+
+        $revenue = JobPosting::whereBetween('approved_at', [now()->startOfMonth(), now()->endOfMonth()])->get()->sum(fn ($j) => $j->packagePrice());
+        $this->assertGreaterThanOrEqual(250000, $revenue);
+
+        Livewire::test(JobPostingStats::class)->assertSeeInOrder([
+            'Menunggu cek bayar', (string) JobPosting::where('status', 'menunggu_verifikasi')->whereNotNull('payment_proof_path')->count(),
+            'Tayang', (string) JobPosting::open()->count(),
+            'Pendapatan bulan ini', 'Rp'.number_format($revenue, 0, ',', '.'),
+            'Total pelamar', (string) JobApplication::count(),
+        ]);
+
+        Livewire::test(ListJobPostings::class)->assertSee('Pendapatan bulan ini');
     }
 }

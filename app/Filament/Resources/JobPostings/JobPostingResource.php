@@ -5,6 +5,8 @@ namespace App\Filament\Resources\JobPostings;
 use App\Filament\Resources\JobPostings\Pages\CreateJobPosting;
 use App\Filament\Resources\JobPostings\Pages\EditJobPosting;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
+use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
+use App\Filament\Support\DateRangeFilter;
 use App\Models\JobPosting;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -18,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
@@ -77,7 +80,20 @@ class JobPostingResource extends Resource
                     ->color(fn ($state) => ['menunggu_verifikasi' => 'warning', 'aktif' => 'success', 'ditolak' => 'danger'][$state] ?? 'gray'),
                 TextColumn::make('closes_at')->label('Tutup')->date('j M Y')->sortable(),
             ])
-            ->filters([SelectFilter::make('status')->options(self::STATUSES)])
+            ->filters([
+                SelectFilter::make('status')->options(self::STATUSES),
+                SelectFilter::make('package')->label('Paket')
+                    ->options(collect(config('kabelota.packages'))->map(fn ($p) => $p['label'])->all()),
+                SelectFilter::make('concentration')->label('Konsentrasi')
+                    ->options(array_combine(config('kabelota.concentrations'), config('kabelota.concentrations'))),
+                SelectFilter::make('location')->label('Lokasi')
+                    ->options(fn () => JobPosting::query()->distinct()->orderBy('location')->pluck('location', 'location')->all()),
+                Filter::make('live')->label('Sedang tayang')
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->open()),
+                Filter::make('payment_pending')->label('Bukti bayar menunggu cek')
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'menunggu_verifikasi')->whereNotNull('payment_proof_path')),
+                DateRangeFilter::make('created_at', 'Tanggal dibuat'),
+            ])
             ->recordActions([
                 Action::make('bukti')->label('Bukti transfer')->icon(Heroicon::OutlinedBanknotes)->color('gray')
                     ->url(fn (JobPosting $r) => route('admin.file', ['bukti-transfer', $r->id]), shouldOpenInNewTab: true)
@@ -96,6 +112,11 @@ class JobPostingResource extends Resource
                     ->action(fn (JobPosting $r) => $r->update(['status' => 'ditolak'])),
                 EditAction::make(),
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [JobPostingStats::class];
     }
 
     public static function getPages(): array
