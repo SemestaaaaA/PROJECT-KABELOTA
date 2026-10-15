@@ -18,7 +18,7 @@ class AdminAlerts
         'job_failed' => ['Job atau email gagal', 'heroicon-o-exclamation-triangle'],
     ];
 
-    /** Never throws: a broken alert must not fail the user's request that triggered it. */
+    /** Never throws: a broken alert must not fail the user's request that triggered it. Pass plain text. */
     public static function send(string $event, string $title, string $body, string $url): void
     {
         rescue(function () use ($event, $title, $body, $url) {
@@ -27,9 +27,11 @@ class AdminAlerts
                 return;
             }
 
+            // Title and body carry user input (names, messages, job titles). Filament renders them as
+            // sanitized HTML, which still allows links, so store them escaped: they show as plain text.
             Notification::make()
-                ->title($title)
-                ->body($body)
+                ->title(e($title))
+                ->body(e($body))
                 ->icon(self::EVENTS[$event][1] ?? 'heroicon-o-bell-alert')
                 ->iconColor($event === 'job_failed' ? 'danger' : 'warning')
                 ->actions([Action::make('buka')->label('Buka')->url($url)->markAsRead()])

@@ -27,9 +27,9 @@ class Dashboard extends BaseDashboard
     /** Supporting analytics, folded by default; lazy widgets load when the section is opened. */
     private const MORE = [
         Widgets\TopCompaniesTable::class,
+        Widgets\LocationChart::class,
         Widgets\ConcentrationChart::class,
         Widgets\JenjangChart::class,
-        Widgets\LocationChart::class,
         Widgets\DataQualityStats::class,
         Widgets\VisitorsWidget::class,
     ];

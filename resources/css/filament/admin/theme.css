@@ -7,7 +7,8 @@
 :root { --kb-orange: #FF7A1A; --kb-yellow: #F5B800; }
 .fi-body { font-family: 'Barlow', ui-sans-serif, system-ui, sans-serif; }
 .fi-wi-stats-overview-stat-value, .kb-num { font-family: 'Barlow Condensed', 'Barlow', sans-serif; font-weight: 800; letter-spacing: -.01em; }
-.fi-ta-text-item, .fi-in-text-item { font-variant-numeric: tabular-nums; }
+.fi-ta-text-item, .fi-in-text-item, .fi-wi-stats-overview-stat-value { font-variant-numeric: tabular-nums; }
+.kb-mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
 .fi-section, .fi-wi-stats-overview-stat { border-radius: 12px; }
 .fi-section { box-shadow: 0 1px 2px rgb(17 17 19 / .06); }
 .fi-topbar { border-bottom: 3px solid transparent; border-image: linear-gradient(90deg, var(--kb-yellow) 55%, var(--kb-orange)) 1; }

@@ -20,8 +20,10 @@ class InboxWidget extends Widget
 
     protected function getViewData(): array
     {
+        // Each row deep-links to the list with the "view" modal open (Filament's ?tableAction=), which marks it read.
         return [
-            'items' => ContactMessage::latest()->limit(5)->get(),
+            'items' => ContactMessage::latest()->limit(5)->get()->each(fn (ContactMessage $m) => $m->setAttribute('open_url',
+                ContactMessageResource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $m->getKey()]))),
             'unread' => ContactMessage::unread()->count(),
             'url' => ContactMessageResource::getUrl('index'),
         ];

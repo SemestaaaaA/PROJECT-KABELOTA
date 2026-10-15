@@ -148,4 +148,54 @@ class AdminAlertsTest extends TestCase
         $this->assertNotNull($second->fresh()->read_at);
         $this->get('/admin/contact-messages')->assertOk();
     }
+
+    public function test_alert_text_from_user_input_cannot_inject_links(): void
+    {
+        $this->post('/kontak', ['name' => '<a href="https://evil.example/x">klik</a>', 'email' => 'rina@contoh.id', 'topic' => 'Pertanyaan umum', 'message' => 'Halo <a href="https://evil.example/y">di sini</a> ya.'])
+            ->assertSessionHasNoErrors();
+
+        $data = $this->admin()->notifications()->latest()->firstOrFail()->data;
+        $this->assertStringNotContainsString('<a', $data['title'].$data['body']);
+
+        $this->actingAs($this->admin());
+        \Livewire\Livewire::test(\App\Filament\Widgets\AdminNotificationsWidget::class)
+            ->assertDontSee('href="https://evil.example', false)
+            ->assertSee('Pesan kontak: Pertanyaan umum');
+    }
+
+    public function test_rejected_company_resubmitting_raises_an_alert(): void
+    {
+        Storage::fake('local');
+        $this->post('/daftar', ['role' => 'perusahaan', 'name' => 'CV Uji Bangun', 'email' => 'hrd@ujibangun.id', 'password' => 'rahasia123', 'consent' => '1']);
+        $user = User::where('email', 'hrd@ujibangun.id')->firstOrFail();
+        $user->markEmailAsVerified();
+        $user->company->update(['status' => 'ditolak', 'rejection_reason' => 'NIB tidak terbaca', 'legal_doc_path' => 'legal-docs/lama.pdf']);
+        $before = $this->admin()->notifications()->count();
+
+        // No new file: only the status moves from "ditolak" back to "menunggu".
+        $this->actingAs($user)->post('/perusahaan/profil', [
+            'name' => 'CV Uji Bangun', 'type' => 'kontraktor', 'city' => 'Palu', 'nib' => '1234567890123',
+            'contact_name' => 'Rina', 'contact_phone' => '0812',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('menunggu', $user->company->fresh()->status);
+        $this->assertSame($before + 1, $this->admin()->notifications()->count());
+        $this->assertStringContainsString('verifikasi', $this->latestAdminTitle());
+    }
+
+    public function test_talent_without_certifications_raises_no_skk_alert(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $user = User::factory()->create(['role' => 'talenta']);
+
+        $this->actingAs($user)->post('/profil', [
+            'type' => 'mahasiswa', 'semester' => 5, 'hmts_member' => '0', 'hmts_status' => 'pengurus',
+            'name' => 'Rahmat Uji', 'phone' => '081200000000', 'email' => 'rahmat@contoh.id', 'city' => 'Palu',
+            'concentration' => 'Struktur', 'availability' => 'tersedia', 'preferred_locations' => ['Palu'], 'consent' => '1',
+            'skk_scan' => UploadedFile::fake()->create('skk.pdf', 100, 'application/pdf'),
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(0, $this->admin()->notifications()->count());
+    }
 }

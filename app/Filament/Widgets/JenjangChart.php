@@ -11,7 +11,7 @@ class JenjangChart extends ChartWidget
 {
     protected static ?int $sort = 6;
 
-    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1, 'xl' => 2];
 
     protected ?string $heading = 'Jenjang SKK tertinggi';
 
