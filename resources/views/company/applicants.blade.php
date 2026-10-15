@@ -46,13 +46,13 @@
                 @endif
             </div>
             @if ($app->isJobOffer())
-                <p class="demo-note">Tawaran kerja <b>{{ $app->job_offer_position }}</b> terkirim. Menunggu jawaban talenta, {{ $app->jobOfferDaysLeft() }} hari lagi.</p>
+                <p class="demo-note">Tawaran kerja <b>{{ $app->job_offer_position }}</b> terkirim. Menunggu jawaban talenta, @if ($app->job_offer_expires_at->isFuture()){{ $app->jobOfferDaysLeft() }} hari lagi @else batas jawab sudah lewat @endif.</p>
             @elseif ($app->status === 'diambil')
                 <p class="demo-note">Talenta mengambil tawaran kerja <b>{{ $app->job_offer_position }}</b>.</p>
             @elseif ($app->status === 'ditutup')
                 <p class="demo-note">Ditutup otomatis: talenta mengambil tawaran kerja lain.@if ($app->closed_note) Pesan talenta: "{{ $app->closed_note }}"@endif</p>
             @elseif ($app->status === 'kedaluwarsa')
-                <p class="demo-note">Tawaran kerja tidak dijawab dalam 7 hari. Anda bisa mengirimnya lagi.</p>
+                <p class="demo-note">Tawaran kerja tidak dijawab dalam {{ \App\Services\HiringDecision::OFFER_DAYS }} hari. Anda bisa mengirimnya lagi.</p>
             @elseif ($app->status === 'ditolak' && $app->closed_note)
                 <p class="demo-note">Alasan talenta: "{{ $app->closed_note }}"</p>
             @endif

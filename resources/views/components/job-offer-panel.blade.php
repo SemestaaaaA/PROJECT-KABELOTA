@@ -29,23 +29,28 @@
     <div class="modal-bg" x-show="take" x-cloak x-transition.opacity @click.self="take = false" @keydown.escape.window="take = false">
         <form class="sheet" role="dialog" aria-modal="true" aria-labelledby="jt-{{ $key }}" method="post"
             action="{{ route('talent.job-offer.accept', [$record->typeKey(), $record->id]) }}" x-trap.noscroll="take">@csrf
-            <h2 id="jt-{{ $key }}">Ambil tawaran {{ $record->job_offer_position }}?</h2>
-            <p style="margin-top:8px">{{ $record->companyName() }}@if ($record->job_offer_start_date), mulai {{ $record->job_offer_start_date->translatedFormat('j F Y') }}@endif.</p>
-            @if ($closing->isNotEmpty())
-                <p style="margin-top:14px">Proses Anda dengan perusahaan berikut akan <b>ditutup otomatis</b>:</p>
-                <ul class="closing-list">
-                    @foreach ($closing as $other)<li><b>{{ $other->companyName() }}</b> · {{ $other->title() }}@if ($other->companyId() === $record->companyId()) <span class="demo-note">(perusahaan yang sama)</span>@endif</li>@endforeach
-                </ul>
-                <div class="fld"><label for="jf-{{ $key }}">Pesan untuk perusahaan tersebut <span class="demo-note">(opsional, dikirim sekali)</span></label>
-                    <textarea class="box" id="jf-{{ $key }}" name="farewell" rows="3" maxlength="500">Terima kasih atas kesempatannya. Saya sudah menerima tawaran kerja di tempat lain. Semoga kita bisa bekerja sama di proyek berikutnya.</textarea></div>
-            @else
-                <p style="margin-top:14px" class="demo-note">Tidak ada proses lain yang akan ditutup.</p>
-            @endif
-            <p class="demo-note" style="margin-top:10px">Status ketersediaan Anda akan menjadi <b>Terikat kontrak</b>. Anda bisa mengubahnya lagi di Profil.</p>
-            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+            <header>
+                <span class="lbl">Ambil tawaran kerja</span>
+                <h2 id="jt-{{ $key }}">Ambil tawaran {{ $record->job_offer_position }}?</h2>
+            </header>
+            <div class="content">
+                <p>{{ $record->companyName() }}@if ($record->job_offer_start_date), mulai {{ $record->job_offer_start_date->translatedFormat('j F Y') }}@endif.</p>
+                @if ($closing->isNotEmpty())
+                    <p>Proses Anda dengan perusahaan berikut akan <b>ditutup otomatis</b>:</p>
+                    <ul class="closing-list">
+                        @foreach ($closing as $other)<li><b>{{ $other->companyName() }}</b> · {{ $other->title() }}@if ($other->companyId() === $record->companyId()) <span class="demo-note">(perusahaan yang sama)</span>@endif</li>@endforeach
+                    </ul>
+                    <div class="fld"><label for="jf-{{ $key }}">Pesan untuk perusahaan tersebut <span class="demo-note">(opsional, dikirim sekali)</span></label>
+                        <textarea class="box" id="jf-{{ $key }}" name="farewell" rows="3" maxlength="500">Terima kasih atas kesempatannya. Saya sudah menerima tawaran kerja di tempat lain. Semoga kita bisa bekerja sama di proyek berikutnya.</textarea></div>
+                @else
+                    <p class="demo-note">Tidak ada proses lain yang akan ditutup.</p>
+                @endif
+                <p class="demo-note">Status ketersediaan Anda akan menjadi <b>Terikat kontrak</b>. Anda bisa mengubahnya lagi di Profil.</p>
+            </div>
+            <footer>
                 <button type="button" class="btn btn-line" @click="take = false">Batal</button>
                 <button class="btn btn-accent" type="submit">Ya, ambil tawaran ini</button>
-            </div>
+            </footer>
         </form>
     </div>
     @endif

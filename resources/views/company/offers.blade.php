@@ -22,7 +22,7 @@
                         <td>{{ $offer->position }}</td>
                         <td><span class="badge {{ $offer->badgeClass() }}">{{ $offer->statusLabel() }}</span>
                             @if ($offer->response_note)<div class="demo-note" style="margin-top:4px">"{{ $offer->response_note }}"</div>@endif
-                            @if ($offer->isJobOffer())<div class="demo-note" style="margin-top:4px">Tawaran kerja {{ $offer->job_offer_position }}, {{ $offer->jobOfferDaysLeft() }} hari lagi</div>@endif
+                            @if ($offer->isJobOffer())<div class="demo-note" style="margin-top:4px">Tawaran kerja {{ $offer->job_offer_position }}, @if ($offer->job_offer_expires_at->isFuture()){{ $offer->jobOfferDaysLeft() }} hari lagi @else batas jawab sudah lewat @endif</div>@endif
                             @if ($offer->status === 'ditutup')<div class="demo-note" style="margin-top:4px">Talenta mengambil kerja lain.@if ($offer->closed_note) "{{ $offer->closed_note }}"@endif</div>@endif
                             @if ($offer->status === 'ditolak' && $offer->closed_note)<div class="demo-note" style="margin-top:4px">"{{ $offer->closed_note }}"</div>@endif
                             @if ($offer->canOfferJob())<div style="margin-top:8px"><x-job-offer-form :record="$offer" :position="$offer->position" /></div>@endif

@@ -335,11 +335,26 @@ class HiringDecisionTest extends TestCase
         $offer = $this->interestedOffer($talent);
 
         $this->actingAs($hrd)->get(route('company.applicants', $job))->assertOk()->assertSee('Tawarkan kerja')->assertDontSee('081299990000');
-        $this->get('/perusahaan/tawaran')->assertOk()->assertSee('Tawarkan kerja')->assertSee('081299990000');
+        $this->get(route('company.offers'))->assertOk()->assertSee('Tawarkan kerja')->assertSee('081299990000');
 
         $this->offerJob($offer);
         app(HiringDecision::class)->accept($offer->fresh(), 'Sampai jumpa di proyek lain.');
 
-        $this->get(route('company.applicants', $job))->assertSee('Ditutup')->assertSee('Sampai jumpa di proyek lain.');
+        $this->get(route('company.applicants', $job))->assertSee('Ditutup otomatis')->assertSee('Sampai jumpa di proyek lain.');
+    }
+
+    public function test_job_offer_form_reopens_with_its_own_errors(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        $offer = $this->interestedOffer($talent);
+
+        $this->actingAs($hrd)->from(route('company.offers'))->followingRedirects()
+            ->post(route('company.job-offer.store', ['rekrut', $offer->id]), [
+                'offer_key' => 'rekrut-'.$offer->id, 'job_offer_position' => 'Drafter', 'job_offer_start_date' => today()->subDay()->toDateString(),
+            ])
+            ->assertOk()->assertSee('Drafter')->assertSee('tanggal mulai tidak boleh sebelum hari ini');
+        $this->assertSame('diterima', $offer->fresh()->status);
     }
 }
