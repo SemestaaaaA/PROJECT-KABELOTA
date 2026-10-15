@@ -56,7 +56,7 @@ class CompanyDashboardController extends Controller
     public function updateApplication(Request $request, JobApplication $application): RedirectResponse
     {
         abort_unless($application->jobPosting->company_id === $request->user()->company->id, 403);
-        abort_unless(in_array($application->status, JobApplication::COMPANY_STATUSES, true), 422, 'Status lamaran ini sudah final.');
+        abort_unless($application->companyCanChangeStatus(), 422, 'Status lamaran ini sudah final.');
 
         $data = $request->validate(['status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)]]);
         $changed = $application->status !== $data['status'];

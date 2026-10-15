@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /** Talent side: incoming offers (Terima/Tolak) and own job applications. */
 class TalentInboxController extends Controller
@@ -96,7 +97,13 @@ class TalentInboxController extends Controller
         $record = $this->ownJobOffer($request, $type, $id);
         $data = $request->validate(['farewell' => ['nullable', 'string', 'max:500']], [], ['farewell' => 'pesan']);
 
-        $hiring->accept($record, $data['farewell'] ?? null);
+        try {
+            $hiring->accept($record, $data['farewell'] ?? null);
+        } catch (HttpException $e) {
+            abort_unless($e->getStatusCode() === 422, $e->getStatusCode(), $e->getMessage());
+
+            return redirect()->route($record->talentInboxRoute())->with('status', $e->getMessage());
+        }
 
         return redirect()->route($record->talentInboxRoute())->with('status',
             "Selamat! Anda mengambil tawaran {$record->job_offer_position} di {$record->companyName()}. Proses dengan perusahaan lain sudah ditutup dan status Anda kini Terikat kontrak.");
@@ -107,7 +114,13 @@ class TalentInboxController extends Controller
         $record = $this->ownJobOffer($request, $type, $id);
         $data = $request->validate(['note' => ['nullable', 'string', 'max:300']], [], ['note' => 'alasan']);
 
-        $hiring->decline($record, $data['note'] ?? null);
+        try {
+            $hiring->decline($record, $data['note'] ?? null);
+        } catch (HttpException $e) {
+            abort_unless($e->getStatusCode() === 422, $e->getStatusCode(), $e->getMessage());
+
+            return redirect()->route($record->talentInboxRoute())->with('status', $e->getMessage());
+        }
 
         return redirect()->route($record->talentInboxRoute())->with('status', "Tawaran kerja dari {$record->companyName()} ditolak.");
     }

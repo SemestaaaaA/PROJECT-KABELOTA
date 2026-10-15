@@ -35,6 +35,12 @@ class JobApplication extends Model
         return ['status_changed_at' => 'datetime'];
     }
 
+    /** The company may still use the status dropdown: not once a job offer was sent (that rejection came from the talent). */
+    public function companyCanChangeStatus(): bool
+    {
+        return in_array($this->status, self::COMPANY_STATUSES, true) && $this->job_offered_at === null;
+    }
+
     public function jobPosting(): BelongsTo
     {
         return $this->belongsTo(JobPosting::class);

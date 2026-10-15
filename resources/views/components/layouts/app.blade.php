@@ -100,7 +100,7 @@
                 <i class="ph" :class="$store.theme.dark ? 'ph-sun' : 'ph-moon'" aria-hidden="true"></i>
             </button>
             @auth
-                @php($pending = $me->pendingOfferCount())
+                @php($pending = $me->pendingOfferCount() + $me->pendingApplicationOfferCount())
                 <div class="acct desk-only" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
                     <button type="button" class="acct-btn" @click="open = !open" :aria-expanded="open" aria-haspopup="menu">
                         <span class="acct-av" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
@@ -132,7 +132,7 @@
             @endauth
             <button type="button" class="burger" aria-label="Buka menu" @click="menu = !menu" :aria-expanded="menu" aria-controls="mnav" :aria-label="menu ? 'Tutup menu' : 'Buka menu'">
                 <i class="ph" :class="menu ? 'ph-x' : 'ph-list'" aria-hidden="true"></i>
-                @auth @if ($me->pendingOfferCount())<span class="dot-count" aria-hidden="true">{{ $me->pendingOfferCount() }}</span>@endif @endauth
+                @auth @php($pendingAll = $me->pendingOfferCount() + $me->pendingApplicationOfferCount()) @if ($pendingAll)<span class="dot-count" aria-hidden="true">{{ $pendingAll }}</span>@endif @endauth
             </button>
         </div>
     </header>
@@ -160,7 +160,7 @@
                     <span class="lbl">Akun saya</span>
                     @if ($me->isTalent())
                         <a href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}"><i class="ph ph-user" aria-hidden="true"></i> Profil saya</a>
-                        <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
+                        <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount() + $me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingOfferCount() + $me->pendingApplicationOfferCount() }}</span>@endif</a>
                         <a href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya</a>
                     @elseif ($me->isCompany())
                         <a href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>

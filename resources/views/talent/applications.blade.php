@@ -22,12 +22,12 @@
                 <span class="badge {{ $app->badgeClass() }}">{{ $app->statusLabel() }}</span>
             </div>
             @php
-                $reached = ['baru' => 0, 'ditinjau' => 1, 'tawaran_kerja' => 2, 'diambil' => 3][$app->status] ?? null;
+                $reached = ['baru' => 0, 'ditinjau' => 1, 'tawaran_kerja' => 2, 'diambil' => 3][$app->status] ?? 1;
                 $ended = ['ditolak' => 'Tidak lanjut', 'ditutup' => 'Ditutup', 'kedaluwarsa' => 'Kedaluwarsa'][$app->status] ?? null;
             @endphp
             <ol class="progress-steps" aria-label="Tahap lamaran">
                 @foreach (['Terkirim', 'Ditinjau', 'Tawaran kerja', $ended ?? 'Diambil'] as $i => $label)
-                    <li @class(['done' => $reached !== null && $i <= $reached, 'bad' => $ended && $i === 3])>{{ $label }}</li>
+                    <li @class(['done' => $i <= $reached, 'bad' => $ended && $i === 3])>{{ $label }}</li>
                 @endforeach
             </ol>
             @if ($app->isJobOffer())

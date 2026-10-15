@@ -12,6 +12,9 @@
     </dl>
     @if ($record->job_offer_note)<p class="inbox-msg">{{ $record->job_offer_note }}</p>@endif
 
+    @if ($record->job_offer_expires_at->isPast())
+        <p class="demo-note">Tawaran kerja ini sudah berakhir dan tidak bisa dijawab lagi.</p>
+    @else
     <div class="inbox-actions">
         <button type="button" class="btn btn-accent" @click="take = true"><i class="ph ph-check" aria-hidden="true"></i> Ambil</button>
         <button type="button" class="btn btn-line" @click="decline = ! decline">Tolak</button>
@@ -31,7 +34,7 @@
             @if ($closing->isNotEmpty())
                 <p style="margin-top:14px">Proses Anda dengan perusahaan berikut akan <b>ditutup otomatis</b>:</p>
                 <ul class="closing-list">
-                    @foreach ($closing as $other)<li><b>{{ $other->companyName() }}</b> · {{ $other->title() }}</li>@endforeach
+                    @foreach ($closing as $other)<li><b>{{ $other->companyName() }}</b> · {{ $other->title() }}@if ($other->companyId() === $record->companyId()) <span class="demo-note">(perusahaan yang sama)</span>@endif</li>@endforeach
                 </ul>
                 <div class="fld"><label for="jf-{{ $key }}">Pesan untuk perusahaan tersebut <span class="demo-note">(opsional, dikirim sekali)</span></label>
                     <textarea class="box" id="jf-{{ $key }}" name="farewell" rows="3" maxlength="500">Terima kasih atas kesempatannya. Saya sudah menerima tawaran kerja di tempat lain. Semoga kita bisa bekerja sama di proyek berikutnya.</textarea></div>
@@ -45,4 +48,5 @@
             </div>
         </form>
     </div>
+    @endif
 </div>

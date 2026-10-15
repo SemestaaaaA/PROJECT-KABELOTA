@@ -283,11 +283,12 @@ class HiringDecisionTest extends TestCase
 
         // Another company cannot offer a job on this process.
         [$otherUser] = $this->otherCompany();
-        $this->actingAs($otherUser)->post($url, ['job_offer_position' => 'X', 'job_offer_start_date' => today()->addDay()->toDateString()])->assertForbidden();
+        $this->actingAs($otherUser)->post($url, [])->assertForbidden();
 
         // Another talent cannot answer it.
         $this->offerJob($offer);
         $this->actingAs(User::factory()->create(['role' => 'talenta']))->post(route('talent.job-offer.accept', ['rekrut', $offer->id]))->assertForbidden();
+        $this->post(route('talent.job-offer.decline', ['rekrut', $offer->id]))->assertForbidden();
 
         // After the talent takes it, the company's other process with this talent is locked.
         $application = JobApplication::create(['job_posting_id' => $hrd->company->jobPostings()->open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
@@ -295,5 +296,32 @@ class HiringDecisionTest extends TestCase
         $this->assertSame('ditutup', $application->fresh()->status);
         $this->actingAs($hrd)->post(route('company.applications.update', $application), ['status' => 'ditinjau'])->assertStatus(422);
         $this->post(route('company.job-offer.store', ['lamaran', $application->id]), ['job_offer_position' => 'X', 'job_offer_start_date' => today()->addDay()->toDateString()])->assertStatus(422);
+    }
+
+    public function test_company_cannot_reopen_an_application_whose_job_offer_the_talent_declined(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        $application = JobApplication::create(['job_posting_id' => $hrd->company->jobPostings()->open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $this->offerJob($application);
+        app(HiringDecision::class)->decline($application->fresh(), 'Lokasi jauh');
+        $this->assertSame('ditolak', $application->fresh()->status);
+
+        $this->actingAs($hrd)->post(route('company.applications.update', $application), ['status' => 'ditinjau'])->assertStatus(422);
+        $this->assertSame('ditolak', $application->fresh()->status);
+    }
+
+    public function test_taking_an_expired_offer_redirects_with_a_message(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent);
+        $this->offerJob($offer);
+        $offer->update(['job_offer_expires_at' => now()->subHour()]);
+
+        $this->actingAs($user)->post(route('talent.job-offer.accept', ['rekrut', $offer->id]))
+            ->assertRedirect(route('talent.offers'))->assertSessionHas('status', 'Tawaran kerja ini sudah tidak berlaku.');
+        $this->assertSame('tawaran_kerja', $offer->fresh()->status);
     }
 }

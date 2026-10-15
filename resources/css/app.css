@@ -1028,6 +1028,6 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 :root[data-theme="dark"] .b-offer { color: #FFB27A; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .b-offer { color: #FFB27A; } }
 .inbox-card.is-offer { border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
-.inbox-card.is-past { opacity: .72; }
+.inbox-card.is-past { opacity: .85; }
 .job-offer { border-top: 1px dashed var(--line-strong); padding-top: 12px; display: grid; gap: 10px; }
 .closing-list { margin: 8px 0 12px; padding-left: 18px; display: grid; gap: 4px; }
