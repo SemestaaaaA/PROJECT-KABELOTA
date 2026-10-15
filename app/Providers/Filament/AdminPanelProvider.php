@@ -41,6 +41,9 @@ class AdminPanelProvider extends PanelProvider
                 </style>
                 HTML)
             ->profile(isSimple: false)
+            // The bell: AdminAlerts writes Filament database notifications; poll so new ones show up.
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             // Authenticator-app 2FA; required for admins everywhere except local development and tests.
             ->multiFactorAuthentication(
                 AppAuthentication::make()->recoverable()->brandName('Kabelota'),

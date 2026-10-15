@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Notifications\JobFailedAlert;
+use App\Support\AdminAlerts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Cache;
@@ -39,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
             if (! app()->runningUnitTests() && Cache::add('job-failed-alert:'.$job, true, now()->addHour())) {
                 rescue(fn () => Notification::route('mail', config('kabelota.ops_email'))
                     ->notifyNow(new JobFailedAlert($job, Str::limit($event->exception->getMessage(), 300))));
+                rescue(fn () => AdminAlerts::send('job_failed', 'Job gagal: '.$job, Str::limit($event->exception->getMessage(), 160), url('/admin')));
             }
         });
     }

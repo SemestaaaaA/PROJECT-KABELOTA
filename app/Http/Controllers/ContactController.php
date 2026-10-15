@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Resources\ContactMessages\ContactMessageResource;
 use App\Models\ContactMessage;
 use App\Notifications\ContactReceived;
+use App\Support\AdminAlerts;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -41,6 +44,7 @@ class ContactController extends Controller
 
         $message = ContactMessage::create($sender + ['topic' => $data['topic'], 'message' => $data['message']]);
         Notification::route('mail', config('kabelota.ops_email'))->notify(new ContactReceived($message));
+        AdminAlerts::send('contact_message', "Pesan kontak: {$message->topic}", $message->name.': '.Str::limit($message->message, 80), ContactMessageResource::getUrl('index'));
 
         return redirect()->route('contact')->with('contact_sent', true);
     }

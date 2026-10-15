@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Availability;
+use App\Filament\Resources\Talent\TalentResource;
 use App\Models\Talent;
+use App\Support\AdminAlerts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -136,6 +138,9 @@ class ProfileController extends Controller
             // A new scan or changed SKK data needs a fresh admin check.
             if ($request->hasFile('skk_scan') || $signature() !== $before) {
                 $talent->update(['skk_verified_at' => null, 'skk_review_note' => null]);
+                if ($talent->certifications()->exists()) {
+                    AdminAlerts::send('skk_review', 'SKK perlu dicek', "{$talent->name} memperbarui data SKK.", TalentResource::getUrl('index'));
+                }
             }
 
             $talent->projects()->delete();
