@@ -88,11 +88,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             : []);
     }
 
-    /** Offers still waiting for this talent's answer (nav badge). */
+    /** Offers waiting for this talent: new offers plus final job offers from either flow. */
     public function pendingOfferCount(): int
     {
         return once(fn () => $this->isTalent()
-            ? RecruitmentOffer::where('status', 'menunggu')->whereHas('talent', fn ($q) => $q->where('user_id', $this->id))->count()
+            ? RecruitmentOffer::whereIn('status', ['menunggu', 'tawaran_kerja'])->whereHas('talent', fn ($q) => $q->where('user_id', $this->id))->count()
+            : 0);
+    }
+
+    public function pendingApplicationOfferCount(): int
+    {
+        return once(fn () => $this->isTalent()
+            ? JobApplication::where('status', 'tawaran_kerja')->whereHas('talent', fn ($q) => $q->where('user_id', $this->id))->count()
             : 0);
     }
 

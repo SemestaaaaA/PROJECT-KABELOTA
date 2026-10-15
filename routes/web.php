@@ -68,6 +68,8 @@ Route::middleware(['auth', 'verified', 'role:talenta'])->group(function () {
     Route::post('/profil/status', [ProfileController::class, 'updateStatus'])->middleware('throttle:20,1')->name('profile.status');
     Route::get('/tawaran', [TalentInboxController::class, 'offers'])->name('talent.offers');
     Route::post('/tawaran/{offer}/jawab', [TalentInboxController::class, 'respond'])->middleware('throttle:20,1')->name('talent.offers.respond');
+    Route::post('/tawaran-kerja/{type}/{id}/ambil', [TalentInboxController::class, 'acceptJob'])->whereIn('type', ['rekrut', 'lamaran'])->whereNumber('id')->middleware('throttle:20,1')->name('talent.job-offer.accept');
+    Route::post('/tawaran-kerja/{type}/{id}/tolak', [TalentInboxController::class, 'declineJob'])->whereIn('type', ['rekrut', 'lamaran'])->whereNumber('id')->middleware('throttle:20,1')->name('talent.job-offer.decline');
     Route::get('/lamaran', [TalentInboxController::class, 'applications'])->name('talent.applications');
     Route::post('/lowongan/{job}/lamar', [TalentInboxController::class, 'apply'])->middleware('throttle:20,1')->name('jobs.apply');
 });
@@ -85,4 +87,5 @@ Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
     Route::post('/perusahaan/lowongan/{job}/tutup', [CompanyDashboardController::class, 'closeJob'])->name('company.jobs.close');
     Route::get('/perusahaan/lowongan/{job}/pelamar', [CompanyDashboardController::class, 'applicants'])->name('company.applicants');
     Route::post('/perusahaan/lamaran/{application}/status', [CompanyDashboardController::class, 'updateApplication'])->middleware('throttle:60,1')->name('company.applications.update');
+    Route::post('/perusahaan/{type}/{id}/tawarkan-kerja', [CompanyDashboardController::class, 'offerJob'])->whereIn('type', ['rekrut', 'lamaran'])->whereNumber('id')->middleware('throttle:30,1')->name('company.job-offer.store');
 });

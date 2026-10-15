@@ -6,6 +6,7 @@ use App\Models\JobApplication;
 use App\Models\JobPosting;
 use App\Models\RecruitmentOffer;
 use App\Models\Talent;
+use App\Services\HiringDecision;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,8 @@ class TalentInboxController extends Controller
         }
 
         return view('talent.offers', [
-            'offers' => $talent->offers()->with('company')->orderByRaw("status = 'menunggu' desc")->latest()->get(),
+            'offers' => $talent->offers()->with('company')->orderByRaw("status = 'tawaran_kerja' desc, status = 'menunggu' desc")->latest()->get(),
+            'openProcesses' => HiringDecision::openFor($talent),
         ]);
     }
 
@@ -49,7 +51,7 @@ class TalentInboxController extends Controller
         $offer->company?->user?->notify(new \App\Notifications\OfferAnswered($offer));
 
         return redirect()->route('talent.offers')->with('status', $data['decision'] === 'diterima'
-            ? "Tawaran dari {$offer->company_name} diterima. Nomor HP dan email Anda sekarang terlihat oleh perusahaan ini."
+            ? "Anda tertarik dengan tawaran {$offer->company_name}. Nomor HP dan email Anda sekarang terlihat oleh perusahaan ini."
             : "Tawaran dari {$offer->company_name} ditolak. Kontak Anda tetap tersembunyi.");
     }
 
@@ -60,7 +62,8 @@ class TalentInboxController extends Controller
         }
 
         return view('talent.applications', [
-            'applications' => $talent->applications()->with('jobPosting.company')->latest()->get(),
+            'applications' => $talent->applications()->with('jobPosting.company')->orderByRaw("status = 'tawaran_kerja' desc")->latest()->get(),
+            'openProcesses' => HiringDecision::openFor($talent),
         ]);
     }
 
@@ -86,5 +89,34 @@ class TalentInboxController extends Controller
         return redirect()->route('talent.applications')->with('status', $application->wasRecentlyCreated
             ? "Lamaran untuk \"{$job->title}\" terkirim. Profil dan CV Anda bisa dilihat perusahaan."
             : 'Anda sudah melamar lowongan ini sebelumnya.');
+    }
+
+    public function acceptJob(Request $request, string $type, int $id, HiringDecision $hiring): RedirectResponse
+    {
+        $record = $this->ownJobOffer($request, $type, $id);
+        $data = $request->validate(['farewell' => ['nullable', 'string', 'max:500']], [], ['farewell' => 'pesan']);
+
+        $hiring->accept($record, $data['farewell'] ?? null);
+
+        return redirect()->route($record->talentInboxRoute())->with('status',
+            "Selamat! Anda mengambil tawaran {$record->job_offer_position} di {$record->companyName()}. Proses dengan perusahaan lain sudah ditutup dan status Anda kini Terikat kontrak.");
+    }
+
+    public function declineJob(Request $request, string $type, int $id, HiringDecision $hiring): RedirectResponse
+    {
+        $record = $this->ownJobOffer($request, $type, $id);
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:300']], [], ['note' => 'alasan']);
+
+        $hiring->decline($record, $data['note'] ?? null);
+
+        return redirect()->route($record->talentInboxRoute())->with('status', "Tawaran kerja dari {$record->companyName()} ditolak.");
+    }
+
+    private function ownJobOffer(Request $request, string $type, int $id): RecruitmentOffer|JobApplication
+    {
+        $record = HiringDecision::find($type, $id);
+        abort_unless($record->talent?->user_id === $request->user()->id, 403);
+
+        return $record;
     }
 }

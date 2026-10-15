@@ -2,12 +2,12 @@
 <div class="wrap" style="max-width:900px" x-data="{ reject: null }">
     <div class="page-h">
         <h1>Tawaran masuk</h1>
-        <p>Perusahaan yang ingin merekrut Anda. Nomor HP dan email baru terlihat oleh perusahaan setelah Anda menekan Terima.</p>
+        <p>Perusahaan yang ingin merekrut Anda. Tekan Tertarik untuk membuka nomor HP dan email ke perusahaan itu saja. Tawaran kerja final muncul di bagian atas.</p>
     </div>
-    <x-page-tabs :items="[['Tawaran', 'talent.offers', auth()->user()->pendingOfferCount()], ['Lamaran Saya', 'talent.applications'], ['Profil', 'profile.edit']]" />
+    <x-page-tabs :items="[['Tawaran', 'talent.offers', auth()->user()->pendingOfferCount()], ['Lamaran Saya', 'talent.applications', auth()->user()->pendingApplicationOfferCount()], ['Profil', 'profile.edit']]" />
 
     @forelse ($offers as $offer)
-        <article @class(['inbox-card', 'is-new' => $offer->status === 'menunggu'])>
+        <article @class(['inbox-card', 'is-new' => $offer->status === 'menunggu', 'is-offer' => $offer->isJobOffer(), 'is-past' => in_array($offer->status, ['ditutup', 'kedaluwarsa'], true)])>
             <div class="inbox-head">
                 <div class="co-logo" aria-hidden="true">
                     @if ($offer->company?->logo_path)<img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($offer->company->logo_path) }}" alt="">@else<i class="ph ph-buildings"></i>@endif
@@ -29,10 +29,10 @@
                 <div class="inbox-actions">
                     <form method="post" action="{{ route('talent.offers.respond', $offer) }}">@csrf
                         <input type="hidden" name="decision" value="diterima">
-                        <button class="btn btn-accent" type="submit"><i class="ph ph-check" aria-hidden="true"></i> Terima</button>
+                        <button class="btn btn-accent" type="submit"><i class="ph ph-check" aria-hidden="true"></i> Tertarik</button>
                     </form>
                     <button type="button" class="btn btn-line" @click="reject = {{ $offer->id }}">Tolak</button>
-                    <span class="demo-note"><i class="ph ph-lock-simple" aria-hidden="true"></i> Menerima membuka nomor HP dan email Anda untuk {{ $offer->company_name }} saja.</span>
+                    <span class="demo-note"><i class="ph ph-lock-simple" aria-hidden="true"></i> Tertarik membuka nomor HP dan email Anda untuk {{ $offer->company_name }} saja.</span>
                 </div>
                 <form x-show="reject === {{ $offer->id }}" x-cloak class="reject-box" method="post" action="{{ route('talent.offers.respond', $offer) }}">@csrf
                     <input type="hidden" name="decision" value="ditolak">
@@ -40,9 +40,20 @@
                         <input class="box" id="note-{{ $offer->id }}" name="note" maxlength="300" placeholder="mis. Sedang terikat kontrak sampai Maret"></div>
                     <div style="display:flex;gap:8px"><button class="btn btn-ink btn-sm" type="submit">Kirim Penolakan</button><button type="button" class="btn btn-line btn-sm" @click="reject = null">Batal</button></div>
                 </form>
+            @elseif ($offer->isJobOffer())
+                <x-job-offer-panel :record="$offer" :others="$openProcesses" />
             @else
-                <p class="demo-note">Dijawab {{ $offer->responded_at?->diffForHumans() }}.@if ($offer->response_note) Catatan Anda: "{{ $offer->response_note }}"@endif
-                    @if ($offer->status === 'diterima') Perusahaan akan menghubungi Anda lewat nomor atau email di profil.@endif</p>
+                <p class="demo-note">
+                    @switch($offer->status)
+                        @case('diterima') Anda tertarik {{ $offer->responded_at?->diffForHumans() }}. Perusahaan akan menghubungi Anda, lalu bisa mengirim tawaran kerja final. @break
+                        @case('diambil') Anda mengambil tawaran kerja {{ $offer->job_offer_position }}. Selamat bekerja! @break
+                        @case('ditutup') Ditutup otomatis karena Anda mengambil tawaran kerja lain. @break
+                        @case('kedaluwarsa') Tawaran kerja kedaluwarsa karena tidak dijawab dalam 7 hari. @break
+                        @default Dijawab {{ $offer->responded_at?->diffForHumans() }}.
+                    @endswitch
+                    @if ($offer->response_note) Catatan Anda: "{{ $offer->response_note }}"@endif
+                    @if ($offer->closed_note && $offer->status !== 'ditutup') Alasan: "{{ $offer->closed_note }}"@endif
+                </p>
             @endif
         </article>
     @empty

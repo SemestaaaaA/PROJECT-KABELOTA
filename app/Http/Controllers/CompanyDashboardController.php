@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplication;
 use App\Models\JobPosting;
+use App\Services\HiringDecision;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -46,7 +48,7 @@ class CompanyDashboardController extends Controller
         return view('company.applicants', [
             'job' => $job,
             'applications' => $job->applications()->with(['talent.primaryCertification'])
-                ->orderByRaw("case status when 'baru' then 0 when 'ditinjau' then 1 when 'diterima' then 2 else 3 end")
+                ->orderByRaw("case status when 'tawaran_kerja' then 0 when 'baru' then 1 when 'ditinjau' then 2 when 'diambil' then 3 else 4 end")
                 ->latest()->get(),
         ]);
     }
@@ -54,14 +56,31 @@ class CompanyDashboardController extends Controller
     public function updateApplication(Request $request, JobApplication $application): RedirectResponse
     {
         abort_unless($application->jobPosting->company_id === $request->user()->company->id, 403);
+        abort_unless(in_array($application->status, JobApplication::COMPANY_STATUSES, true), 422, 'Status lamaran ini sudah final.');
 
-        $data = $request->validate(['status' => ['required', Rule::in(array_keys(JobApplication::STATUSES))]]);
+        $data = $request->validate(['status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)]]);
         $changed = $application->status !== $data['status'];
         $application->update(['status' => $data['status'], 'status_changed_at' => now()]);
         if ($changed && $data['status'] !== 'baru') {
             $application->talent->user?->notify(new \App\Notifications\ApplicationStatusChanged($application));
         }
 
-        return back()->with('status', 'Status lamaran '.\Illuminate\Support\Str::before($application->talent->name, ',').' diubah ke '.$application->statusLabel().'.');
+        return back()->with('status', 'Status lamaran '.Str::before($application->talent->name, ',').' diubah ke '.$application->statusLabel().'.');
+    }
+
+    public function offerJob(Request $request, string $type, int $id, HiringDecision $hiring): RedirectResponse
+    {
+        $record = HiringDecision::find($type, $id);
+        abort_unless($record->companyId() === $request->user()->company->id, 403);
+
+        $data = $request->validate([
+            'job_offer_position' => ['required', 'string', 'max:120'],
+            'job_offer_start_date' => ['required', 'date', 'after_or_equal:today'],
+            'job_offer_note' => ['nullable', 'string', 'max:500'],
+        ], [], ['job_offer_position' => 'posisi', 'job_offer_start_date' => 'tanggal mulai', 'job_offer_note' => 'catatan']);
+
+        $hiring->offerJob($record, $data);
+
+        return back()->with('status', 'Tawaran kerja terkirim ke '.Str::before($record->talent->name, ',').'. Talenta punya '.HiringDecision::OFFER_DAYS.' hari untuk menjawab.');
     }
 }

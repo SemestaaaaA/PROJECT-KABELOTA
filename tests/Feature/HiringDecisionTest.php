@@ -253,4 +253,47 @@ class HiringDecisionTest extends TestCase
         $this->assertStringNotContainsString('\.', $html);
         $this->assertStringNotContainsString('&amp;gt;', $html);
     }
+
+    public function test_company_offers_and_talent_takes_job_through_the_pages(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent);
+        $start = today()->addWeek()->toDateString();
+
+        $this->actingAs($this->hrd())->post(route('company.job-offer.store', ['rekrut', $offer->id]), ['job_offer_position' => 'Site Engineer', 'job_offer_start_date' => $start])
+            ->assertRedirect()->assertSessionHas('status');
+
+        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Tawaran kerja')->assertSee('Ya, ambil tawaran ini');
+        $this->post(route('talent.job-offer.accept', ['rekrut', $offer->id]), ['farewell' => 'Terima kasih.'])->assertRedirect(route('talent.offers'));
+        $this->assertSame('diambil', $offer->fresh()->status);
+    }
+
+    public function test_job_offer_rules(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        $offer = $this->interestedOffer($talent);
+        $url = route('company.job-offer.store', ['rekrut', $offer->id]);
+
+        // Position and start date are required, and the start date cannot be in the past.
+        $this->actingAs($hrd)->post($url, [])->assertSessionHasErrors(['job_offer_position', 'job_offer_start_date']);
+        $this->post($url, ['job_offer_position' => 'X', 'job_offer_start_date' => today()->subDay()->toDateString()])->assertSessionHasErrors('job_offer_start_date');
+
+        // Another company cannot offer a job on this process.
+        [$otherUser] = $this->otherCompany();
+        $this->actingAs($otherUser)->post($url, ['job_offer_position' => 'X', 'job_offer_start_date' => today()->addDay()->toDateString()])->assertForbidden();
+
+        // Another talent cannot answer it.
+        $this->offerJob($offer);
+        $this->actingAs(User::factory()->create(['role' => 'talenta']))->post(route('talent.job-offer.accept', ['rekrut', $offer->id]))->assertForbidden();
+
+        // After the talent takes it, the company's other process with this talent is locked.
+        $application = JobApplication::create(['job_posting_id' => $hrd->company->jobPostings()->open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $this->actingAs($user)->post(route('talent.job-offer.accept', ['rekrut', $offer->id]));
+        $this->assertSame('ditutup', $application->fresh()->status);
+        $this->actingAs($hrd)->post(route('company.applications.update', $application), ['status' => 'ditinjau'])->assertStatus(422);
+        $this->post(route('company.job-offer.store', ['lamaran', $application->id]), ['job_offer_position' => 'X', 'job_offer_start_date' => today()->addDay()->toDateString()])->assertStatus(422);
+    }
 }

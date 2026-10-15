@@ -2,13 +2,15 @@
 <div class="wrap" style="max-width:900px">
     <div class="page-h">
         <h1>Lamaran saya</h1>
-        <p>Status diperbarui oleh perusahaan. Kontak Anda terbuka untuk perusahaan saat lamaran berstatus Diterima.</p>
+        <p>Status diperbarui oleh perusahaan. Kalau perusahaan mengirim tawaran kerja, Anda yang memutuskan: ambil atau tolak.</p>
     </div>
-    <x-page-tabs :items="[['Tawaran', 'talent.offers', auth()->user()->pendingOfferCount()], ['Lamaran Saya', 'talent.applications'], ['Profil', 'profile.edit']]" />
+    <x-page-tabs :items="[['Tawaran', 'talent.offers', auth()->user()->pendingOfferCount()], ['Lamaran Saya', 'talent.applications', auth()->user()->pendingApplicationOfferCount()], ['Profil', 'profile.edit']]" />
 
     @forelse ($applications as $app)
-        @php($job = $app->jobPosting)
-        <article class="inbox-card">
+        @php
+            $job = $app->jobPosting;
+        @endphp
+        <article @class(['inbox-card', 'is-offer' => $app->isJobOffer(), 'is-past' => in_array($app->status, ['ditutup', 'kedaluwarsa'], true)])>
             <div class="inbox-head">
                 <div class="co-logo" aria-hidden="true">
                     @if ($job->company?->logo_path)<img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($job->company->logo_path) }}" alt="">@else<i class="ph ph-briefcase"></i>@endif
@@ -19,12 +21,22 @@
                 </div>
                 <span class="badge {{ $app->badgeClass() }}">{{ $app->statusLabel() }}</span>
             </div>
-            @php($reached = ['baru' => 0, 'ditinjau' => 1, 'diterima' => 2, 'ditolak' => 2][$app->status])
+            @php
+                $reached = ['baru' => 0, 'ditinjau' => 1, 'tawaran_kerja' => 2, 'diambil' => 3][$app->status] ?? null;
+                $ended = ['ditolak' => 'Tidak lanjut', 'ditutup' => 'Ditutup', 'kedaluwarsa' => 'Kedaluwarsa'][$app->status] ?? null;
+            @endphp
             <ol class="progress-steps" aria-label="Tahap lamaran">
-                @foreach (['Terkirim', 'Ditinjau', $app->status === 'ditolak' ? 'Tidak lanjut' : 'Diterima'] as $i => $label)
-                    <li @class(['done' => $i <= $reached && ! ($i === 2 && $app->status === 'ditolak'), 'bad' => $i === 2 && $app->status === 'ditolak'])>{{ $label }}</li>
+                @foreach (['Terkirim', 'Ditinjau', 'Tawaran kerja', $ended ?? 'Diambil'] as $i => $label)
+                    <li @class(['done' => $reached !== null && $i <= $reached, 'bad' => $ended && $i === 3])>{{ $label }}</li>
                 @endforeach
             </ol>
+            @if ($app->isJobOffer())
+                <x-job-offer-panel :record="$app" :others="$openProcesses" />
+            @elseif ($app->status === 'ditutup')
+                <p class="demo-note">Ditutup otomatis karena Anda mengambil tawaran kerja lain.</p>
+            @elseif ($app->status === 'kedaluwarsa')
+                <p class="demo-note">Tawaran kerja kedaluwarsa karena tidak dijawab dalam 7 hari.</p>
+            @endif
             @if ($app->message)<p class="inbox-msg">Pesan Anda: {{ $app->message }}</p>@endif
         </article>
     @empty

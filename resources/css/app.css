@@ -1022,3 +1022,12 @@ select.box option, select.box optgroup { background-color: var(--surface); color
     .tcard:hover { transform: none; }
     .quick-chip:hover, .pager a:not(.off):hover, .logo:hover img, footer.site img:hover, .tcard:hover .badge, .job:hover .badge { transform: none; }
 }
+
+/* Final job offers (HiringDecision). */
+.b-offer { background: var(--orange-soft); color: #9A3D00; }
+:root[data-theme="dark"] .b-offer { color: #FFB27A; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .b-offer { color: #FFB27A; } }
+.inbox-card.is-offer { border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
+.inbox-card.is-past { opacity: .72; }
+.job-offer { border-top: 1px dashed var(--line-strong); padding-top: 12px; display: grid; gap: 10px; }
+.closing-list { margin: 8px 0 12px; padding-left: 18px; display: grid; gap: 4px; }
