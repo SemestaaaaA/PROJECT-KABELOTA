@@ -34,10 +34,12 @@ class RecruitmentFunnelChart extends ChartWidget
 
         $steps = [
             'Tawaran terkirim' => (clone $offers)->count(),
-            'Tawaran diterima' => (clone $offers)->where('status', 'diterima')->count(),
+            'Talenta tertarik' => (clone $offers)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil'])->count(),
             'Lamaran masuk' => (clone $apps)->count(),
-            'Lamaran ditinjau' => (clone $apps)->whereIn('status', ['ditinjau', 'diterima', 'ditolak'])->count(),
-            'Lamaran diterima' => (clone $apps)->where('status', 'diterima')->count(),
+            'Lamaran ditinjau' => (clone $apps)->where('status', '!=', 'baru')->count(),
+            'Tawaran kerja' => (clone $offers)->whereIn('status', ['tawaran_kerja', 'diambil', 'kedaluwarsa'])->count()
+                + (clone $apps)->whereIn('status', ['tawaran_kerja', 'diambil', 'kedaluwarsa'])->count(),
+            'Diambil' => (clone $offers)->where('status', 'diambil')->count() + (clone $apps)->where('status', 'diambil')->count(),
         ];
 
         return [
@@ -45,7 +47,7 @@ class RecruitmentFunnelChart extends ChartWidget
                 'label' => 'Jumlah',
                 'data' => array_values($steps),
                 // Offers in blue, applications in aqua: two flows, one chart.
-                'backgroundColor' => [Chart::PALETTE[1], Chart::PALETTE[1], Chart::PALETTE[2], Chart::PALETTE[2], Chart::PALETTE[2]],
+                'backgroundColor' => [Chart::PALETTE[1], Chart::PALETTE[1], Chart::PALETTE[2], Chart::PALETTE[2], Chart::PALETTE[3], Chart::PALETTE[3]],
                 'borderRadius' => 4,
                 'borderSkipped' => 'start',
             ]],

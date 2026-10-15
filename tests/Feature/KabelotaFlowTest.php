@@ -279,7 +279,7 @@ class KabelotaFlowTest extends TestCase
         // Another talent cannot answer this offer.
         $this->actingAs($this->talentUser())->post(route('talent.offers.respond', $offer), ['decision' => 'diterima'])->assertForbidden();
 
-        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Site Engineer Uji')->assertSee('Terima');
+        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Site Engineer Uji')->assertSee('Tertarik');
         $this->post(route('talent.offers.respond', $offer), ['decision' => 'diterima'])->assertRedirect('/tawaran');
         $this->assertSame('diterima', $offer->fresh()->status);
         $this->post(route('talent.offers.respond', $offer), ['decision' => 'ditolak'])->assertStatus(422);
@@ -314,10 +314,13 @@ class KabelotaFlowTest extends TestCase
 
         $application = JobApplication::where('talent_id', $talent->id)->first();
         $this->actingAs($hrd)->get(route('company.applicants', $job))->assertOk()->assertSee(e($talent->name), false)->assertDontSee('081299990000');
-        $this->post(route('company.applications.update', $application), ['status' => 'diterima'])->assertRedirect();
+        $this->post(route('company.applications.update', $application), ['status' => 'ditinjau'])->assertRedirect();
+        $this->post(route('company.job-offer.store', ['lamaran', $application->id]), [
+            'job_offer_position' => $job->title, 'job_offer_start_date' => today()->addWeek()->toDateString(),
+        ])->assertRedirect();
         $this->get(route('company.applicants', $job))->assertSee('081299990000');
 
-        $this->actingAs($user)->get('/lamaran')->assertSee('Diterima');
+        $this->actingAs($user)->get('/lamaran')->assertSee('Tawaran kerja')->assertSee('Ya, ambil tawaran ini');
     }
 
     public function test_other_company_cannot_see_or_change_applicants(): void

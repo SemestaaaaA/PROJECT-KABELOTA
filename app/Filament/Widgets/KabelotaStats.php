@@ -57,7 +57,7 @@ class KabelotaStats extends StatsOverviewWidget
         $offers = RecruitmentOffer::query();
         $offersNow = $between($offers, $from, $now);
         $answered = RecruitmentOffer::where('created_at', '>=', $from)->where('status', '!=', 'menunggu')->count();
-        $accepted = RecruitmentOffer::where('created_at', '>=', $from)->where('status', 'diterima')->count();
+        $accepted = RecruitmentOffer::where('created_at', '>=', $from)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil'])->count();
 
         $apps = JobApplication::query();
         $appsNow = $between($apps, $from, $now);

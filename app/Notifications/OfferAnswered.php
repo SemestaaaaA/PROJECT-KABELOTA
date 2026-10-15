@@ -13,12 +13,12 @@ class OfferAnswered extends KabelotaMail
     {
         $name = \Illuminate\Support\Str::before($this->offer->talent->name, ',');
         $mail = (new MailMessage)->subject($this->offer->status === 'diterima'
-            ? "{$name} menerima tawaran Anda"
+            ? "{$name} tertarik dengan tawaran Anda"
             : "{$name} menolak tawaran Anda");
 
         return $this->offer->status === 'diterima'
-            ? $mail->line("{$name} menerima tawaran untuk posisi **{$this->offer->position}**.")
-                ->line('Nomor HP dan email talenta sekarang terlihat di halaman Tawaran Terkirim.')
+            ? $mail->line("{$name} tertarik dengan tawaran untuk posisi **{$this->offer->position}**.")
+                ->line('Nomor HP dan email talenta sekarang terlihat. Setelah wawancara, kirim tawaran kerja final dari halaman Tawaran Terkirim.')
                 ->action('Lihat Kontak Talenta', route('company.offers'))
             : $mail->line("{$name} menolak tawaran untuk posisi **{$this->offer->position}**.")
                 ->lineIf((bool) $this->offer->response_note, 'Catatan: "'.$this->offer->response_note.'"')

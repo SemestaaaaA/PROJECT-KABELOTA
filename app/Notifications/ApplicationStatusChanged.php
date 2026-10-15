@@ -14,7 +14,6 @@ class ApplicationStatusChanged extends KabelotaMail
         $job = $this->application->jobPosting;
         $line = [
             'ditinjau' => "{$job->company->name} sedang meninjau lamaran Anda untuk **{$job->title}**.",
-            'diterima' => "Lamaran Anda untuk **{$job->title}** diterima {$job->company->name}. Perusahaan sekarang bisa melihat nomor HP dan email Anda dan akan menghubungi Anda.",
             'ditolak' => "{$job->company->name} memutuskan tidak melanjutkan lamaran Anda untuk **{$job->title}**. Masih ada lowongan lain yang bisa Anda coba.",
         ][$this->application->status] ?? "Status lamaran Anda untuk {$job->title} berubah.";
 

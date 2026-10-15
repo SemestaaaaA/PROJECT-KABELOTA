@@ -25,7 +25,7 @@ class TopCompaniesTable extends TableWidget
         return $table
             ->query(Company::query()->where('status', 'terverifikasi')->withCount([
                 'offers' => fn (Builder $q) => $q->where('created_at', '>=', $since),
-                'offers as accepted_count' => fn (Builder $q) => $q->where('created_at', '>=', $since)->where('status', 'diterima'),
+                'offers as accepted_count' => fn (Builder $q) => $q->where('created_at', '>=', $since)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil']),
                 'jobPostings' => fn (Builder $q) => $q->whereNotNull('approved_at')->where('approved_at', '>=', $since),
             ]))
             ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('offers_count')->orderByDesc('job_postings_count'))

@@ -38,10 +38,12 @@ class RecruitmentOfferResource extends Resource
                 TextColumn::make('talent.name')->label('Talenta')->searchable(),
                 TextColumn::make('company_name')->label('Perusahaan')->searchable(),
                 TextColumn::make('position')->label('Posisi')->wrap(),
-                TextColumn::make('status')->badge()->color(fn ($state) => ['menunggu' => 'warning', 'diterima' => 'success', 'ditolak' => 'danger'][$state] ?? 'gray'),
+                TextColumn::make('status')->badge()
+                    ->formatStateUsing(fn ($state) => RecruitmentOffer::STATUSES[$state] ?? $state)
+                    ->color(fn ($state) => ['menunggu' => 'warning', 'diterima' => 'info', 'tawaran_kerja' => 'warning', 'diambil' => 'success', 'ditolak' => 'danger'][$state] ?? 'gray'),
                 TextColumn::make('created_at')->label('Dikirim')->since()->sortable(),
             ])
-            ->filters([SelectFilter::make('status')->options(['menunggu' => 'Menunggu', 'diterima' => 'Diterima', 'ditolak' => 'Ditolak'])]);
+            ->filters([SelectFilter::make('status')->options(RecruitmentOffer::STATUSES)]);
     }
 
     public static function getPages(): array
