@@ -76,12 +76,19 @@ class HiringDecisionTest extends TestCase
         [, $talent] = $this->talent();
         $application = JobApplication::create(['job_posting_id' => $job->id, 'talent_id' => $talent->id, 'status' => 'diterima']);
 
+        $otherJob = JobPosting::open()->where('id', '!=', $job->id)->firstOrFail();
+        $reviewed = JobApplication::create(['job_posting_id' => $otherJob->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $offer = $this->interestedOffer($talent);
+
         $migration = require database_path('migrations/2026_10_15_000001_add_job_offer_columns.php');
         $migration->convertAcceptedApplications();
 
         $application->refresh();
         $this->assertSame('tawaran_kerja', $application->status);
         $this->assertSame($job->title, $application->job_offer_position);
+        $this->assertNotNull($application->job_offered_at);
         $this->assertTrue($application->job_offer_expires_at->isFuture());
+        $this->assertSame('ditinjau', $reviewed->fresh()->status);
+        $this->assertSame('diterima', $offer->fresh()->status);
     }
 }

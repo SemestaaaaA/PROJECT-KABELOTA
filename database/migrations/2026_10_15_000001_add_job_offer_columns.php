@@ -36,19 +36,18 @@ return new class extends Migration
     /** Applications a company marked "Diterima" before this change now wait for the talent's answer. */
     public function convertAcceptedApplications(): void
     {
-        DB::table('job_applications')->where('status', 'diterima')->orderBy('id')->each(function (object $row) {
-            DB::table('job_applications')->where('id', $row->id)->update([
-                'status' => 'tawaran_kerja',
-                'job_offer_position' => DB::table('job_postings')->where('id', $row->job_posting_id)->value('title'),
-                'job_offered_at' => now(),
-                'job_offer_expires_at' => now()->addDays(7),
-            ]);
-        });
+        DB::table('job_applications')->where('status', 'diterima')->update([
+            'status' => 'tawaran_kerja',
+            'job_offer_position' => DB::raw('(select title from job_postings where job_postings.id = job_applications.job_posting_id)'),
+            'job_offered_at' => now(),
+            'job_offer_expires_at' => now()->addDays(7),
+        ]);
     }
 
     public function down(): void
     {
         foreach (self::TABLES as $name) {
+            // Lossy on purpose: the old schema only knew diterima/ditolak.
             DB::table($name)->whereIn('status', ['tawaran_kerja', 'diambil'])->update(['status' => 'diterima']);
             DB::table($name)->whereIn('status', ['ditutup', 'kedaluwarsa'])->update(['status' => 'ditolak']);
             Schema::table($name, fn (Blueprint $table) => $table->dropColumn(self::COLUMNS));
