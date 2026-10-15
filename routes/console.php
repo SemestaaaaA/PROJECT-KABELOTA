@@ -23,6 +23,12 @@ Artisan::command('kabelota:close-expired', function () {
     $this->info("{$closed} lowongan ditutup karena masa tayang habis.");
 })->purpose('Tutup lowongan yang masa tayangnya sudah habis');
 
+Artisan::command('kabelota:job-offers', function (\App\Services\HiringDecision $hiring) {
+    $reminded = $hiring->remindDue();
+    $expired = $hiring->expireDue();
+    $this->info("{$reminded} pengingat terkirim, {$expired} tawaran kerja kedaluwarsa.");
+})->purpose('Ingatkan talenta dan tutup tawaran kerja yang lewat 7 hari');
+
 Artisan::command('kabelota:remind-skk', function () {
     $due = \App\Models\Certification::query()
         ->whereNull('reminded_at')
@@ -39,6 +45,7 @@ Artisan::command('kabelota:remind-skk', function () {
 })->purpose('Email talenta yang SKK-nya habis dalam 30 hari');
 
 Schedule::command('kabelota:close-expired')->dailyAt('00:10');
+Schedule::command('kabelota:job-offers')->dailyAt('07:30');
 Schedule::command('kabelota:remind-skk')->dailyAt('08:00');
 
 // Database dump + uploaded files, kept on the 'backups' disk (see config/backup.php).

@@ -10,7 +10,9 @@ use App\Models\RecruitmentOffer;
 use App\Models\Talent;
 use App\Models\User;
 use App\Notifications\JobOfferAnswered;
+use App\Notifications\JobOfferExpired;
 use App\Notifications\JobOfferReceived;
+use App\Notifications\JobOfferReminder;
 use App\Notifications\ProcessClosed;
 use App\Services\HiringDecision;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -208,6 +210,31 @@ class HiringDecisionTest extends TestCase
         $offer->update(['job_offer_expires_at' => now()->subHour()]);
 
         $this->assertThrows(fn () => app(HiringDecision::class)->accept($offer->fresh(), null), HttpException::class);
+        $this->assertSame('tawaran_kerja', $offer->fresh()->status);
+    }
+
+    public function test_job_offer_gets_one_reminder_then_expires(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent);
+        $this->offerJob($offer);
+
+        $this->travel(4)->days(); // 3 days left: too early
+        $this->artisan('kabelota:job-offers')->assertSuccessful();
+        Notification::assertNotSentTo($user, JobOfferReminder::class);
+
+        $this->travel(1)->days(); // 2 days left
+        $this->artisan('kabelota:job-offers');
+        $this->artisan('kabelota:job-offers');
+        Notification::assertSentToTimes($user, JobOfferReminder::class, 1);
+
+        $this->travel(3)->days(); // past the deadline
+        $this->artisan('kabelota:job-offers');
+        $this->assertSame('kedaluwarsa', $offer->fresh()->status);
+        Notification::assertSentTo($this->hrd(), JobOfferExpired::class);
+
+        $this->offerJob($offer->fresh()); // the company may offer again
         $this->assertSame('tawaran_kerja', $offer->fresh()->status);
     }
 
