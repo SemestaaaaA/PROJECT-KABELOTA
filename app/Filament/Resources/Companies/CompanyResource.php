@@ -6,6 +6,7 @@ use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Widgets\CompanyStats;
 use App\Filament\Support\DateRangeFilter;
+use App\Models\AdminActivity;
 use App\Models\Company;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -107,6 +108,7 @@ class CompanyResource extends Resource
                     ->visible(fn (Company $r) => $r->status !== 'terverifikasi')
                     ->action(function (Company $r) {
                         $r->update(['status' => 'terverifikasi', 'verified_at' => now(), 'rejection_reason' => null]);
+                        AdminActivity::record('company_verified', $r, $r->name);
                         $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} terverifikasi")->success()->send();
                     }),
@@ -115,6 +117,7 @@ class CompanyResource extends Resource
                     ->schema([Textarea::make('reason')->label('Alasan (dikirim ke perusahaan)')->required()->default('NIB tidak terbaca atau tidak sesuai nama perusahaan.')])
                     ->action(function (Company $r, array $data) {
                         $r->update(['status' => 'ditolak', 'rejection_reason' => $data['reason']]);
+                        AdminActivity::record('company_rejected', $r, AdminActivity::withReason($r->name, $data['reason']));
                         $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} ditolak")->warning()->send();
                     }),

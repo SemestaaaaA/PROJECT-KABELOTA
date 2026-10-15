@@ -6,6 +6,7 @@ use App\Enums\Availability;
 use App\Filament\Resources\Talent\Pages\EditTalent;
 use App\Filament\Resources\Talent\Pages\ListTalent;
 use App\Filament\Resources\Talent\Widgets\TalentStats;
+use App\Models\AdminActivity;
 use App\Models\Talent;
 use App\Notifications\SkkReviewed;
 use BackedEnum;
@@ -109,6 +110,7 @@ class TalentResource extends Resource
                     ->visible(fn (Talent $r) => $r->skk_scan_path && $r->certifications->isNotEmpty() && ! $r->isSkkVerified())
                     ->action(function (Talent $r) {
                         $r->update(['skk_verified_at' => now(), 'skk_review_note' => null]);
+                        AdminActivity::record('skk_verified', $r, $r->name);
                         $r->user?->notify(new SkkReviewed($r));
                         Notification::make()->title("SKK {$r->name} terverifikasi")->success()->send();
                     }),
@@ -117,6 +119,7 @@ class TalentResource extends Resource
                     ->schema([Textarea::make('note')->label('Catatan (dikirim ke talenta)')->required()->default('Scan tidak terbaca atau nomor registrasi tidak sesuai dengan profil.')])
                     ->action(function (Talent $r, array $data) {
                         $r->update(['skk_verified_at' => null, 'skk_review_note' => $data['note']]);
+                        AdminActivity::record('skk_rejected', $r, AdminActivity::withReason($r->name, $data['note']));
                         $r->user?->notify(new SkkReviewed($r));
                         Notification::make()->title("SKK {$r->name} ditolak")->warning()->send();
                     }),

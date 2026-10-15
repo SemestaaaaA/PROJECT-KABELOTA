@@ -7,6 +7,7 @@ use App\Filament\Resources\JobPostings\Pages\EditJobPosting;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
 use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
 use App\Filament\Support\DateRangeFilter;
+use App\Models\AdminActivity;
 use App\Models\JobPosting;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -103,13 +104,17 @@ class JobPostingResource extends Resource
                     ->visible(fn (JobPosting $r) => $r->status === 'menunggu_verifikasi')
                     ->action(function (JobPosting $r) {
                         $r->update(['status' => 'aktif', 'approved_at' => now(), 'closes_at' => today()->addDays(config("kabelota.packages.{$r->package}.days"))]);
+                        AdminActivity::record('job_approved', $r, $r->title.($r->company ? " ({$r->company->name})" : ''));
                         $r->company?->user?->notify(new \App\Notifications\JobPostingApproved($r));
                         Notification::make()->title('Lowongan tayang')->success()->send();
                     }),
                 Action::make('tolak')->label('Tolak')->icon(Heroicon::OutlinedXCircle)->color('danger')
                     ->requiresConfirmation()->modalDescription('Gunakan kalau dana tidak masuk atau bukti tidak valid.')
                     ->visible(fn (JobPosting $r) => $r->status === 'menunggu_verifikasi')
-                    ->action(fn (JobPosting $r) => $r->update(['status' => 'ditolak'])),
+                    ->action(function (JobPosting $r) {
+                        $r->update(['status' => 'ditolak']);
+                        AdminActivity::record('job_rejected', $r, $r->title.($r->company ? " ({$r->company->name})" : ''));
+                    }),
                 EditAction::make(),
             ]);
     }
