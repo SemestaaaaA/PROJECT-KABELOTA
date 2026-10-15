@@ -4,7 +4,7 @@
     $closing = $others->reject(fn ($other) => $other->is($record));
 @endphp
 <div class="job-offer" x-data="{ take: false, decline: false }">
-    <p class="lbl"><i class="ph ph-handshake" aria-hidden="true"></i> Tawaran kerja@if ($record->job_offer_expires_at->isFuture()) · berlaku {{ $record->jobOfferDaysLeft() }} hari lagi@endif</p>
+    <p class="lbl"><i class="ph ph-handshake" aria-hidden="true"></i> Tawaran kerja{{ $record->job_offer_expires_at->isFuture() ? ' · berlaku '.$record->jobOfferDaysLeft().' hari lagi' : '' }}</p>
     <dl class="inbox-meta">
         <div><dt class="lbl">Posisi</dt><dd>{{ $record->job_offer_position }}</dd></div>
         @if ($record->job_offer_start_date)<div><dt class="lbl">Mulai</dt><dd class="mono">{{ $record->job_offer_start_date->translatedFormat('j M Y') }}</dd></div>@endif

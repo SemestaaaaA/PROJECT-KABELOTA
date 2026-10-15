@@ -267,7 +267,7 @@ class HiringDecisionTest extends TestCase
         $this->actingAs($this->hrd())->post(route('company.job-offer.store', ['rekrut', $offer->id]), ['job_offer_position' => 'Site Engineer', 'job_offer_start_date' => $start])
             ->assertRedirect()->assertSessionHas('status');
 
-        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Tawaran kerja')->assertSee('Ya, ambil tawaran ini');
+        $this->actingAs($user)->get('/tawaran')->assertOk()->assertSee('Tawaran kerja')->assertSee('berlaku 7 hari lagi')->assertDontSee('@if', false)->assertDontSee('@endif', false)->assertSee('Ya, ambil tawaran ini');
         $this->post(route('talent.job-offer.accept', ['rekrut', $offer->id]), ['farewell' => 'Terima kasih.'])->assertRedirect(route('talent.offers'));
         $this->assertSame('diambil', $offer->fresh()->status);
     }
