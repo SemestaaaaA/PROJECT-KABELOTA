@@ -28,13 +28,15 @@
         <form class="formcard" method="post" action="{{ route('contact.store') }}" novalidate>
             <x-honeypot id="contact" />
             @csrf
-            <h2 style="font:700 20px var(--f-body);display:flex;align-items:center;gap:8px">Kirim pesan
-                <x-help-tip label="Ke mana pesan ini dikirim?">Pesan masuk ke panel admin Kabelota (pengurus HMTS) dan notifikasi dikirim ke email admin. Balasan dikirim ke email Anda, biasanya di hari kerja.</x-help-tip></h2>
+            <div style="display:flex;align-items:center;gap:8px">
+                <h2 style="font:700 20px var(--f-body)">Kirim pesan</h2>
+                <x-help-tip label="Ke mana pesan ini dikirim?">Pesan masuk ke panel admin Kabelota (pengurus HMTS) dan notifikasi dikirim ke email admin. Balasan dikirim ke email Anda, biasanya di hari kerja.</x-help-tip>
+            </div>
             @if (session('contact_sent'))
                 <div class="ok-banner" role="status" style="margin-top:0">Pesan terkirim. Admin akan membalas ke email Anda.</div>
             @endif
             @auth
-                <p class="demo-note">Dikirim sebagai <b>{{ auth()->user()->isCompany() ? (auth()->user()->company?->name ?? auth()->user()->name) : \Illuminate\Support\Str::before(auth()->user()->name, ',') }}</b> · {{ auth()->user()->email }}</p>
+                <p class="demo-note">Dikirim sebagai <b>{{ auth()->user()->isCompany() ? (auth()->user()->company?->name ?? auth()->user()->name) : auth()->user()->name }}</b> · {{ auth()->user()->email }}</p>
             @else
             <div class="two">
                 <div class="fld"><label for="c-name">Nama</label>
