@@ -95,4 +95,39 @@ class CompanyPortalTest extends TestCase
             ->assertSee('Pelamar Baru Satu')->assertDontSee('Pelamar Ditinjau Dua');
         $this->get(route('company.applicants', [$job, 'status' => 'tidak-ada']))->assertOk()->assertSee('Pelamar Ditinjau Dua');
     }
+
+    public function test_verified_company_lands_on_the_dashboard(): void
+    {
+        $this->post('/masuk', ['email' => 'hrd@demo.kabelota.test', 'password' => 'password'])->assertRedirect(route('company.dashboard'));
+    }
+
+    public function test_dashboard_lists_what_needs_attention_for_this_company_only(): void
+    {
+        [, $new] = $this->talent('Rahmat Pelamar');
+        [, $interested] = $this->talent('Dewi Tertarik');
+        [, $stranger] = $this->talent('Orang Perusahaan Lain');
+        $hrd = $this->hrd();
+        $job = $this->hrdJob();
+        $this->applyTo($job, $new, 'baru');
+        RecruitmentOffer::create([
+            'talent_id' => $interested->id, 'company_id' => $hrd->company->id, 'company_name' => $hrd->company->name,
+            'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Drafter Uji', 'message' => 'Pesan tawaran uji coba yang cukup panjang.',
+            'status' => 'diterima', 'responded_at' => now(),
+        ]);
+        $otherJob = JobPosting::open()->where('company_id', '!=', $hrd->company->id)->firstOrFail();
+        $this->applyTo($otherJob, $stranger, 'baru');
+
+        $this->actingAs($hrd)->get(route('company.dashboard'))->assertOk()
+            ->assertSee('Perlu tindakan')
+            ->assertSee('pelamar baru di')->assertSee(e($job->title), false)
+            ->assertSee('Dewi Tertarik')->assertSee('Drafter Uji')
+            ->assertSee('Lowongan aktif')->assertSee('Tawaran kerja')->assertSee('Kontak terbuka')->assertSee('Profil perusahaan')
+            ->assertDontSee('Orang Perusahaan Lain');
+    }
+
+    public function test_talent_cannot_open_the_company_dashboard(): void
+    {
+        [$user] = $this->talent();
+        $this->actingAs($user)->get(route('company.dashboard'))->assertRedirect('/');
+    }
 }

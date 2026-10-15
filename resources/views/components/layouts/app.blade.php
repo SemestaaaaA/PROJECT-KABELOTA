@@ -118,6 +118,7 @@
                             <a role="menuitem" href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
                             <a role="menuitem" href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya @if ($me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingApplicationOfferCount() }}</span>@endif</a>
                         @elseif ($me->isCompany())
+                            <a role="menuitem" href="{{ route('company.dashboard') }}"><i class="ph ph-squares-four" aria-hidden="true"></i> Dashboard</a>
                             <a role="menuitem" href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
                             <a role="menuitem" href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
                             <a role="menuitem" href="{{ route('jobs.posting.create') }}"><i class="ph ph-plus" aria-hidden="true"></i> Pasang lowongan</a>
@@ -171,6 +172,7 @@
                         <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
                         <a href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya @if ($me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingApplicationOfferCount() }}</span>@endif</a>
                     @elseif ($me->isCompany())
+                        <a href="{{ route('company.dashboard') }}"><i class="ph ph-squares-four" aria-hidden="true"></i> Dashboard</a>
                         <a href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
                         <a href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
                         <a href="{{ route('jobs.posting.create') }}"><i class="ph ph-plus" aria-hidden="true"></i> Pasang lowongan</a>

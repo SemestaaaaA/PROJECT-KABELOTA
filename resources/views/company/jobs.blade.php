@@ -4,7 +4,7 @@
         <div><h1>Lowongan saya</h1><p>Status pembayaran, masa tayang, dan pelamar tiap lowongan.</p></div>
         <x-post-job-button class="btn btn-accent" />
     </div>
-    <x-page-tabs :items="[['Lowongan Saya', 'company.jobs'], ['Tawaran Terkirim', 'company.offers'], ['Profil Perusahaan', 'company.profile']]" />
+    <x-company-tabs />
 
     @forelse ($jobs as $job)
         @php($live = $job->status === 'aktif' && $job->closes_at->gte(today()))

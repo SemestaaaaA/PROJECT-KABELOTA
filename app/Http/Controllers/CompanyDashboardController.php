@@ -14,6 +14,14 @@ use Illuminate\View\View;
 /** Company side: sent offers (contact revealed once the talent is interested or takes a job offer), own jobs, applicants. */
 class CompanyDashboardController extends Controller
 {
+    public function dashboard(Request $request): View
+    {
+        $company = $request->user()->company;
+        abort_unless($company, 403);
+
+        return view('company.dashboard', ['company' => $company, 'd' => new \App\Support\CompanyDashboardData($company)]);
+    }
+
     public function offers(Request $request): View
     {
         return view('company.offers', [

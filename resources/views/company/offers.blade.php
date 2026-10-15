@@ -4,7 +4,7 @@
         <h1>Tawaran terkirim</h1>
         <p>Kontak talenta terbuka setelah talenta menekan Tertarik. Dari sana Anda bisa mengirim tawaran kerja final.</p>
     </div>
-    <x-page-tabs :items="[['Lowongan Saya', 'company.jobs'], ['Tawaran Terkirim', 'company.offers'], ['Profil Perusahaan', 'company.profile']]" />
+    <x-company-tabs />
 
     @if ($offers->isEmpty())
         <div class="empty" style="margin-top:20px">

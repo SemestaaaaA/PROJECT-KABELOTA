@@ -77,6 +77,7 @@ Route::middleware(['auth', 'verified', 'role:talenta'])->group(function () {
 
 // Perusahaan
 Route::middleware(['auth', 'verified', 'role:perusahaan'])->group(function () {
+    Route::get('/perusahaan', [CompanyDashboardController::class, 'dashboard'])->name('company.dashboard');
     Route::get('/perusahaan/profil', [CompanyProfileController::class, 'edit'])->name('company.profile');
     Route::post('/perusahaan/profil', [CompanyProfileController::class, 'update'])->middleware('throttle:10,1')->name('company.profile.update');
     Route::post('/talenta/{talent}/tawaran', [RecruitmentOfferController::class, 'store'])->middleware('throttle:10,1')->name('offers.store');
