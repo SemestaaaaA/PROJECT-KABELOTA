@@ -182,4 +182,40 @@ class HiringDecisionTest extends TestCase
         $this->assertThrows(fn () => app(HiringDecision::class)->accept($second->fresh(), null), HttpException::class);
         $this->assertSame('ditutup', $second->fresh()->status);
     }
+
+    public function test_hiring_company_gets_no_closed_email_for_its_other_process(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        $offer = $this->interestedOffer($talent);
+        $application = JobApplication::create(['job_posting_id' => $hrd->company->jobPostings()->open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $this->offerJob($offer);
+
+        app(HiringDecision::class)->accept($offer->fresh(), null);
+
+        $this->assertSame('ditutup', $application->fresh()->status);
+        Notification::assertSentTo($hrd, JobOfferAnswered::class);
+        Notification::assertNotSentTo($hrd, ProcessClosed::class);
+    }
+
+    public function test_expired_job_offer_cannot_be_taken(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent);
+        $this->offerJob($offer);
+        $offer->update(['job_offer_expires_at' => now()->subHour()]);
+
+        $this->assertThrows(fn () => app(HiringDecision::class)->accept($offer->fresh(), null), HttpException::class);
+        $this->assertSame('tawaran_kerja', $offer->fresh()->status);
+    }
+
+    public function test_user_text_in_emails_cannot_inject_links(): void
+    {
+        $html = (new ProcessClosed('Budi', ['Site Engineer'], '[klik](http://evil.test)'))
+            ->toMail(User::factory()->create())->render();
+
+        $this->assertStringNotContainsString('<a href="http://evil.test"', (string) $html);
+    }
 }

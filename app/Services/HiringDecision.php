@@ -63,14 +63,15 @@ class HiringDecision
         [$chosen, $closed] = DB::transaction(function () use ($record, $farewell) {
             // Lock the talent row so two "Ambil" clicks are handled one after the other.
             $talent = Talent::whereKey($record->talent_id)->lockForUpdate()->firstOrFail();
-            $chosen = $record->newQuery()->whereKey($record->getKey())->firstOrFail();
+            $chosen = $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
             abort_unless($chosen->isJobOffer() && $chosen->job_offer_expires_at?->isFuture(), 422, 'Tawaran kerja ini sudah tidak berlaku.');
 
             $chosen->update(['status' => 'diambil', $chosen::ANSWERED_AT => now()]);
 
-            $closed = self::openFor($talent)->reject(fn ($other) => $other->is($chosen))->each(
-                fn ($other) => $other->update(['status' => 'ditutup', 'closed_at' => now(), 'closed_note' => $farewell])
-            );
+            $closed = self::openFor($talent)->reject(fn ($other) => $other->is($chosen))->values();
+            foreach ($closed as $other) {
+                $other->update(['status' => 'ditutup', 'closed_at' => now(), 'closed_note' => $farewell]);
+            }
 
             $talent->update(['availability' => Availability::TerikatKontrak]);
 
@@ -79,18 +80,27 @@ class HiringDecision
 
         $chosen->companyUser()?->notify(new JobOfferAnswered($chosen));
 
-        // One email per company, listing every process of theirs that closed.
-        $closed->groupBy(fn ($r) => $r->companyId())->each(fn (Collection $records) => $records->first()->companyUser()?->notify(
-            new ProcessClosed($chosen->talent->name, $records->map->title()->unique()->values()->all(), $farewell)
-        ));
+        // One email per company, listing every process of theirs that closed. The hiring company already got JobOfferAnswered.
+        $closed->groupBy(fn ($r) => $r->companyId())->each(function (Collection $records, $companyId) use ($chosen, $farewell) {
+            if ((string) $companyId === (string) $chosen->companyId()) {
+                return;
+            }
+
+            $records->first()->companyUser()?->notify(
+                new ProcessClosed($chosen->talent->name, $records->map->title()->unique()->values()->all(), $farewell)
+            );
+        });
     }
 
     public function decline(RecruitmentOffer|JobApplication $record, ?string $note): void
     {
-        abort_unless($record->isJobOffer(), 422, 'Tawaran kerja ini sudah tidak berlaku.');
+        abort_unless($record->isJobOffer() && $record->job_offer_expires_at?->isFuture(), 422, 'Tawaran kerja ini sudah tidak berlaku.');
 
-        $record->update(['status' => 'ditolak', $record::ANSWERED_AT => now(), 'closed_note' => $note]);
-        $record->companyUser()?->notify(new JobOfferAnswered($record));
+        $updated = $record->newQuery()->whereKey($record->getKey())->where('status', 'tawaran_kerja')
+            ->update(['status' => 'ditolak', $record::ANSWERED_AT => now(), 'closed_note' => $note]);
+        abort_if($updated === 0, 422, 'Tawaran kerja ini sudah tidak berlaku.');
+
+        $record->refresh()->companyUser()?->notify(new JobOfferAnswered($record));
     }
 
     /** Remind the talent once, when two days are left. */

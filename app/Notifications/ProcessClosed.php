@@ -18,7 +18,7 @@ class ProcessClosed extends KabelotaMail
         return (new MailMessage)
             ->subject("{$name} sudah mengambil tawaran kerja lain")
             ->line("{$name} sudah menerima tawaran kerja dari perusahaan lain, jadi proses berikut ditutup otomatis: **".implode(', ', $this->positions).'**.')
-            ->lineIf(filled($this->farewell), 'Pesan dari talenta: "'.$this->farewell.'"')
+            ->lineIf(filled($this->farewell), 'Pesan dari talenta: "'.self::plain($this->farewell).'"')
             ->line('Riwayatnya tetap tersimpan di dashboard Anda.')
             ->action('Cari Talenta Lain', route('talents.index'));
     }

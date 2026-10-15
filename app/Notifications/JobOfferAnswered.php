@@ -27,7 +27,7 @@ class JobOfferAnswered extends KabelotaMail
         return (new MailMessage)
             ->subject("{$name} menolak tawaran kerja Anda")
             ->line("{$name} menolak tawaran kerja untuk posisi **{$r->job_offer_position}**.")
-            ->lineIf(filled($r->closed_note), 'Alasan: "'.$r->closed_note.'"')
+            ->lineIf(filled($r->closed_note), 'Alasan: "'.self::plain($r->closed_note).'"')
             ->action('Cari Talenta Lain', route('talents.index'));
     }
 }

@@ -18,12 +18,21 @@ abstract class KabelotaMail extends Notification implements ShouldQueue
     // Retry when the mail server is briefly unavailable (Gmail rate limits, network blips).
     public int $tries = 3;
 
+    // A queued mail for a record that was deleted meanwhile is dropped instead of failing.
+    public bool $deleteWhenMissingModels = true;
+
     /** @var array<int, int> */
     public array $backoff = [30, 120];
 
     public function via(object $notifiable): array
     {
         return ['mail'];
+    }
+
+    /** User-written text inside a mail line: escape markdown so it cannot create links or formatting. */
+    protected static function plain(?string $text): string
+    {
+        return preg_replace('/([\\\\`*_{}\[\]()#+\-.!|<>~])/', '\\\\$1', (string) $text);
     }
 
     abstract protected function message(object $notifiable): MailMessage;
