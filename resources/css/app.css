@@ -1053,5 +1053,7 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 /* Transparent bridge so the pointer can travel from the button into the popover without closing it. */
 .help-tip-pop::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
 @media (max-width: 520px) {
-    .help-tip-pop { position: fixed; left: 16px; right: 16px; top: auto; width: auto; max-width: none; transform: none; margin-top: 30px; } /* static position is the top of the 22px button, so 30px = button + 8px gap */
+    /* Anchor to the page edges instead of the button so the tip never overflows; top:auto keeps it right under the button (30px = 22px button + 8px gap). */
+    .help-tip { position: static; }
+    .help-tip-pop { position: absolute; left: 16px; right: 16px; top: auto; width: auto; max-width: none; transform: none; margin-top: 30px; }
 }
