@@ -76,4 +76,23 @@ class CompanyPortalTest extends TestCase
         $this->post(route('company.applications.update', $application), ['status' => 'ditinjau']);
         $this->assertNull($application->fresh()->company_note);
     }
+
+    public function test_applicants_page_filters_and_shows_actions_per_status(): void
+    {
+        [, $new] = $this->talent('Pelamar Baru Satu');
+        [, $reviewed] = $this->talent('Pelamar Ditinjau Dua');
+        $job = $this->hrdJob();
+        $this->applyTo($job, $new, 'baru');
+        $this->applyTo($job, $reviewed, 'ditinjau');
+
+        $this->actingAs($this->hrd());
+        $all = $this->get(route('company.applicants', $job))->assertOk()
+            ->assertSee('Pelamar Baru Satu')->assertSee('Pelamar Ditinjau Dua')
+            ->assertSee('Tandai ditinjau')->assertSee('Ya, tolak pelamar')->assertSee('Tawarkan kerja')
+            ->assertDontSee('<select class="box" id="st-', false);
+
+        $this->get(route('company.applicants', [$job, 'status' => 'baru']))->assertOk()
+            ->assertSee('Pelamar Baru Satu')->assertDontSee('Pelamar Ditinjau Dua');
+        $this->get(route('company.applicants', [$job, 'status' => 'tidak-ada']))->assertOk()->assertSee('Pelamar Ditinjau Dua');
+    }
 }

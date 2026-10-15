@@ -41,13 +41,28 @@ class CompanyDashboardController extends Controller
         return back()->with('status', "Lowongan \"{$job->title}\" ditutup. Pelamar yang sudah masuk tetap bisa Anda tinjau.");
     }
 
+    /** Applicant tabs: key => statuses (null = all). */
+    private const APPLICANT_FILTERS = [
+        'semua' => null,
+        'baru' => ['baru'],
+        'ditinjau' => ['ditinjau'],
+        'tawaran' => ['tawaran_kerja'],
+        'selesai' => ['diambil', 'ditolak', 'ditutup', 'kedaluwarsa'],
+    ];
+
     public function applicants(Request $request, JobPosting $job): View
     {
         abort_unless($job->company_id === $request->user()->company?->id, 403);
 
+        $filter = array_key_exists((string) $request->query('status'), self::APPLICANT_FILTERS) ? (string) $request->query('status') : 'semua';
+        $perStatus = $job->applications()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+
         return view('company.applicants', [
             'job' => $job,
+            'filter' => $filter,
+            'tabs' => collect(self::APPLICANT_FILTERS)->map(fn (?array $statuses) => $statuses ? $perStatus->only($statuses)->sum() : $perStatus->sum()),
             'applications' => $job->applications()->with(['talent.primaryCertification'])
+                ->when(self::APPLICANT_FILTERS[$filter], fn ($q, array $statuses) => $q->whereIn('status', $statuses))
                 ->orderByRaw("case status when 'tawaran_kerja' then 0 when 'baru' then 1 when 'ditinjau' then 2 when 'diambil' then 3 else 4 end")
                 ->latest()->get(),
         ]);

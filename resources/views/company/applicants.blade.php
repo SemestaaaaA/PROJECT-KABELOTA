@@ -3,8 +3,13 @@
     <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ route('company.jobs') }}">&lsaquo; Lowongan saya</a></p>
     <div class="page-h">
         <h1>{{ $job->title }}</h1>
-        <p>{{ $applications->count() }} pelamar. Tinjau dulu, lalu kirim tawaran kerja. Kontak pelamar terbuka setelah tawaran kerja terkirim.</p>
+        <p>{{ $tabs['semua'] }} pelamar. Tinjau dulu, lalu kirim tawaran kerja. Kontak pelamar terbuka setelah tawaran kerja terkirim.</p>
     </div>
+    <nav class="page-tabs" aria-label="Saring pelamar">
+        @foreach (['semua' => 'Semua', 'baru' => 'Baru', 'ditinjau' => 'Ditinjau', 'tawaran' => 'Tawaran kerja', 'selesai' => 'Selesai'] as $key => $label)
+            <a href="{{ route('company.applicants', $key === 'semua' ? $job : [$job, 'status' => $key]) }}" @if ($filter === $key) aria-current="page" @endif>{{ $label }}@if ($tabs[$key])<span class="count">{{ $tabs[$key] }}</span>@endif</a>
+        @endforeach
+    </nav>
 
     @forelse ($applications as $app)
         @php($t = $app->talent)
@@ -13,9 +18,15 @@
                 <div class="av" aria-hidden="true">@if ($t->photoUrl())<img src="{{ $t->photoUrl() }}" alt="">@else{{ $t->initials() }}@endif</div>
                 <div>
                     <h2><a href="{{ route('talents.show', $t) }}">{{ $t->name }}</a></h2>
-                    <p class="demo-note">{{ $t->headline }} · {{ $t->city }}
-                        @if ($t->isAlumni()) · {{ $t->experienceYears() }} thn @if ($t->primaryCertification) · jenjang {{ $t->primaryCertification->jenjang }} @endif
-                        @else · semester {{ $t->semester }} @endif</p>
+                    <p class="demo-note">{{ $t->headline }}</p>
+                    <ul class="applicant-facts">
+                        @if ($t->primaryCertification)
+                            <li><i class="ph ph-certificate" aria-hidden="true"></i> Jenjang {{ $t->primaryCertification->jenjang }}@if (! $t->primaryCertification->isValid()) <span class="tag tag-warn">SKK kedaluwarsa</span>@endif</li>
+                        @endif
+                        <li><i class="ph ph-hard-hat" aria-hidden="true"></i> {{ $t->isAlumni() ? ($t->experienceYears() ?? 0).' thn pengalaman' : 'Semester '.$t->semester }}</li>
+                        <li><i class="ph ph-map-pin" aria-hidden="true"></i> {{ $t->city }}</li>
+                        <li><i class="ph ph-clock" aria-hidden="true"></i> melamar {{ $app->created_at->diffForHumans() }}</li>
+                    </ul>
                 </div>
                 <span class="badge {{ $app->badgeClass() }}">{{ $app->statusLabel() }}</span>
             </div>
@@ -26,13 +37,19 @@
                 @else
                     <span class="demo-note">CV belum diunggah</span>
                 @endif
-                @if ($app->companyCanChangeStatus())
-                    <form method="post" action="{{ route('company.applications.update', $app) }}" class="status-form">@csrf
-                        <label class="sr-only" for="st-{{ $app->id }}">Ubah status</label>
-                        <select class="box" id="st-{{ $app->id }}" name="status" onchange="this.form.requestSubmit()">
-                            @foreach (\App\Models\JobApplication::COMPANY_STATUSES as $key)<option value="{{ $key }}" @selected($app->status === $key)>{{ \App\Models\JobApplication::STATUSES[$key] }}</option>@endforeach
-                        </select>
-                        <noscript><button class="btn btn-ink btn-sm" type="submit">Simpan</button></noscript>
+                @if ($app->status === 'baru')
+                    <form method="post" action="{{ route('company.applications.update', $app) }}">@csrf
+                        <input type="hidden" name="status" value="ditinjau">
+                        <button class="btn btn-line btn-sm" type="submit"><i class="ph ph-eye" aria-hidden="true"></i> Tandai ditinjau</button>
+                    </form>
+                @endif
+                @if (in_array($app->status, ['baru', 'ditinjau'], true))
+                    <x-reject-applicant :application="$app" />
+                @endif
+                @if ($app->status === 'ditolak' && $app->companyCanChangeStatus())
+                    <form method="post" action="{{ route('company.applications.update', $app) }}">@csrf
+                        <input type="hidden" name="status" value="ditinjau">
+                        <button class="btn btn-line btn-sm" type="submit"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i> Tinjau ulang</button>
                     </form>
                 @endif
                 @if ($app->canOfferJob())
@@ -55,12 +72,19 @@
                 <p class="demo-note">Tawaran kerja tidak dijawab dalam {{ \App\Services\HiringDecision::OFFER_DAYS }} hari. Anda bisa mengirimnya lagi.</p>
             @elseif ($app->status === 'ditolak' && $app->closed_note)
                 <p class="demo-note">Alasan talenta: "{{ $app->closed_note }}"</p>
+            @elseif ($app->status === 'ditolak' && $app->company_note)
+                <p class="demo-note">Alasan Anda: "{{ $app->company_note }}"</p>
             @endif
         </article>
     @empty
         <div class="empty" style="margin-top:20px">
-            <b style="display:block;color:var(--ink);font-size:17px;margin-bottom:6px">Belum ada pelamar</b>
-            Lowongan baru biasanya mendapat pelamar dalam beberapa hari. Sambil menunggu, Anda bisa mencari talenta dan mengajukan rekrut langsung.
+            @if ($filter !== 'semua')
+                <b style="display:block;color:var(--ink);font-size:17px;margin-bottom:6px">Tidak ada pelamar di tab ini.</b>
+                <a class="textlink" href="{{ route('company.applicants', $job) }}">Lihat semua pelamar</a>
+            @else
+                <b style="display:block;color:var(--ink);font-size:17px;margin-bottom:6px">Belum ada pelamar</b>
+                Lowongan baru biasanya mendapat pelamar dalam beberapa hari. Sambil menunggu, Anda bisa mencari talenta dan mengajukan rekrut langsung.
+            @endif
         </div>
     @endforelse
 
