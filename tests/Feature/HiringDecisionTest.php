@@ -217,5 +217,13 @@ class HiringDecisionTest extends TestCase
             ->toMail(User::factory()->create())->render();
 
         $this->assertStringNotContainsString('<a href="http://evil.test"', (string) $html);
+
+        $html = (string) (new ProcessClosed('Budi', ['Site Engineer'], 'Gaji Rp5.000.000, mulai 1 Nov. gaji > 5jt'))
+            ->toMail(User::factory()->create())->render();
+
+        $this->assertStringContainsString('Rp5.000.000', $html);
+        $this->assertStringContainsString('1 Nov.', $html);
+        $this->assertStringNotContainsString('\.', $html);
+        $this->assertStringNotContainsString('&amp;gt;', $html);
     }
 }

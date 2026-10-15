@@ -32,7 +32,7 @@ abstract class KabelotaMail extends Notification implements ShouldQueue
     /** User-written text inside a mail line: escape markdown so it cannot create links or formatting. */
     protected static function plain(?string $text): string
     {
-        return preg_replace('/([\\\\`*_{}\[\]()#+\-.!|<>~])/', '\\\\$1', (string) $text);
+        return preg_replace('/([\\\\`*_\[\]~])/', '\\\\$1', (string) $text);
     }
 
     abstract protected function message(object $notifiable): MailMessage;
