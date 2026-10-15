@@ -329,11 +329,12 @@ footer.site .base { border-top: 1px solid #2E2E33; padding-block: 16px 24px; fon
 .sheet footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--line); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
-.demo-ribbon { background: #111113; color: #C9C9C4; font-size: 13px; text-align: center; padding: 6px 12px; }
-.demo-ribbon b { color: #F5B800; }
-.qa-ribbon { background: #F5B800; color: #111113; }
-.qa-ribbon b { color: #111113; }
-.qa-ribbon a { color: #111113; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }
+/* Short notice at the top (QA server): slides in, stays, slides out. 3 s total visible time. */
+.toast { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; z-index: 300; display: flex; align-items: center; gap: 10px; max-width: min(92vw, 460px); padding: 11px 16px; border-radius: var(--r-lg); background: #111113; color: #F6F5F0; border: 1px solid #F5B800; box-shadow: 0 10px 30px rgba(17,17,19,.35); font-size: 14px; line-height: 1.4; transform: translate(-50%, -140%); opacity: 0; pointer-events: none; }
+.toast i { color: #F5B800; font-size: 18px; flex: none; }
+.toast.is-on { animation: toastLife 3s cubic-bezier(.22,.8,.3,1) both; }
+@keyframes toastLife { 0% { transform: translate(-50%, -140%); opacity: 0; } 10%, 88% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, -140%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .toast.is-on { animation: toastFade 3s linear both; transform: translate(-50%, 0); } @keyframes toastFade { 0%, 100% { opacity: 0; } 8%, 90% { opacity: 1; } } }
 .b-off { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
 .b-ok { background: var(--ok-soft); color: var(--ok); }
 .b-plain { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }

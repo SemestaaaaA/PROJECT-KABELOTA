@@ -73,8 +73,10 @@
     </div>
     <div class="nav-progress" aria-hidden="true"><span></span></div>
     @if (app()->environment('staging'))
-        <div class="demo-ribbon qa-ribbon"><b>Versi QA.</b> Ini server uji coba, data bisa direset sewaktu-waktu.
-            @if (config('kabelota.qa_form_url'))<a href="{{ config('kabelota.qa_form_url') }}" target="_blank" rel="noopener">Laporkan masalah</a>@endif
+        {{-- Server uji coba: a short notice instead of a permanent bar (motion.js shows it once per tab, for 3 seconds). --}}
+        <div class="toast" role="status" aria-live="polite" data-notice hidden>
+            <i class="ph ph-flask" aria-hidden="true"></i>
+            <span>Ini server uji coba, data bisa direset sewaktu-waktu.</span>
         </div>
     @endif
 

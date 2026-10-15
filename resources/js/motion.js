@@ -195,4 +195,18 @@ function reveal() {
 /* ---------- boot ---------- */
 
 fadeImages();
-runIntro(reveal);
+/* ---------- 6. One-time notice (QA server) ---------- */
+
+function showNotice() {
+    const el = document.querySelector('[data-notice]');
+    if (!el) return;
+    try {
+        if (sessionStorage.getItem('kb-notice')) return el.remove();
+        sessionStorage.setItem('kb-notice', '1');
+    } catch { /* private mode: just show it */ }
+    el.hidden = false;
+    el.classList.add('is-on');
+    setTimeout(() => el.remove(), 3100);
+}
+
+runIntro(() => { reveal(); showNotice(); });

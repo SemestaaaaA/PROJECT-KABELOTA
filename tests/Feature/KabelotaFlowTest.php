@@ -438,8 +438,9 @@ class KabelotaFlowTest extends TestCase
         config(['kabelota.qa_form_url' => 'https://forms.gle/contoh']);
 
         $this->get('/')->assertOk()
-            ->assertSee('Versi QA.')
-            ->assertSee('https://forms.gle/contoh', false)
+            ->assertSee('Ini server uji coba, data bisa direset sewaktu-waktu.')
+            ->assertSee('data-notice', false)
+            ->assertDontSee('Versi QA.')
             ->assertDontSee('Mode demo.');
     }
 
