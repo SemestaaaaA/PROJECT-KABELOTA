@@ -3,7 +3,7 @@
     <p style="padding-top:24px;font-size:14px"><a class="textlink" href="{{ route('company.jobs') }}">&lsaquo; Lowongan saya</a></p>
     <div class="page-h">
         <h1>{{ $job->title }}</h1>
-        <p>{{ $applications->count() }} pelamar. Kontak pelamar terbuka saat statusnya Anda ubah ke Diterima.</p>
+        <p>{{ $applications->count() }} pelamar. Tinjau dulu, lalu kirim tawaran kerja. Kontak pelamar terbuka setelah tawaran kerja terkirim.</p>
     </div>
 
     @forelse ($applications as $app)
@@ -26,20 +26,36 @@
                 @else
                     <span class="demo-note">CV belum diunggah</span>
                 @endif
-                <form method="post" action="{{ route('company.applications.update', $app) }}" class="status-form">@csrf
-                    <label class="sr-only" for="st-{{ $app->id }}">Ubah status</label>
-                    <select class="box" id="st-{{ $app->id }}" name="status" onchange="this.form.requestSubmit()">
-                        @foreach (\App\Models\JobApplication::STATUSES as $key => $label)<option value="{{ $key }}" @selected($app->status === $key)>{{ $label }}</option>@endforeach
-                    </select>
-                    <noscript><button class="btn btn-ink btn-sm" type="submit">Simpan</button></noscript>
-                </form>
-                @if ($app->status === 'diterima')
+                @if ($app->companyCanChangeStatus())
+                    <form method="post" action="{{ route('company.applications.update', $app) }}" class="status-form">@csrf
+                        <label class="sr-only" for="st-{{ $app->id }}">Ubah status</label>
+                        <select class="box" id="st-{{ $app->id }}" name="status" onchange="this.form.requestSubmit()">
+                            @foreach (\App\Models\JobApplication::COMPANY_STATUSES as $key)<option value="{{ $key }}" @selected($app->status === $key)>{{ \App\Models\JobApplication::STATUSES[$key] }}</option>@endforeach
+                        </select>
+                        <noscript><button class="btn btn-ink btn-sm" type="submit">Simpan</button></noscript>
+                    </form>
+                @endif
+                @if ($app->canOfferJob())
+                    <x-job-offer-form :record="$app" :position="$job->title" />
+                @endif
+                @if ($app->contactVisible())
                     <div class="contact-reveal">
                         <a href="tel:{{ $t->phone }}" class="mono"><i class="ph ph-phone" aria-hidden="true"></i> {{ $t->phone }}</a>
                         <a href="mailto:{{ $t->email }}" class="mono"><i class="ph ph-envelope-simple" aria-hidden="true"></i> {{ $t->email }}</a>
                     </div>
                 @endif
             </div>
+            @if ($app->isJobOffer())
+                <p class="demo-note">Tawaran kerja <b>{{ $app->job_offer_position }}</b> terkirim. Menunggu jawaban talenta, {{ $app->jobOfferDaysLeft() }} hari lagi.</p>
+            @elseif ($app->status === 'diambil')
+                <p class="demo-note">Talenta mengambil tawaran kerja <b>{{ $app->job_offer_position }}</b>.</p>
+            @elseif ($app->status === 'ditutup')
+                <p class="demo-note">Ditutup otomatis: talenta mengambil tawaran kerja lain.@if ($app->closed_note) Pesan talenta: "{{ $app->closed_note }}"@endif</p>
+            @elseif ($app->status === 'kedaluwarsa')
+                <p class="demo-note">Tawaran kerja tidak dijawab dalam 7 hari. Anda bisa mengirimnya lagi.</p>
+            @elseif ($app->status === 'ditolak' && $app->closed_note)
+                <p class="demo-note">Alasan talenta: "{{ $app->closed_note }}"</p>
+            @endif
         </article>
     @empty
         <div class="empty" style="margin-top:20px">

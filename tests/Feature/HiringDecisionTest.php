@@ -324,4 +324,22 @@ class HiringDecisionTest extends TestCase
             ->assertRedirect(route('talent.offers'))->assertSessionHas('status', 'Tawaran kerja ini sudah tidak berlaku.');
         $this->assertSame('tawaran_kerja', $offer->fresh()->status);
     }
+
+    public function test_company_pages_show_job_offer_actions_and_closed_messages(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        $job = $hrd->company->jobPostings()->open()->firstOrFail();
+        $application = JobApplication::create(['job_posting_id' => $job->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $offer = $this->interestedOffer($talent);
+
+        $this->actingAs($hrd)->get(route('company.applicants', $job))->assertOk()->assertSee('Tawarkan kerja')->assertDontSee('081299990000');
+        $this->get('/perusahaan/tawaran')->assertOk()->assertSee('Tawarkan kerja')->assertSee('081299990000');
+
+        $this->offerJob($offer);
+        app(HiringDecision::class)->accept($offer->fresh(), 'Sampai jumpa di proyek lain.');
+
+        $this->get(route('company.applicants', $job))->assertSee('Ditutup')->assertSee('Sampai jumpa di proyek lain.');
+    }
 }
