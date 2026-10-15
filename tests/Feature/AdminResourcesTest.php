@@ -8,12 +8,15 @@ use App\Filament\Resources\JobApplications\Pages\ListJobApplications;
 use App\Filament\Resources\JobApplications\Widgets\JobApplicationStats;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
 use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
+use App\Filament\Resources\RecruitmentOffers\Pages\ListRecruitmentOffers;
+use App\Filament\Resources\RecruitmentOffers\Widgets\RecruitmentOfferStats;
 use App\Filament\Resources\Talent\Pages\ListTalent;
 use App\Filament\Resources\Talent\Widgets\TalentStats;
-use App\Models\JobApplication;
-use App\Models\Talent;
 use App\Models\Company;
+use App\Models\JobApplication;
 use App\Models\JobPosting;
+use App\Models\RecruitmentOffer;
+use App\Models\Talent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -295,5 +298,46 @@ class AdminResourcesTest extends TestCase
         ]);
 
         Livewire::test(ListJobApplications::class)->assertSee('Baru belum ditinjau');
+    }
+
+    private function offer(Company $company, array $attrs = []): RecruitmentOffer
+    {
+        return RecruitmentOffer::create($attrs + [
+            'talent_id' => $this->talent()->id, 'company_id' => $company->id, 'company_name' => $company->name,
+            'contact_name' => 'Budi Uji', 'contact_email' => 'budi@uji.test', 'position' => 'Pelaksana Uji', 'message' => 'Halo.', 'status' => 'menunggu',
+        ]);
+    }
+
+    public function test_recruitment_offer_help_filter_and_stats(): void
+    {
+        Livewire::test(ListRecruitmentOffers::class)
+            ->assertActionExists('bantuan')
+            ->assertSee('Apa ini?')
+            ->mountAction('bantuan')
+            ->assertMountedActionModalSee(['Menunggu jawaban', 'Tertarik', 'Tawaran kerja', 'Diambil', 'Kedaluwarsa', 'Cari Talenta', 'Admin hanya memantau']);
+
+        $mine = $this->company(['name' => 'PT Rekrut Uji Satu', 'status' => 'terverifikasi']);
+        $other = $this->company(['name' => 'PT Rekrut Uji Dua', 'status' => 'terverifikasi']);
+        $interested = $this->offer($mine, ['status' => 'diterima', 'responded_at' => now()]);
+        $taken = $this->offer($mine, ['status' => 'diambil', 'responded_at' => now(), 'job_offered_at' => now()]);
+        $declined = $this->offer($other, ['status' => 'ditolak', 'responded_at' => now()]);
+
+        Livewire::test(ListRecruitmentOffers::class)
+            ->filterTable('company_id', $mine->id)
+            ->assertCanSeeTableRecords([$interested, $taken])
+            ->assertCanNotSeeTableRecords([$declined]);
+
+        $everInterested = RecruitmentOffer::whereNotNull('responded_at')
+            ->where(fn ($q) => $q->where('status', '!=', 'ditolak')->orWhereNotNull('job_offered_at'))->count();
+
+        Livewire::test(RecruitmentOfferStats::class)->assertSeeInOrder([
+            'Terkirim', (string) RecruitmentOffer::count(),
+            'Tertarik', (string) $everInterested,
+            'Tawaran kerja', (string) RecruitmentOffer::whereNotNull('job_offered_at')->count(),
+            'Diambil', (string) RecruitmentOffer::where('status', 'diambil')->count(),
+        ]);
+
+        Livewire::test(ListRecruitmentOffers::class)->assertSee('Terkirim')
+            ->assertSee('Talenta setuju dihubungi'); // status tooltip
     }
 }
