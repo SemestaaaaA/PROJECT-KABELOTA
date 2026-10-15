@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Talent;
 use App\Enums\Availability;
 use App\Filament\Resources\Talent\Pages\EditTalent;
 use App\Filament\Resources\Talent\Pages\ListTalent;
+use App\Filament\Resources\Talent\Widgets\TalentStats;
 use App\Models\Talent;
 use App\Notifications\SkkReviewed;
 use BackedEnum;
@@ -20,6 +21,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Notifications\Notification;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -76,6 +78,24 @@ class TalentResource extends Resource
                 SelectFilter::make('hmts_status')->label('HMTS')->options(config('kabelota.hmts_statuses')),
                 Filter::make('skk_queue')->label('SKK perlu dicek')
                     ->query(fn (Builder $query) => $query->whereNotNull('skk_scan_path')->whereNull('skk_verified_at')->whereNull('skk_review_note')),
+                SelectFilter::make('jenjang')->label('Jenjang SKK')->multiple()
+                    ->options(collect(config('kabelota.jenjang'))->mapWithKeys(fn ($label, $level) => [$level => "$level · $label"])->all())
+                    ->query(fn (Builder $query, array $data) => $query->when(
+                        $data['values'] ?? null,
+                        fn (Builder $q, array $values) => $q->whereHas('certifications', fn ($c) => $c->whereIn('jenjang', $values)),
+                    )),
+                SelectFilter::make('concentration')->label('Konsentrasi')
+                    ->options(array_combine(config('kabelota.concentrations'), config('kabelota.concentrations'))),
+                SelectFilter::make('availability')->label('Ketersediaan')
+                    ->options(collect(Availability::cases())->mapWithKeys(fn ($a) => [$a->value => $a->label()])->all()),
+                SelectFilter::make('city')->label('Domisili')
+                    ->options(fn () => Talent::query()->distinct()->whereNotNull('city')->orderBy('city')->pluck('city', 'city')->all()),
+                Filter::make('skk_expired')->label('SKK kedaluwarsa')
+                    ->query(fn (Builder $query) => $query->whereHas('certifications', fn ($c) => $c->whereDate('expires_at', '<', today()))),
+                TernaryFilter::make('is_visible')->label('Profil tampil di pencarian')
+                    ->trueLabel('Tampil')->falseLabel('Disembunyikan'),
+                TernaryFilter::make('has_cv')->label('CV')->attribute('cv_path')->nullable()
+                    ->trueLabel('Sudah unggah CV')->falseLabel('Belum unggah CV'),
             ])
             ->recordActions([
                 Action::make('profil')->label('Lihat profil')->icon(Heroicon::OutlinedEye)->color('gray')
@@ -102,6 +122,11 @@ class TalentResource extends Resource
                     }),
                 EditAction::make(),
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [TalentStats::class];
     }
 
     public static function getPages(): array

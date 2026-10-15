@@ -6,7 +6,10 @@ use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Widgets\CompanyStats;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
 use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
+use App\Filament\Resources\Talent\Pages\ListTalent;
+use App\Filament\Resources\Talent\Widgets\TalentStats;
 use App\Models\JobApplication;
+use App\Models\Talent;
 use App\Models\Company;
 use App\Models\JobPosting;
 use App\Models\User;
@@ -160,5 +163,77 @@ class AdminResourcesTest extends TestCase
         ]);
 
         Livewire::test(ListJobPostings::class)->assertSee('Pendapatan bulan ini');
+    }
+
+    private function talent(array $attrs = [], ?int $jenjang = null, ?string $expires = null): Talent
+    {
+        $talent = Talent::factory()->create($attrs + ['city' => 'Kota Uji Satu']);
+        if ($jenjang) {
+            $talent->certifications()->create([
+                'jabatan_kerja' => 'Ahli Geoteknik', 'jenjang' => $jenjang, 'registration_number' => 'UJI-'.$talent->id,
+                'issued_at' => today()->subYears(3), 'expires_at' => $expires ?? today()->addYear()->toDateString(),
+            ]);
+        }
+
+        return $talent;
+    }
+
+    public function test_talent_filters(): void
+    {
+        $madya = $this->talent(['cv_path' => 'cv/a.pdf'], 8);
+        $expired = $this->talent(['cv_path' => 'cv/b.pdf'], 5, today()->subDay()->toDateString());
+        $hidden = $this->talent(['is_visible' => false]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('jenjang', [8, 9])
+            ->assertCanSeeTableRecords([$madya])
+            ->assertCanNotSeeTableRecords([$expired, $hidden]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('skk_expired')
+            ->assertCanSeeTableRecords([$expired])
+            ->assertCanNotSeeTableRecords([$madya, $hidden]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('has_cv', false)
+            ->assertCanSeeTableRecords([$hidden])
+            ->assertCanNotSeeTableRecords([$madya, $expired]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('is_visible', false)
+            ->assertCanSeeTableRecords([$hidden])
+            ->assertCanNotSeeTableRecords([$madya, $expired]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('city', 'Kota Uji Satu')
+            ->assertCanSeeTableRecords([$madya, $expired, $hidden]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('availability', $madya->availability->value)
+            ->assertCanSeeTableRecords([$madya]);
+
+        Livewire::test(ListTalent::class)
+            ->filterTable('concentration', $madya->concentration)
+            ->assertCanSeeTableRecords([$madya]);
+    }
+
+    public function test_talent_stats(): void
+    {
+        $this->talent(['skk_scan_path' => 'skk/a.pdf'], 7);
+        $this->talent(['cv_path' => 'cv/c.pdf', 'type' => 'mahasiswa']);
+
+        $queue = Talent::whereNotNull('skk_scan_path')->whereNull('skk_verified_at')->whereNull('skk_review_note')->count();
+        $total = Talent::count();
+        $withCv = Talent::whereNotNull('cv_path')->count();
+
+        Livewire::test(TalentStats::class)->assertSeeInOrder([
+            'Total talenta', (string) $total,
+            Talent::where('type', 'alumni')->count().' alumni', Talent::where('type', 'mahasiswa')->count().' mahasiswa',
+            'Tersedia', (string) Talent::where('availability', 'tersedia')->count(),
+            'SKK perlu dicek', (string) $queue,
+            'Punya CV', round($withCv / $total * 100).'%', "$withCv dari $total",
+        ]);
+
+        Livewire::test(ListTalent::class)->assertSee('Punya CV');
     }
 }
