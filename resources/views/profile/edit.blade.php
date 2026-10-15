@@ -118,7 +118,8 @@
                     <span class="demo-note"><i class="ph ph-lock-simple" aria-hidden="true"></i> Tidak tampil di profil publik.</span>
                     @error('phone')<span class="err">{{ $message }}</span>@enderror</div>
                 <div class="fld"><label for="p-email">Email</label>
-                    <input class="box @error('email') is-err @enderror" id="p-email" name="email" type="email" value="{{ old('email', $t?->email) }}" autocomplete="email">
+                    <input class="box @error('email') is-err @enderror" id="p-email" name="email" type="email" value="{{ old('email', $t?->email ?? auth()->user()->email) }}" autocomplete="email">
+                    <span class="demo-note">Email kontak untuk perusahaan, boleh beda dengan email login.</span>
                     @error('email')<span class="err">{{ $message }}</span>@enderror</div>
             </div>
             <div class="fld"><label for="p-city">Domisili</label>

@@ -1031,3 +1031,15 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 .inbox-card.is-past { opacity: .85; }
 .job-offer { border-top: 1px dashed var(--line-strong); padding-top: 12px; display: grid; gap: 10px; }
 .closing-list { margin: 8px 0 12px; padding-left: 18px; display: grid; gap: 4px; }
+
+/* Side-by-side fields keep their inputs aligned even when one field has a hint below it. */
+.fld { align-content: start; }
+
+/* Browser autofill follows the theme instead of its own blue background. */
+.box:-webkit-autofill, .box:-webkit-autofill:hover, .box:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--ink);
+    -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+    box-shadow: 0 0 0 1000px var(--surface) inset;
+    caret-color: var(--ink);
+    transition: background-color 9999s ease-out;
+}
