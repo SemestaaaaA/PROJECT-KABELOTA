@@ -45,7 +45,7 @@ class HiringDecision
     {
         abort_unless($record->canOfferJob(), 422, 'Tawaran kerja hanya bisa dikirim setelah talenta tertarik atau lamarannya ditinjau.');
 
-        $record->update([
+        $updated = $record->newQuery()->whereKey($record->getKey())->whereIn('status', $record::OFFERABLE_FROM)->update([
             'status' => 'tawaran_kerja',
             'job_offer_position' => $data['job_offer_position'],
             'job_offer_start_date' => $data['job_offer_start_date'],
@@ -54,6 +54,8 @@ class HiringDecision
             'job_offer_expires_at' => now()->addDays(self::OFFER_DAYS),
             'job_offer_reminded_at' => null,
         ]);
+        abort_if($updated === 0, 422, 'Tawaran kerja hanya bisa dikirim setelah talenta tertarik atau lamarannya ditinjau.');
+        $record->refresh();
 
         $record->talent->user?->notify(new JobOfferReceived($record));
     }

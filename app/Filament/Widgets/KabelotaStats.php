@@ -56,8 +56,8 @@ class KabelotaStats extends StatsOverviewWidget
 
         $offers = RecruitmentOffer::query();
         $offersNow = $between($offers, $from, $now);
-        $answered = RecruitmentOffer::where('created_at', '>=', $from)->where('status', '!=', 'menunggu')->count();
-        $accepted = RecruitmentOffer::where('created_at', '>=', $from)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil'])->count();
+        $answered = RecruitmentOffer::where('created_at', '>=', $from)->whereNotNull('responded_at')->count();
+        $accepted = RecruitmentOffer::where('created_at', '>=', $from)->whereNotNull('responded_at')->where(fn ($q) => $q->where('status', '!=', 'ditolak')->orWhereNotNull('job_offered_at'))->count();
 
         $apps = JobApplication::query();
         $appsNow = $between($apps, $from, $now);
@@ -80,7 +80,7 @@ class KabelotaStats extends StatsOverviewWidget
                 ->chart($revenueWeeks)
                 ->icon(Heroicon::OutlinedBanknotes),
             Stat::make('Tawaran rekrut', $offersNow)
-                ->description($offersNow ? round($accepted / $offersNow * 100).'% diterima · '.($offersNow - $answered).' belum dijawab' : 'Belum ada tawaran')
+                ->description($offersNow ? round($accepted / $offersNow * 100).'% tertarik · '.($offersNow - $answered).' belum dijawab' : 'Belum ada tawaran')
                 ->descriptionIcon(Heroicon::OutlinedPaperAirplane)
                 ->color($offersNow && $accepted ? 'success' : 'gray')
                 ->chart(Chart::perWeek(RecruitmentOffer::query()))

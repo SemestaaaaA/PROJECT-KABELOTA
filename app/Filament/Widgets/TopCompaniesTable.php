@@ -25,7 +25,7 @@ class TopCompaniesTable extends TableWidget
         return $table
             ->query(Company::query()->where('status', 'terverifikasi')->withCount([
                 'offers' => fn (Builder $q) => $q->where('created_at', '>=', $since),
-                'offers as accepted_count' => fn (Builder $q) => $q->where('created_at', '>=', $since)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil']),
+                'offers as accepted_count' => fn (Builder $q) => $q->where('created_at', '>=', $since)->whereNotNull('responded_at')->where(fn (Builder $w) => $w->where('status', '!=', 'ditolak')->orWhereNotNull('job_offered_at')),
                 'jobPostings' => fn (Builder $q) => $q->whereNotNull('approved_at')->where('approved_at', '>=', $since),
             ]))
             ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('offers_count')->orderByDesc('job_postings_count'))
@@ -35,7 +35,7 @@ class TopCompaniesTable extends TableWidget
             ->columns([
                 TextColumn::make('name')->label('Perusahaan')->wrap()->description(fn (Company $r) => $r->city),
                 TextColumn::make('offers_count')->label('Tawaran')->numeric()->alignEnd()
-                    ->description(fn (Company $r) => $r->offers_count ? $r->accepted_count.' diterima' : null, position: 'below'),
+                    ->description(fn (Company $r) => $r->offers_count ? $r->accepted_count.' tertarik' : null, position: 'below'),
                 TextColumn::make('job_postings_count')->label('Lowongan')->numeric()->alignEnd(),
             ]);
     }

@@ -110,6 +110,17 @@ class DemoSeeder extends Seeder
                 ]);
             }
         }
+
+        // One reviewed application already carries a pending job offer, so the demo shows the final step.
+        $reviewed = JobApplication::where('status', 'ditinjau')->with('jobPosting')->first();
+        $reviewed?->update([
+            'status' => 'tawaran_kerja',
+            'job_offer_position' => $reviewed->jobPosting->title,
+            'job_offer_start_date' => today()->addDays(14),
+            'job_offered_at' => now(),
+            'job_offer_expires_at' => now()->addDays(7),
+        ]);
+
         foreach ($alumni->take(2) as $i => $talent) {
             RecruitmentOffer::create([
                 'talent_id' => $talent->id, 'company_id' => $companies->first()->id, 'company_name' => $companies->first()->name,
@@ -168,7 +179,8 @@ class DemoSeeder extends Seeder
                 'contact_name' => $company->contact_name, 'contact_email' => 'hrd@contoh.kabelota.test',
                 'position' => ['Site Engineer', 'Pengawas Lapangan', 'Drafter'][$i % 3], 'duration' => '6 bulan',
                 'message' => 'Kami membutuhkan personel untuk paket pekerjaan tahun anggaran berjalan.',
-                'status' => ['diterima', 'ditolak', 'menunggu'][$i % 3],
+                'status' => $status = ['diterima', 'ditolak', 'menunggu'][$i % 3],
+                'responded_at' => $status === 'menunggu' ? null : now()->subDays(2),
             ]);
         }
 

@@ -22,7 +22,7 @@ class JobApplication extends Model
 
     public const OFFERABLE_FROM = ['ditinjau', 'kedaluwarsa'];
 
-    public const CONTACT_STATUSES = ['tawaran_kerja', 'diambil'];
+    public const CONTACT_STATUSES = ['tawaran_kerja', 'diambil', 'kedaluwarsa'];
 
     public const ANSWERED_AT = 'status_changed_at';
 

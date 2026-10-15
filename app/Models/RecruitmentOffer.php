@@ -27,7 +27,7 @@ class RecruitmentOffer extends Model
 
     public const OFFERABLE_FROM = ['diterima', 'kedaluwarsa'];
 
-    public const CONTACT_STATUSES = ['diterima', 'tawaran_kerja', 'diambil'];
+    public const CONTACT_STATUSES = ['diterima', 'tawaran_kerja', 'diambil', 'kedaluwarsa'];
 
     public const ANSWERED_AT = 'responded_at';
 

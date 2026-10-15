@@ -111,8 +111,8 @@
                     <div class="acct-menu" role="menu" x-show="open" x-cloak x-transition.opacity>
                         @if ($me->isTalent())
                             <a role="menuitem" href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}"><i class="ph ph-user" aria-hidden="true"></i> Profil saya</a>
-                            <a role="menuitem" href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($pending)<span class="count">{{ $pending }}</span>@endif</a>
-                            <a role="menuitem" href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya</a>
+                            <a role="menuitem" href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
+                            <a role="menuitem" href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya @if ($me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingApplicationOfferCount() }}</span>@endif</a>
                         @elseif ($me->isCompany())
                             <a role="menuitem" href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
                             <a role="menuitem" href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
@@ -160,8 +160,8 @@
                     <span class="lbl">Akun saya</span>
                     @if ($me->isTalent())
                         <a href="{{ $me->talent ? route('talents.show', $me->talent) : route('profile.edit') }}"><i class="ph ph-user" aria-hidden="true"></i> Profil saya</a>
-                        <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount() + $me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingOfferCount() + $me->pendingApplicationOfferCount() }}</span>@endif</a>
-                        <a href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya</a>
+                        <a href="{{ route('talent.offers') }}"><i class="ph ph-tray" aria-hidden="true"></i> Tawaran masuk @if ($me->pendingOfferCount())<span class="count">{{ $me->pendingOfferCount() }}</span>@endif</a>
+                        <a href="{{ route('talent.applications') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Lamaran saya @if ($me->pendingApplicationOfferCount())<span class="count">{{ $me->pendingApplicationOfferCount() }}</span>@endif</a>
                     @elseif ($me->isCompany())
                         <a href="{{ route('company.jobs') }}"><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan saya</a>
                         <a href="{{ route('company.offers') }}"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Tawaran terkirim</a>
@@ -256,7 +256,7 @@
             </header>
             <div class="content">
                 @if ($me->talent)
-                    <p class="privacy">Perusahaan akan melihat profil, SKK, dan CV Anda. Nomor HP dan email baru terbuka kalau lamaran Anda diterima.</p>
+                    <p class="privacy">Perusahaan akan melihat profil, SKK, dan CV Anda. Nomor HP dan email baru terbuka kalau perusahaan mengirim tawaran kerja.</p>
                     <div class="fld"><label for="apply-msg">Pesan singkat <span class="demo-note">(opsional)</span></label>
                         <textarea class="box" id="apply-msg" name="message" rows="3" maxlength="600" placeholder="mis. Saya berdomisili di Palu dan siap ditempatkan di lokasi proyek."></textarea></div>
                 @else

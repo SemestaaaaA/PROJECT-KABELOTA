@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-/** Company side: sent offers (contact revealed after acceptance), own jobs, applicants. */
+/** Company side: sent offers (contact revealed once the talent is interested or takes a job offer), own jobs, applicants. */
 class CompanyDashboardController extends Controller
 {
     public function offers(Request $request): View
@@ -33,7 +33,7 @@ class CompanyDashboardController extends Controller
 
     public function closeJob(Request $request, JobPosting $job): RedirectResponse
     {
-        abort_unless($job->company_id === $request->user()->company->id, 403);
+        abort_unless($job->company_id === $request->user()->company?->id, 403);
         abort_unless($job->status === 'aktif', 422);
 
         $job->update(['status' => 'ditutup']);
@@ -43,7 +43,7 @@ class CompanyDashboardController extends Controller
 
     public function applicants(Request $request, JobPosting $job): View
     {
-        abort_unless($job->company_id === $request->user()->company->id, 403);
+        abort_unless($job->company_id === $request->user()->company?->id, 403);
 
         return view('company.applicants', [
             'job' => $job,
@@ -55,7 +55,7 @@ class CompanyDashboardController extends Controller
 
     public function updateApplication(Request $request, JobApplication $application): RedirectResponse
     {
-        abort_unless($application->jobPosting->company_id === $request->user()->company->id, 403);
+        abort_unless($application->jobPosting->company_id === $request->user()->company?->id, 403);
         abort_unless($application->companyCanChangeStatus(), 422, 'Status lamaran ini sudah final.');
 
         $data = $request->validate(['status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)]]);
@@ -71,7 +71,7 @@ class CompanyDashboardController extends Controller
     public function offerJob(Request $request, string $type, int $id, HiringDecision $hiring): RedirectResponse
     {
         $record = HiringDecision::find($type, $id);
-        abort_unless($record->companyId() === $request->user()->company->id, 403);
+        abort_unless($record->companyId() === $request->user()->company?->id, 403);
 
         $data = $request->validate([
             'job_offer_position' => ['required', 'string', 'max:120'],

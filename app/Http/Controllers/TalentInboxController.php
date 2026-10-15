@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/** Talent side: incoming offers (Terima/Tolak) and own job applications. */
+/** Talent side: incoming offers (Tertarik/Tolak) and own job applications. */
 class TalentInboxController extends Controller
 {
     private function talent(Request $request): ?Talent

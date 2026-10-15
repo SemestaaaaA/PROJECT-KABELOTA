@@ -28,7 +28,7 @@
 
     @if (session('offer_sent'))
         <div class="ok-banner" role="status">
-            <b>Tawaran terkirim.</b> {{ $talent->name }} menerima tawaran untuk posisi "{{ session('offer_sent') }}". Kontaknya terbuka setelah ia memilih Terima.
+            <b>Tawaran terkirim.</b> {{ $talent->name }} mendapat tawaran untuk posisi "{{ session('offer_sent') }}". Kontaknya terbuka setelah ia menyatakan tertarik.
             @if (config('mail.default') === 'log')<span style="color:var(--muted)">(Mode lokal: email dicatat di log, belum benar-benar dikirim.)</span>@endif
         </div>
     @endif
@@ -174,7 +174,7 @@
                 </div>
                 <div class="locked">
                     <b><i class="ph ph-lock-simple" aria-hidden="true"></i> Kontak terkunci</b>
-                    Nomor HP dan email terbuka untuk perusahaan setelah talenta menerima tawarannya.
+                    Nomor HP dan email terbuka untuk perusahaan setelah talenta menyatakan tertarik pada tawaran rekrut.
                 </div>
             @endif
         </aside>
@@ -215,7 +215,7 @@
                 <div class="fld"><label for="message">Pesan untuk talenta</label>
                     <textarea class="box @error('message', 'offer') is-err @enderror" id="message" name="message" rows="4" placeholder="Jelaskan proyek, lokasi, dan fasilitas.">{{ old('message') }}</textarea>
                     @error('message', 'offer')<span class="err">{{ $message }}</span>@enderror</div>
-                <p class="privacy">{{ \Illuminate\Support\Str::before($talent->name, ',') }} menerima email dan memilih Terima atau Tolak. Nomor HP dan email baru terlihat setelah ia menerima.</p>
+                <p class="privacy">{{ \Illuminate\Support\Str::before($talent->name, ',') }} menerima email dan memilih Tertarik atau Tolak. Nomor HP dan email baru terlihat setelah ia menyatakan tertarik.</p>
             </div>
             <footer>
                 <button type="button" class="btn btn-line" @click="open = false">Batal</button>

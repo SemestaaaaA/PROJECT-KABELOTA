@@ -34,11 +34,11 @@ class RecruitmentFunnelChart extends ChartWidget
 
         $steps = [
             'Tawaran terkirim' => (clone $offers)->count(),
-            'Talenta tertarik' => (clone $offers)->whereIn('status', ['diterima', 'tawaran_kerja', 'diambil'])->count(),
+            'Talenta tertarik' => (clone $offers)->whereNotNull('responded_at')->where(fn ($q) => $q->where('status', '!=', 'ditolak')->orWhereNotNull('job_offered_at'))->count(),
             'Lamaran masuk' => (clone $apps)->count(),
             'Lamaran ditinjau' => (clone $apps)->where('status', '!=', 'baru')->count(),
-            'Tawaran kerja' => (clone $offers)->whereIn('status', ['tawaran_kerja', 'diambil', 'kedaluwarsa'])->count()
-                + (clone $apps)->whereIn('status', ['tawaran_kerja', 'diambil', 'kedaluwarsa'])->count(),
+            'Tawaran kerja' => (clone $offers)->whereNotNull('job_offered_at')->count()
+                + (clone $apps)->whereNotNull('job_offered_at')->count(),
             'Diambil' => (clone $offers)->where('status', 'diambil')->count() + (clone $apps)->where('status', 'diambil')->count(),
         ];
 

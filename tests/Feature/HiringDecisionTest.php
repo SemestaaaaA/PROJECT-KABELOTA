@@ -76,6 +76,9 @@ class HiringDecisionTest extends TestCase
         $this->assertSame('b-offer', $offered->badgeClass());
         $this->assertTrue($offered->contactVisible());
         $this->assertSame('Ditutup', (new JobApplication(['status' => 'ditutup']))->statusLabel());
+
+        $this->assertTrue((new RecruitmentOffer(['status' => 'kedaluwarsa']))->contactVisible());
+        $this->assertTrue((new JobApplication(['status' => 'kedaluwarsa']))->contactVisible());
     }
 
     public function test_old_accepted_applications_become_job_offers(): void

@@ -389,6 +389,8 @@ class KabelotaFlowTest extends TestCase
         $this->assertStringContainsString('Tawaran', $html);
         $this->assertStringContainsString('Site Engineer Jalan', $html);
         $this->assertStringContainsString(route('talent.offers'), $html);
+        $this->assertStringContainsString('menekan Tertarik', $html);
+        $this->assertStringStartsWith('Tawaran rekrut dari', (new OfferReceived($offer))->toMail($user)->subject);
     }
 
     public function test_forgot_password_flow(): void

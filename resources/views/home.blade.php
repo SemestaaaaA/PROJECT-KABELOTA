@@ -85,7 +85,7 @@
         ['ph-user-plus', 'Daftar gratis', 'Pilih Alumni atau Mahasiswa. Tidak ada biaya apa pun.'],
         ['ph-certificate', 'Lengkapi SKK dan proyek', 'Isi sertifikat, riwayat proyek, dan unggah CV sekali saja.'],
         ['ph-magnifying-glass', 'Ditemukan perusahaan', 'Profil Anda muncul saat HRD mencari sesuai syarat tender.'],
-        ['ph-check-circle', 'Terima atau lamar', 'Pilih tawaran yang cocok, atau lamar lowongan yang sedang buka.'],
+        ['ph-check-circle', 'Tertarik atau lamar', 'Pilih tawaran yang cocok, atau lamar lowongan yang sedang buka.'],
     ],
 ])
 <section class="wrap flow-h" id="cara-kerja" aria-labelledby="how-h" x-data="{ who: 'co' }">
@@ -148,7 +148,7 @@
         </article>
         <article class="tile yellow marks">
             <h3>Nomor Anda tetap privat</h3>
-            <p>Tawaran masuk lewat email dan dashboard. Anda memilih Terima atau Tolak; kontak hanya terbuka kalau Anda menerima.</p>
+            <p>Tawaran masuk lewat email dan dashboard. Anda memilih Tertarik atau Tolak; kontak hanya terbuka kalau Anda menyatakan tertarik.</p>
         </article>
         <article class="tile">
             <h3>Lowongan dari proyek di sekitar Anda</h3>
