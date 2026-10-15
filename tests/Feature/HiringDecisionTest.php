@@ -9,7 +9,13 @@ use App\Models\JobPosting;
 use App\Models\RecruitmentOffer;
 use App\Models\Talent;
 use App\Models\User;
+use App\Notifications\JobOfferAnswered;
+use App\Notifications\JobOfferReceived;
+use App\Notifications\ProcessClosed;
+use App\Services\HiringDecision;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class HiringDecisionTest extends TestCase
@@ -90,5 +96,90 @@ class HiringDecisionTest extends TestCase
         $this->assertTrue($application->job_offer_expires_at->isFuture());
         $this->assertSame('ditinjau', $reviewed->fresh()->status);
         $this->assertSame('diterima', $offer->fresh()->status);
+    }
+
+    private function offerJob(RecruitmentOffer|JobApplication $record): void
+    {
+        app(HiringDecision::class)->offerJob($record, [
+            'job_offer_position' => 'Site Engineer', 'job_offer_start_date' => today()->addWeek()->toDateString(),
+        ]);
+    }
+
+    public function test_offer_job_needs_interest_and_notifies_talent(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent, status: 'menunggu');
+
+        $this->assertThrows(fn () => $this->offerJob($offer), HttpException::class);
+
+        $offer->update(['status' => 'diterima']);
+        $this->offerJob($offer);
+
+        $offer->refresh();
+        $this->assertSame('tawaran_kerja', $offer->status);
+        $this->assertSame('Site Engineer', $offer->job_offer_position);
+        $this->assertSame(7, $offer->jobOfferDaysLeft());
+        Notification::assertSentTo($user, JobOfferReceived::class);
+    }
+
+    public function test_taking_one_job_offer_closes_every_other_process(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        $hrd = $this->hrd();
+        [$otherUser, $otherJob] = $this->otherCompany();
+
+        $fromHrd = $this->interestedOffer($talent);
+        $hrdApplication = JobApplication::create(['job_posting_id' => $hrd->company->jobPostings()->open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $chosen = JobApplication::create(['job_posting_id' => $otherJob->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $this->offerJob($chosen);
+
+        app(HiringDecision::class)->accept($chosen->fresh(), 'Terima kasih, sampai jumpa.');
+
+        $this->assertSame('diambil', $chosen->fresh()->status);
+        foreach ([$fromHrd, $hrdApplication] as $record) {
+            $record->refresh();
+            $this->assertSame('ditutup', $record->status);
+            $this->assertSame('Terima kasih, sampai jumpa.', $record->closed_note);
+            $this->assertNotNull($record->closed_at);
+        }
+        $this->assertSame(Availability::TerikatKontrak, $talent->fresh()->availability);
+        Notification::assertSentTo($otherUser, JobOfferAnswered::class);
+        // One email per company, even though two of its processes closed.
+        Notification::assertSentToTimes($hrd, ProcessClosed::class, 1);
+        Notification::assertSentTo($hrd, ProcessClosed::class, fn (ProcessClosed $n) => $n->farewell === 'Terima kasih, sampai jumpa.' && count($n->positions) === 2);
+    }
+
+    public function test_declining_a_job_offer_leaves_other_processes_open(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        $offer = $this->interestedOffer($talent);
+        $other = JobApplication::create(['job_posting_id' => JobPosting::open()->firstOrFail()->id, 'talent_id' => $talent->id, 'status' => 'baru']);
+        $this->offerJob($offer);
+
+        app(HiringDecision::class)->decline($offer->fresh(), 'Lokasi terlalu jauh');
+
+        $this->assertSame('ditolak', $offer->fresh()->status);
+        $this->assertSame('Lokasi terlalu jauh', $offer->fresh()->closed_note);
+        $this->assertSame('baru', $other->fresh()->status);
+        Notification::assertSentTo($this->hrd(), JobOfferAnswered::class);
+    }
+
+    public function test_second_take_is_refused_once_one_offer_was_taken(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        [, $otherJob] = $this->otherCompany();
+        $first = $this->interestedOffer($talent);
+        $second = JobApplication::create(['job_posting_id' => $otherJob->id, 'talent_id' => $talent->id, 'status' => 'ditinjau']);
+        $this->offerJob($first);
+        $this->offerJob($second);
+
+        app(HiringDecision::class)->accept($first->fresh(), null);
+
+        $this->assertThrows(fn () => app(HiringDecision::class)->accept($second->fresh(), null), HttpException::class);
+        $this->assertSame('ditutup', $second->fresh()->status);
     }
 }
