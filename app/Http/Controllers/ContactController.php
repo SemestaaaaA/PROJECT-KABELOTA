@@ -21,15 +21,25 @@ class ContactController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:80'],
-            'email' => ['required', 'email', 'max:120'],
+        $user = $request->user();
+
+        $rules = [
             'topic' => ['required', Rule::in(self::TOPICS)],
             'message' => ['required', 'string', 'min:10', 'max:2000'],
             'kb_trap' => ['prohibited'],
-        ], ['kb_trap.prohibited' => 'Pesan tidak bisa dikirim.'], ['name' => 'nama', 'topic' => 'topik', 'message' => 'pesan']);
+        ];
+        // Signed-in users write as their account; only guests type a name and email.
+        if (! $user) {
+            $rules += ['name' => ['required', 'string', 'max:80'], 'email' => ['required', 'email', 'max:120']];
+        }
 
-        $message = ContactMessage::create(collect($data)->except('kb_trap')->all());
+        $data = $request->validate($rules, ['kb_trap.prohibited' => 'Pesan tidak bisa dikirim.'], ['name' => 'nama', 'topic' => 'topik', 'message' => 'pesan']);
+
+        $sender = $user
+            ? ['user_id' => $user->id, 'name' => $user->isCompany() ? ($user->company?->name ?? $user->name) : $user->name, 'email' => $user->email]
+            : ['name' => $data['name'], 'email' => $data['email']];
+
+        $message = ContactMessage::create($sender + ['topic' => $data['topic'], 'message' => $data['message']]);
         Notification::route('mail', config('kabelota.ops_email'))->notify(new ContactReceived($message));
 
         return redirect()->route('contact')->with('contact_sent', true);

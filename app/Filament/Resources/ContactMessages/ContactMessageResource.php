@@ -34,7 +34,7 @@ class ContactMessageResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('name')->label('Nama')->description(fn (ContactMessage $r) => $r->email)->searchable(),
+                TextColumn::make('name')->label('Nama')->description(fn (ContactMessage $r) => $r->email.($r->user_id ? ' · akun terdaftar' : ''))->searchable(),
                 TextColumn::make('topic')->label('Topik')->badge(),
                 TextColumn::make('message')->label('Pesan')->limit(80)->wrap(),
                 TextColumn::make('created_at')->label('Masuk')->since()->sortable(),

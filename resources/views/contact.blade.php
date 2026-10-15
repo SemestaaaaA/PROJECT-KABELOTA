@@ -28,10 +28,14 @@
         <form class="formcard" method="post" action="{{ route('contact.store') }}" novalidate>
             <x-honeypot id="contact" />
             @csrf
-            <h2 style="font:700 20px var(--f-body)">Kirim pesan</h2>
+            <h2 style="font:700 20px var(--f-body);display:flex;align-items:center;gap:8px">Kirim pesan
+                <x-help-tip label="Ke mana pesan ini dikirim?">Pesan masuk ke panel admin Kabelota (pengurus HMTS) dan notifikasi dikirim ke email admin. Balasan dikirim ke email Anda, biasanya di hari kerja.</x-help-tip></h2>
             @if (session('contact_sent'))
                 <div class="ok-banner" role="status" style="margin-top:0">Pesan terkirim. Admin akan membalas ke email Anda.</div>
             @endif
+            @auth
+                <p class="demo-note">Dikirim sebagai <b>{{ auth()->user()->isCompany() ? (auth()->user()->company?->name ?? auth()->user()->name) : \Illuminate\Support\Str::before(auth()->user()->name, ',') }}</b> · {{ auth()->user()->email }}</p>
+            @else
             <div class="two">
                 <div class="fld"><label for="c-name">Nama</label>
                     <input class="box @error('name') is-err @enderror" id="c-name" name="name" value="{{ old('name') }}" autocomplete="name">
@@ -40,6 +44,7 @@
                     <input class="box @error('email') is-err @enderror" id="c-email" name="email" type="email" value="{{ old('email') }}" autocomplete="email">
                     @error('email')<span class="err">{{ $message }}</span>@enderror</div>
             </div>
+            @endauth
             <div class="fld"><label for="c-topic">Topik</label>
                 <select class="box" id="c-topic" name="topic">
                     @foreach ($topics as $t)<option @selected(old('topic') === $t)>{{ $t }}</option>@endforeach
