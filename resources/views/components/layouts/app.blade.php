@@ -91,7 +91,11 @@
             <a href="{{ route('talents.index') }}" @if (request()->routeIs('talents.*')) aria-current="page" @endif>Cari Talenta</a>
             <a href="{{ route('jobs.index') }}" @if (request()->routeIs('jobs.*')) aria-current="page" @endif>Lowongan</a>
             <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>Tentang Kami</a>
-            <a href="{{ route('companies') }}" @if (request()->routeIs('companies')) aria-current="page" @endif>Untuk Perusahaan</a>
+            @if ($me?->isTalent())
+                <a href="{{ route('for-talents') }}" @if (request()->routeIs('for-talents')) aria-current="page" @endif>Untuk Talenta</a>
+            @else
+                <a href="{{ route('companies') }}" @if (request()->routeIs('companies')) aria-current="page" @endif>Untuk Perusahaan</a>
+            @endif
             <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif>Kontak</a>
         </nav>
         <div class="right">
@@ -151,7 +155,11 @@
                 <a href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif><i class="ph ph-house" aria-hidden="true"></i> Beranda</a>
                 <a href="{{ route('talents.index') }}" @if (request()->routeIs('talents.*')) aria-current="page" @endif><i class="ph ph-users-three" aria-hidden="true"></i> Cari Talenta</a>
                 <a href="{{ route('jobs.index') }}" @if (request()->routeIs('jobs.index', 'jobs.show')) aria-current="page" @endif><i class="ph ph-briefcase" aria-hidden="true"></i> Lowongan</a>
-                <a href="{{ route('companies') }}" @if (request()->routeIs('companies')) aria-current="page" @endif><i class="ph ph-buildings" aria-hidden="true"></i> Untuk Perusahaan</a>
+                @if ($me?->isTalent())
+                    <a href="{{ route('for-talents') }}" @if (request()->routeIs('for-talents')) aria-current="page" @endif><i class="ph ph-user-circle" aria-hidden="true"></i> Untuk Talenta</a>
+                @else
+                    <a href="{{ route('companies') }}" @if (request()->routeIs('companies')) aria-current="page" @endif><i class="ph ph-buildings" aria-hidden="true"></i> Untuk Perusahaan</a>
+                @endif
                 <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif><i class="ph ph-info" aria-hidden="true"></i> Tentang Kami</a>
                 <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif><i class="ph ph-chat-circle-text" aria-hidden="true"></i> Kontak</a>
             </nav>
@@ -206,7 +214,8 @@
             <div><h4>Platform</h4><ul>
                 <li><a href="{{ route('talents.index') }}">Cari Talenta</a></li>
                 <li><a href="{{ route('jobs.index') }}">Lowongan</a></li>
-                <li><a href="{{ route('companies') }}">Untuk Perusahaan</a></li>
+                <li><a href="{{ route('for-talents') }}">Info untuk talenta</a></li>
+                <li><a href="{{ route('companies') }}">Info untuk perusahaan</a></li>
                 <li><a href="{{ route('about') }}">Tentang Kami</a></li>
             </ul></div>
             <div><h4>Bantuan</h4><ul>

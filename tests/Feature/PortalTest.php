@@ -57,4 +57,21 @@ class PortalTest extends TestCase
 
         $this->assertSame($hrd->company->name, ContactMessage::latest('id')->value('name'));
     }
+
+    public function test_nav_shows_the_page_for_the_visitors_role(): void
+    {
+        $this->get('/lowongan')->assertSee('>Untuk Perusahaan</a>', false)->assertDontSee('>Untuk Talenta</a>', false);
+
+        $talent = User::factory()->create(['role' => 'talenta']);
+        $this->actingAs($talent)->get('/lowongan')->assertSee('>Untuk Talenta</a>', false)->assertDontSee('>Untuk Perusahaan</a>', false)
+            ->assertSee(url('/untuk-perusahaan'), false); // footer keeps both
+
+        $this->actingAs($this->hrd())->get('/lowongan')->assertSee('>Untuk Perusahaan</a>', false)->assertDontSee('>Untuk Talenta</a>', false);
+    }
+
+    public function test_for_talents_page(): void
+    {
+        $this->get('/untuk-talenta')->assertOk()->assertSee('Profil Anda dicari')->assertSee('Daftar Gratis');
+        $this->actingAs(User::factory()->create(['role' => 'talenta']))->get('/untuk-talenta')->assertOk()->assertSee('Lengkapi Profil')->assertDontSee('Daftar Gratis');
+    }
 }

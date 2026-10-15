@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::view('/tentang', 'about')->name('about');
 Route::view('/untuk-perusahaan', 'companies')->name('companies');
+Route::view('/untuk-talenta', 'for-talents')->name('for-talents');
 Route::get('/kontak', [ContactController::class, 'show'])->name('contact');
 Route::post('/kontak', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
 Route::get('/talenta', [TalentController::class, 'index'])->name('talents.index');
