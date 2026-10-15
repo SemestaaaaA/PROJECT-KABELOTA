@@ -18,6 +18,9 @@ class JobApplication extends Model
     /** Statuses a company may set with the dropdown. Anything else goes through HiringDecision. */
     public const COMPANY_STATUSES = ['baru', 'ditinjau', 'ditolak'];
 
+    /** Reasons a company can pick when rejecting; "Lainnya" means only the free-text note is used. */
+    public const REJECT_REASONS = ['Pengalaman belum sesuai', 'Jenjang SKK belum sesuai', 'Posisi sudah terisi', 'Lokasi tidak cocok', 'Lainnya'];
+
     public const OPEN_STATUSES = ['baru', 'ditinjau', 'tawaran_kerja'];
 
     public const OFFERABLE_FROM = ['ditinjau', 'kedaluwarsa'];

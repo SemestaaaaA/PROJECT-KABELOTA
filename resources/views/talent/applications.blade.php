@@ -36,6 +36,8 @@
                 <p class="demo-note">Ditutup otomatis karena Anda mengambil tawaran kerja lain.</p>
             @elseif ($app->status === 'kedaluwarsa')
                 <p class="demo-note">Tawaran kerja kedaluwarsa karena tidak dijawab dalam 7 hari.</p>
+            @elseif ($app->status === 'ditolak' && $app->company_note)
+                <p class="demo-note">Catatan perusahaan: "{{ $app->company_note }}"</p>
             @endif
             @if ($app->message)<p class="inbox-msg">Pesan Anda: {{ $app->message }}</p>@endif
         </article>

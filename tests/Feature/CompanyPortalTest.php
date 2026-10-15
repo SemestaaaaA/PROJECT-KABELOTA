@@ -1,0 +1,79 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\Availability;
+use App\Models\Company;
+use App\Models\JobApplication;
+use App\Models\JobPosting;
+use App\Models\RecruitmentOffer;
+use App\Models\Talent;
+use App\Models\User;
+use App\Notifications\ApplicationStatusChanged;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
+
+class CompanyPortalTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected bool $seed = true;
+
+    private function hrd(): User
+    {
+        return User::where('email', 'hrd@demo.kabelota.test')->firstOrFail();
+    }
+
+    /** @return array{0: User, 1: Talent} */
+    private function talent(string $name = 'Pelamar Uji'): array
+    {
+        $user = User::factory()->create(['role' => 'talenta']);
+        $talent = Talent::factory()->create(['user_id' => $user->id, 'name' => $name, 'availability' => Availability::Tersedia]);
+
+        return [$user, $talent];
+    }
+
+    private function applyTo(JobPosting $job, Talent $talent, string $status = 'baru'): JobApplication
+    {
+        return JobApplication::create(['job_posting_id' => $job->id, 'talent_id' => $talent->id, 'status' => $status]);
+    }
+
+    private function hrdJob(): JobPosting
+    {
+        return $this->hrd()->company->jobPostings()->open()->firstOrFail();
+    }
+
+    public function test_rejecting_with_a_reason_stores_and_sends_it(): void
+    {
+        Notification::fake();
+        [$user, $talent] = $this->talent();
+        $application = $this->applyTo($this->hrdJob(), $talent);
+
+        $this->actingAs($this->hrd())->post(route('company.applications.update', $application), [
+            'status' => 'ditolak', 'reason' => 'Posisi sudah terisi', 'note' => 'Terima kasih sudah melamar.',
+        ])->assertRedirect();
+
+        $this->assertSame('Posisi sudah terisi. Terima kasih sudah melamar.', $application->fresh()->company_note);
+        Notification::assertSentTo($user, ApplicationStatusChanged::class, function (ApplicationStatusChanged $n) use ($user) {
+            return str_contains($n->toMail($user)->render()->toHtml(), 'Posisi sudah terisi');
+        });
+        $this->actingAs($user)->get('/lamaran')->assertSee('Catatan perusahaan')->assertSee('Posisi sudah terisi');
+    }
+
+    public function test_reject_reason_must_come_from_the_list_and_other_statuses_clear_the_note(): void
+    {
+        Notification::fake();
+        [, $talent] = $this->talent();
+        $application = $this->applyTo($this->hrdJob(), $talent);
+
+        $this->actingAs($this->hrd())->post(route('company.applications.update', $application), ['status' => 'ditolak', 'reason' => 'Asal-asalan'])
+            ->assertSessionHasErrors('reason');
+
+        $this->post(route('company.applications.update', $application), ['status' => 'ditolak', 'reason' => 'Lainnya', 'note' => 'Domisili terlalu jauh.']);
+        $this->assertSame('Domisili terlalu jauh.', $application->fresh()->company_note);
+
+        $this->post(route('company.applications.update', $application), ['status' => 'ditinjau']);
+        $this->assertNull($application->fresh()->company_note);
+    }
+}

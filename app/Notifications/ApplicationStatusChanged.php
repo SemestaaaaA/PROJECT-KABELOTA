@@ -20,6 +20,8 @@ class ApplicationStatusChanged extends KabelotaMail
         return (new MailMessage)
             ->subject("Lamaran {$job->title}: ".$this->application->statusLabel())
             ->line($line)
+            ->lineIf($this->application->status === 'ditolak' && filled($this->application->company_note),
+                'Catatan perusahaan: "'.self::plain($this->application->company_note).'"')
             ->action('Lihat Lamaran Saya', route('talent.applications'));
     }
 }

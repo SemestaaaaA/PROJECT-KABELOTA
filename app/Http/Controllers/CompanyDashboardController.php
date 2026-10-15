@@ -58,9 +58,21 @@ class CompanyDashboardController extends Controller
         abort_unless($application->jobPosting->company_id === $request->user()->company?->id, 403);
         abort_unless($application->companyCanChangeStatus(), 422, 'Status lamaran ini sudah final.');
 
-        $data = $request->validate(['status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)]]);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)],
+            'reason' => ['nullable', Rule::in(JobApplication::REJECT_REASONS)],
+            'note' => ['nullable', 'string', 'max:300'],
+        ], [], ['reason' => 'alasan', 'note' => 'catatan']);
+
+        // Only a rejection carries a note; "Lainnya" contributes nothing beyond the free text.
+        $note = $data['status'] === 'ditolak'
+            ? collect([($data['reason'] ?? null) === 'Lainnya' ? null : ($data['reason'] ?? null), $data['note'] ?? null])
+                ->filter(fn ($part) => filled($part))->map(fn ($part) => rtrim(trim($part), '.'))->implode('. ')
+            : '';
+        $note = $note === '' ? null : $note.'.';
+
         $changed = $application->status !== $data['status'];
-        $application->update(['status' => $data['status'], 'status_changed_at' => now()]);
+        $application->update(['status' => $data['status'], 'status_changed_at' => now(), 'company_note' => $note]);
         if ($changed && $data['status'] !== 'baru') {
             $application->talent->user?->notify(new \App\Notifications\ApplicationStatusChanged($application));
         }
