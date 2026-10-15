@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\AdminActivities\Pages\ListAdminActivities;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
@@ -13,6 +14,8 @@ use App\Models\Talent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -97,5 +100,84 @@ class AdminProfileTest extends TestCase
         $this->get('/admin/admin-activities')->assertOk();
 
         $this->actingAs(User::factory()->create(['role' => 'talenta']))->get('/admin/admin-activities')->assertForbidden();
+    }
+
+    public function test_profile_page_uses_the_custom_page_and_keeps_two_factor(): void
+    {
+        $this->actingAs($this->admin())->get('/admin/profile')
+            ->assertOk()
+            ->assertSee('Foto profil')
+            ->assertSee('Aplikasi authenticator');
+    }
+
+    public function test_admin_uploads_a_profile_photo(): void
+    {
+        Storage::fake('public');
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)
+            ->set('data.avatar_path', UploadedFile::fake()->image('a.png', 400, 400))
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $path = $admin->fresh()->avatar_path;
+        $this->assertNotNull($path);
+        $this->assertStringStartsWith('avatars/', $path);
+        $this->assertStringEndsWith('.webp', $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertNotNull($admin->fresh()->getFilamentAvatarUrl());
+    }
+
+    public function test_replacing_or_removing_the_photo_deletes_the_old_file(): void
+    {
+        Storage::fake('public');
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)->set('data.avatar_path', UploadedFile::fake()->image('a.png', 400, 400))->call('save');
+        $first = $admin->fresh()->avatar_path;
+
+        // Like the browser: the field first drops the current photo, then uploads the new one.
+        Livewire::test(EditProfile::class)
+            ->set('data.avatar_path', null)
+            ->set('data.avatar_path', [UploadedFile::fake()->image('b.png', 300, 300)])
+            ->call('save')
+            ->assertHasNoFormErrors();
+        $second = $admin->fresh()->avatar_path;
+        $this->assertNotSame($first, $second);
+        Storage::disk('public')->assertMissing($first);
+        Storage::disk('public')->assertExists($second);
+
+        Livewire::test(EditProfile::class)->set('data.avatar_path', null)->call('save')->assertHasNoFormErrors();
+        $this->assertNull($admin->fresh()->avatar_path);
+        $this->assertNull($admin->fresh()->getFilamentAvatarUrl());
+        Storage::disk('public')->assertMissing($second);
+    }
+
+    public function test_profile_photo_path_cannot_be_pointed_at_another_file(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('logos/lain.webp', 'x');
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)->set('data.avatar_path', ['logos/lain.webp'])->call('save')->assertHasFormErrors(['avatar_path']);
+
+        $this->assertNull($admin->fresh()->avatar_path);
+    }
+
+    public function test_name_and_email_still_save_from_the_profile(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)
+            ->fillForm(['name' => 'Admin Baru'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('Admin Baru', $admin->fresh()->name);
+        $this->assertNull($admin->fresh()->getFilamentAvatarUrl());
     }
 }

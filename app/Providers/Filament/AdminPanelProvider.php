@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
                     @media (prefers-reduced-motion: reduce) { .fi-loading-section::after { animation: none; } }
                 </style>
                 HTML)
-            ->profile(isSimple: false)
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class, isSimple: false)
             // The bell: AdminAlerts writes Filament database notifications; poll so new ones show up.
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')

@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar, HasAppAuthenticationRecovery, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -122,6 +123,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function isVerifiedCompany(): bool
     {
         return $this->isCompany() && $this->company?->isVerified();
+    }
+
+    /** Admin profile photo (re-encoded WebP on the public disk); null lets Filament show initials. */
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar_path) : null;
     }
 
     public function canAccessPanel(Panel $panel): bool
