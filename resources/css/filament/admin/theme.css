@@ -1,0 +1,23 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* Kabelota brand on top of the Filament theme. Fonts come from the @fonts render hook. */
+:root { --kb-orange: #FF7A1A; --kb-yellow: #F5B800; }
+.fi-body { font-family: 'Barlow', ui-sans-serif, system-ui, sans-serif; }
+.fi-wi-stats-overview-stat-value, .kb-num { font-family: 'Barlow Condensed', 'Barlow', sans-serif; font-weight: 800; letter-spacing: -.01em; }
+.fi-ta-text-item, .fi-in-text-item { font-variant-numeric: tabular-nums; }
+.fi-section, .fi-wi-stats-overview-stat { border-radius: 12px; }
+.fi-section { box-shadow: 0 1px 2px rgb(17 17 19 / .06); }
+.fi-topbar { border-bottom: 3px solid transparent; border-image: linear-gradient(90deg, var(--kb-yellow) 55%, var(--kb-orange)) 1; }
+
+/* Dashboard bento: equal-height cards in each row. */
+.kb-bento > * { height: 100%; }
+.kb-bento .fi-section { height: 100%; }
+.kb-list { display: grid; gap: .5rem; }
+.kb-list-item { display: flex; gap: .75rem; align-items: flex-start; padding: .625rem .75rem; border-radius: .5rem; border: 1px solid rgb(0 0 0 / .08); }
+.dark .kb-list-item { border-color: rgb(255 255 255 / .08); }
+.kb-list-item.is-unread { border-color: var(--kb-orange); }
+.kb-dot { width: .5rem; height: .5rem; border-radius: 99px; background: var(--kb-orange); margin-top: .4rem; flex: none; }
+.kb-empty { display: grid; justify-items: center; gap: .25rem; padding: 1.5rem 0; color: rgb(113 113 122); text-align: center; }

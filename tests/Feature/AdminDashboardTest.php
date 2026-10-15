@@ -49,4 +49,17 @@ class AdminDashboardTest extends TestCase
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("frame-src 'self' https://cloud.umami.is", $csp);
     }
+
+    public function test_admin_uses_the_kabelota_theme(): void
+    {
+        $admin = \App\Models\User::where('role', 'admin')->firstOrFail();
+        $html = $this->actingAs($admin)->get('/admin')->assertOk()->getContent();
+
+        // Built assets are hashed (build/assets/theme-xxxx.css), so resolve the theme entry through the manifest.
+        $this->assertStringContainsString(\Illuminate\Support\Facades\Vite::asset('resources/css/filament/admin/theme.css'), $html);
+        $this->assertStringContainsString("--font-family: 'Barlow'", $html);
+        $this->assertStringContainsString('font-family: "Barlow"', $html); // @font-face from the self-hosted @fonts
+        $this->assertStringNotContainsString('fonts.bunny.net', $html);
+        $this->assertStringNotContainsString('fonts.googleapis.com', $html);
+    }
 }
