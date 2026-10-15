@@ -30,7 +30,7 @@ class RecruitmentOfferResource extends Resource
         'menunggu' => 'Talenta belum menjawab.',
         'diterima' => 'Talenta setuju dihubungi. Kontak terbuka untuk perusahaan.',
         'tawaran_kerja' => 'Perusahaan mengirim posisi dan tanggal mulai. Berlaku 7 hari.',
-        'diambil' => 'Talenta menerima. Proses lain miliknya ditutup.',
+        'diambil' => 'Talenta menerima. Proses lain milik talenta ini ditutup.',
         'ditolak' => 'Talenta menolak tawaran.',
         'ditutup' => 'Talenta mengambil kerja di tempat lain.',
         'kedaluwarsa' => 'Tidak dijawab dalam 7 hari.',

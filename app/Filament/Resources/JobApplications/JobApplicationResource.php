@@ -6,6 +6,7 @@ use App\Filament\Resources\JobApplications\Pages\ListJobApplications;
 use App\Filament\Resources\JobApplications\Widgets\JobApplicationStats;
 use App\Models\Company;
 use App\Models\JobApplication;
+use App\Models\JobPosting;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
@@ -62,7 +63,10 @@ class JobApplicationResource extends Resource
                         $data['value'] ?? null,
                         fn (Builder $q, $id) => $q->whereHas('jobPosting', fn ($j) => $j->whereIn('company_id', (array) $id)),
                     )),
-                SelectFilter::make('job_posting_id')->label('Lowongan')->relationship('jobPosting', 'title')->searchable(),
+                // "Judul (Perusahaan)" so postings with the same title can be told apart.
+                SelectFilter::make('job_posting_id')->label('Lowongan')->searchable()
+                    ->relationship('jobPosting', 'title', fn (Builder $query) => $query->with('company'))
+                    ->getOptionLabelFromRecordUsing(fn (JobPosting $record) => "{$record->title} ({$record->company?->name})"),
             ])
             ->recordActions([
                 ViewAction::make('detail')->label('Detail')

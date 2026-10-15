@@ -36,7 +36,7 @@ class JobPostingResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    public const STATUSES = ['menunggu_verifikasi' => 'Menunggu pembayaran dicek', 'aktif' => 'Tayang', 'ditolak' => 'Ditolak', 'ditutup' => 'Ditutup'];
+    public const STATUSES = ['menunggu_verifikasi' => 'Menunggu pembayaran dicek', 'aktif' => 'Aktif (disetujui)', 'ditolak' => 'Ditolak', 'ditutup' => 'Ditutup'];
 
     public static function getNavigationBadge(): ?string
     {
