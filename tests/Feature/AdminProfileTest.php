@@ -12,9 +12,13 @@ use App\Models\Company;
 use App\Models\JobPosting;
 use App\Models\Talent;
 use App\Models\User;
+use App\Notifications\AdminAlertMail;
+use App\Support\AdminAlerts;
+use Filament\Notifications\DatabaseNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -179,5 +183,68 @@ class AdminProfileTest extends TestCase
 
         $this->assertSame('Admin Baru', $admin->fresh()->name);
         $this->assertNull($admin->fresh()->getFilamentAvatarUrl());
+    }
+
+    public function test_alerts_follow_each_admins_channel_preference(): void
+    {
+        Notification::fake();
+        $default = $this->admin();
+        $muted = User::factory()->create(['role' => 'admin']);
+        $muted->forceFill(['notification_prefs' => ['contact_message' => 'off']])->save();
+        $mailed = User::factory()->create(['role' => 'admin']);
+        $mailed->forceFill(['notification_prefs' => ['contact_message' => 'bell_email']])->save();
+
+        AdminAlerts::send('contact_message', 'Pesan kontak: Uji', 'Rina: [klik](https://evil.example)', 'https://kabelota.test/admin/contact-messages');
+
+        $this->assertSame('bell', $default->adminAlertChannel('contact_message'));
+        Notification::assertSentToTimes($default, DatabaseNotification::class, 1);
+        Notification::assertNotSentTo($muted, DatabaseNotification::class);
+        Notification::assertSentToTimes($mailed, DatabaseNotification::class, 1);
+
+        Notification::assertSentTo($mailed, AdminAlertMail::class, function (AdminAlertMail $mail) use ($mailed) {
+            $message = $mail->toMail($mailed);
+
+            return $message->subject === 'Pesan kontak: Uji'
+                && $message->actionText === 'Buka di admin'
+                && $message->actionUrl === 'https://kabelota.test/admin/contact-messages'
+                && ! str_contains(implode(' ', $message->introLines), '[klik](');
+        });
+        Notification::assertNotSentTo($default, AdminAlertMail::class);
+        Notification::assertNotSentTo($muted, AdminAlertMail::class);
+
+        // Other events keep the default (bell only) for the muted admin.
+        AdminAlerts::send('job_failed', 'Job gagal: Uji', 'Galat.', 'https://kabelota.test/admin');
+        Notification::assertSentToTimes($muted, DatabaseNotification::class, 1);
+        Notification::assertSentToTimes($mailed, AdminAlertMail::class, 1);
+    }
+
+    public function test_profile_saves_notification_preferences(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)
+            ->assertSet('data.notification_prefs.contact_message', 'bell')
+            ->set('data.notification_prefs.contact_message', 'off')
+            ->set('data.notification_prefs.job_failed', 'bell_email')
+            ->set('data.notification_prefs.bukan_kejadian', 'bell_email')
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $prefs = $admin->fresh()->notification_prefs;
+        $this->assertSame('off', $prefs['contact_message']);
+        $this->assertSame('bell_email', $prefs['job_failed']);
+        $this->assertSame('bell', $prefs['payment_proof']);
+        $this->assertArrayNotHasKey('bukan_kejadian', $prefs);
+        $this->assertSame(array_keys(AdminAlerts::EVENTS), array_keys($prefs));
+
+        Livewire::test(EditProfile::class)
+            ->assertSet('data.notification_prefs.contact_message', 'off')
+            ->set('data.notification_prefs.contact_message', 'sms')
+            ->call('save')
+            ->assertHasFormErrors(['notification_prefs.contact_message']);
+
+        $this->assertSame('off', $admin->fresh()->notification_prefs['contact_message']);
+        $this->actingAs($admin)->get('/admin/profile')->assertOk()->assertSee('Notifikasi')->assertSee('Lonceng + email');
     }
 }
