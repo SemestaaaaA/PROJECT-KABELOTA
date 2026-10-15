@@ -26,14 +26,15 @@ class ActionQueue extends StatsOverviewWidget
 
     protected ?string $pollingInterval = '60s';
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 2, 'xl' => 2];
 
     // Rendered with the page: these are the first things the admin needs to see.
     protected static bool $isLazy = false;
 
+    // 2x2 inside its half-width bento tile.
     protected function getColumns(): int
     {
-        return 4;
+        return 2;
     }
 
     protected function getStats(): array

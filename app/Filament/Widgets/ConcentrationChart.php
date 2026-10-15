@@ -9,6 +9,8 @@ class ConcentrationChart extends ChartWidget
 {
     protected static ?int $sort = 5;
 
+    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+
     protected ?string $heading = 'Talenta per konsentrasi';
 
     protected ?string $maxHeight = '340px';

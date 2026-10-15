@@ -12,8 +12,9 @@
 .fi-section { box-shadow: 0 1px 2px rgb(17 17 19 / .06); }
 .fi-topbar { border-bottom: 3px solid transparent; border-image: linear-gradient(90deg, var(--kb-yellow) 55%, var(--kb-orange)) 1; }
 
-/* Dashboard bento: equal-height cards in each row. */
-.kb-bento > * { height: 100%; }
+/* Dashboard bento: equal-height cards in each row (grid items stretch; carry the height down to the card). */
+.kb-bento .fi-grid > .fi-wi-widget > *,
+.kb-bento .fi-grid > .fi-wi-widget > * > [wire\:partial],
 .kb-bento .fi-section { height: 100%; }
 .kb-list { display: grid; gap: .5rem; }
 .kb-list-item { display: flex; gap: .75rem; align-items: flex-start; padding: .625rem .75rem; border-radius: .5rem; border: 1px solid rgb(0 0 0 / .08); }
