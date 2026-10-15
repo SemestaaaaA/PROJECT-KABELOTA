@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Widgets\CompanyStats;
+use App\Filament\Resources\JobApplications\Pages\ListJobApplications;
+use App\Filament\Resources\JobApplications\Widgets\JobApplicationStats;
 use App\Filament\Resources\JobPostings\Pages\ListJobPostings;
 use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
 use App\Filament\Resources\Talent\Pages\ListTalent;
@@ -235,5 +237,63 @@ class AdminResourcesTest extends TestCase
         ]);
 
         Livewire::test(ListTalent::class)->assertSee('Punya CV');
+    }
+
+    public function test_job_application_filters_columns_and_detail(): void
+    {
+        $mine = $this->company(['name' => 'PT Lamaran Uji Satu', 'status' => 'terverifikasi']);
+        $other = $this->company(['name' => 'PT Lamaran Uji Dua', 'status' => 'terverifikasi']);
+        $mineJob = $this->job($mine, ['title' => 'Drafter Uji Satu']);
+        $rejected = JobApplication::create([
+            'job_posting_id' => $mineJob->id, 'talent_id' => $this->talent()->id, 'status' => 'ditolak',
+            'message' => 'Saya tertarik dengan posisi ini.', 'company_note' => 'Pengalaman belum sesuai',
+        ]);
+        $offered = JobApplication::create([
+            'job_posting_id' => $mineJob->id, 'talent_id' => $this->talent()->id, 'status' => 'tawaran_kerja',
+            'job_offer_position' => 'Drafter Senior Uji', 'job_offer_start_date' => today()->addWeek(),
+            'job_offered_at' => now(), 'job_offer_expires_at' => now()->addDays(7),
+        ]);
+        $elsewhere = JobApplication::create(['job_posting_id' => $this->job($other)->id, 'talent_id' => $this->talent()->id, 'status' => 'baru']);
+
+        Livewire::test(ListJobApplications::class)
+            ->filterTable('company', $mine->id)
+            ->assertCanSeeTableRecords([$rejected, $offered])
+            ->assertCanNotSeeTableRecords([$elsewhere]);
+
+        Livewire::test(ListJobApplications::class)
+            ->filterTable('job_posting_id', $mineJob->id)
+            ->assertCanSeeTableRecords([$rejected, $offered])
+            ->assertCanNotSeeTableRecords([$elsewhere]);
+
+        Livewire::test(ListJobApplications::class)
+            ->assertCanRenderTableColumn('company_note')
+            ->assertCanRenderTableColumn('job_offer_expires_at')
+            ->assertSee('Alasan tolak')->assertSee('Pengalaman belum sesuai');
+
+        Livewire::test(ListJobApplications::class)
+            ->mountTableAction('detail', $rejected)
+            ->assertMountedActionModalSee(['Pengalaman belum sesuai', 'Saya tertarik dengan posisi ini.', 'Drafter Uji Satu', 'PT Lamaran Uji Satu'])
+            ->assertMountedActionModalDontSee('Batas jawab');
+
+        Livewire::test(ListJobApplications::class)
+            ->mountTableAction('detail', $offered)
+            ->assertMountedActionModalSee(['Drafter Senior Uji', 'Batas jawab'])
+            ->assertMountedActionModalDontSee('Catatan perusahaan');
+    }
+
+    public function test_job_application_stats(): void
+    {
+        $company = $this->company(['status' => 'terverifikasi']);
+        JobApplication::create(['job_posting_id' => $this->job($company)->id, 'talent_id' => $this->talent()->id, 'status' => 'baru']);
+        JobApplication::create(['job_posting_id' => $this->job($company)->id, 'talent_id' => $this->talent()->id, 'status' => 'diambil']);
+
+        Livewire::test(JobApplicationStats::class)->assertSeeInOrder([
+            'Lamaran 30 hari', (string) JobApplication::where('created_at', '>=', now()->subDays(30))->count(),
+            'Baru belum ditinjau', (string) JobApplication::where('status', 'baru')->count(),
+            'Tawaran kerja berjalan', (string) JobApplication::where('status', 'tawaran_kerja')->count(),
+            'Diambil', (string) JobApplication::where('status', 'diambil')->count(),
+        ]);
+
+        Livewire::test(ListJobApplications::class)->assertSee('Baru belum ditinjau');
     }
 }
