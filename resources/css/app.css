@@ -337,6 +337,7 @@ footer.site .base { border-top: 1px solid #2E2E33; padding-block: 16px 24px; fon
 @media (prefers-reduced-motion: reduce) { .toast.is-on { animation: toastFade 3s linear both; transform: translate(-50%, 0); } @keyframes toastFade { 0%, 100% { opacity: 0; } 8%, 90% { opacity: 1; } } }
 .b-off { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
 .b-ok { background: var(--ok-soft); color: var(--ok); }
+.b-bad { background: var(--bad-soft); color: var(--bad); }
 .b-plain { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
 .nav nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--yellow); text-underline-offset: 8px; }
 .seg a { font: 600 13px var(--f-label); letter-spacing: .03em; background: var(--surface); color: var(--ink); padding: 7px 13px; }
@@ -1080,7 +1081,7 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 .todo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .todo-list a { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--r); text-decoration: none; font-size: 14.5px; }
 .todo-list a > .ph:first-child { font-size: 20px; color: var(--orange); flex: none; }
-.todo-list a > span { flex: 1; min-width: 0; }
+.todo-list a > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .todo-list a > .ph:last-child { color: var(--muted); }
 .meter-bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
 .meter-bar span { display: block; height: 100%; background: linear-gradient(90deg, #F5B800 55%, var(--orange)); }

@@ -18,7 +18,7 @@ class CompanyDashboardData
     {
         $items = [];
 
-        $newByJob = $this->applications()->where('status', 'baru')->with('jobPosting')->get()->groupBy('job_posting_id');
+        $newByJob = $this->applications()->where('status', 'baru')->with('jobPosting')->oldest()->get()->groupBy('job_posting_id');
         foreach ($newByJob as $apps) {
             $job = $apps->first()->jobPosting;
             $items[] = ['icon' => 'ph-user-plus', 'text' => $apps->count().' pelamar baru di '.$job->title, 'url' => route('company.applicants', [$job, 'status' => 'baru'])];
@@ -29,7 +29,8 @@ class CompanyDashboardData
         }
 
         $expired = $this->company->offers()->where('status', 'kedaluwarsa')->with('talent')->get()
-            ->concat($this->applications()->where('status', 'kedaluwarsa')->with('talent')->get());
+            ->concat($this->applications()->where('status', 'kedaluwarsa')->with('talent')->get())
+            ->sortByDesc('updated_at');
         foreach ($expired as $record) {
             $items[] = ['icon' => 'ph-hourglass-low', 'text' => 'Tawaran kerja untuk '.Str::before($record->talent->name, ',').' kedaluwarsa. Kirim ulang?', 'url' => $record->companyInboxUrl()];
         }
@@ -42,7 +43,10 @@ class CompanyDashboardData
     {
         $offers = $this->company->offers()->where('status', 'tawaran_kerja');
         $apps = $this->applications()->where('status', 'tawaran_kerja');
-        $nearest = collect([(clone $offers)->min('job_offer_expires_at'), (clone $apps)->min('job_offer_expires_at')])->filter()->min();
+        $nearest = collect([
+            (clone $offers)->where('job_offer_expires_at', '>', now())->min('job_offer_expires_at'),
+            (clone $apps)->where('job_offer_expires_at', '>', now())->min('job_offer_expires_at'),
+        ])->filter()->min();
 
         return [
             'pending' => (clone $offers)->count() + (clone $apps)->count(),
@@ -63,8 +67,10 @@ class CompanyDashboardData
 
     public function openContacts(): int
     {
-        return $this->company->offers()->whereIn('status', RecruitmentOffer::CONTACT_STATUSES)->count()
-            + $this->applications()->whereIn('status', JobApplication::CONTACT_STATUSES)->count();
+        // Unique talents: one person with an offer and an application is still one open contact.
+        return $this->company->offers()->whereIn('status', RecruitmentOffer::CONTACT_STATUSES)->pluck('talent_id')
+            ->merge($this->applications()->whereIn('status', JobApplication::CONTACT_STATUSES)->pluck('talent_id'))
+            ->unique()->count();
     }
 
     /** @return array{verified: bool, label: string, percent: int, missing: list<string>} */

@@ -51,7 +51,7 @@
 
         <section @class(['bento-card', 'alert' => ! $profile['verified']]) aria-labelledby="b-profile">
             <h2 id="b-profile" class="lbl">Profil perusahaan</h2>
-            <p><span class="badge {{ $profile['verified'] ? 'b-ok' : 'b-offer' }}">{{ $profile['label'] }}</span></p>
+            <p><span @class(['badge', 'b-ok' => $profile['verified'], 'b-bad' => $company->status === 'ditolak', 'b-offer' => $company->status === 'menunggu'])>{{ $profile['label'] }}</span></p>
             <div class="meter-bar" role="img" aria-label="Kelengkapan profil {{ $profile['percent'] }} persen"><span style="width:{{ $profile['percent'] }}%"></span></div>
             <p class="demo-note">{{ $profile['percent'] }}% lengkap{{ $profile['missing'] ? '. Belum ada: '.implode(', ', $profile['missing']) : '' }}</p>
             <a class="textlink" href="{{ route('company.profile') }}">{{ $profile['percent'] < 100 || ! $profile['verified'] ? 'Lengkapi profil' : 'Lihat profil' }}</a>

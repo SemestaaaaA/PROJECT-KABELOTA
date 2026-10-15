@@ -68,10 +68,13 @@ class CompanyPortalTest extends TestCase
         $application = $this->applyTo($this->hrdJob(), $talent);
 
         $this->actingAs($this->hrd())->post(route('company.applications.update', $application), ['status' => 'ditolak', 'reason' => 'Asal-asalan'])
-            ->assertSessionHasErrors('reason');
+            ->assertSessionHasErrors(['reason' => 'Pilih alasan dari daftar.']);
 
         $this->post(route('company.applications.update', $application), ['status' => 'ditolak', 'reason' => 'Lainnya', 'note' => 'Domisili terlalu jauh.']);
         $this->assertSame('Domisili terlalu jauh.', $application->fresh()->company_note);
+
+        $this->post(route('company.applications.update', $application), ['status' => 'ditolak', 'reason' => 'Lainnya', 'note' => 'Semoga sukses!']);
+        $this->assertSame('Semoga sukses!', $application->fresh()->company_note);
 
         $this->post(route('company.applications.update', $application), ['status' => 'ditinjau']);
         $this->assertNull($application->fresh()->company_note);
@@ -89,11 +92,13 @@ class CompanyPortalTest extends TestCase
         $all = $this->get(route('company.applicants', $job))->assertOk()
             ->assertSee('Pelamar Baru Satu')->assertSee('Pelamar Ditinjau Dua')
             ->assertSee('Tandai ditinjau')->assertSee('Ya, tolak pelamar')->assertSee('Tawarkan kerja')
-            ->assertDontSee('<select class="box" id="st-', false);
+            ->assertDontSee('onchange="this.form.requestSubmit()"', false);
 
         $this->get(route('company.applicants', [$job, 'status' => 'baru']))->assertOk()
             ->assertSee('Pelamar Baru Satu')->assertDontSee('Pelamar Ditinjau Dua');
         $this->get(route('company.applicants', [$job, 'status' => 'tidak-ada']))->assertOk()->assertSee('Pelamar Ditinjau Dua');
+        $this->get(route('company.applicants', [$job, 'status' => ['baru']]))->assertOk()
+            ->assertSee('Pelamar Baru Satu')->assertSee('Pelamar Ditinjau Dua');
     }
 
     public function test_verified_company_lands_on_the_dashboard(): void
@@ -114,15 +119,22 @@ class CompanyPortalTest extends TestCase
             'contact_name' => 'Rina', 'contact_email' => 'rina@contoh.id', 'position' => 'Drafter Uji', 'message' => 'Pesan tawaran uji coba yang cukup panjang.',
             'status' => 'diterima', 'responded_at' => now(),
         ]);
-        $otherJob = JobPosting::open()->where('company_id', '!=', $hrd->company->id)->firstOrFail();
+        $otherJob = JobPosting::open()->where('company_id', '!=', $hrd->company->id)->where('title', '!=', $job->title)->firstOrFail();
         $this->applyTo($otherJob, $stranger, 'baru');
+        RecruitmentOffer::create([
+            'talent_id' => $stranger->id, 'company_id' => $otherJob->company_id, 'company_name' => $otherJob->company->name,
+            'contact_name' => 'Pihak Lain', 'contact_email' => 'lain@contoh.id', 'position' => 'Posisi Rahasia Lain', 'message' => 'Pesan tawaran perusahaan lain yang cukup panjang.',
+            'status' => 'diterima', 'responded_at' => now(),
+        ]);
 
         $this->actingAs($hrd)->get(route('company.dashboard'))->assertOk()
             ->assertSee('Perlu tindakan')
-            ->assertSee('pelamar baru di')->assertSee(e($job->title), false)
+            ->assertSee($job->applications()->where('status', 'baru')->count().' pelamar baru di '.e($job->title), false)
             ->assertSee('Dewi Tertarik')->assertSee('Drafter Uji')
             ->assertSee('Lowongan aktif')->assertSee('Tawaran kerja')->assertSee('Kontak terbuka')->assertSee('Profil perusahaan')
-            ->assertDontSee('Orang Perusahaan Lain');
+            ->assertDontSee('Orang Perusahaan Lain')
+            ->assertDontSee(e($otherJob->title), false)
+            ->assertDontSee('Posisi Rahasia Lain');
     }
 
     public function test_talent_cannot_open_the_company_dashboard(): void

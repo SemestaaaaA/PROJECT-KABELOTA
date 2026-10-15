@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobApplication;
 use App\Models\JobPosting;
 use App\Services\HiringDecision;
+use App\Support\CompanyDashboardData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -19,7 +20,7 @@ class CompanyDashboardController extends Controller
         $company = $request->user()->company;
         abort_unless($company, 403);
 
-        return view('company.dashboard', ['company' => $company, 'd' => new \App\Support\CompanyDashboardData($company)]);
+        return view('company.dashboard', ['company' => $company, 'd' => new CompanyDashboardData($company)]);
     }
 
     public function offers(Request $request): View
@@ -62,7 +63,8 @@ class CompanyDashboardController extends Controller
     {
         abort_unless($job->company_id === $request->user()->company?->id, 403);
 
-        $filter = array_key_exists((string) $request->query('status'), self::APPLICANT_FILTERS) ? (string) $request->query('status') : 'semua';
+        $status = $request->query('status');
+        $filter = is_string($status) && array_key_exists($status, self::APPLICANT_FILTERS) ? $status : 'semua';
         $perStatus = $job->applications()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         return view('company.applicants', [
@@ -85,14 +87,14 @@ class CompanyDashboardController extends Controller
             'status' => ['required', Rule::in(JobApplication::COMPANY_STATUSES)],
             'reason' => ['nullable', Rule::in(JobApplication::REJECT_REASONS)],
             'note' => ['nullable', 'string', 'max:300'],
-        ], [], ['reason' => 'alasan', 'note' => 'catatan']);
+        ], ['reason.in' => 'Pilih alasan dari daftar.'], ['reason' => 'alasan', 'note' => 'catatan']);
 
         // Only a rejection carries a note; "Lainnya" contributes nothing beyond the free text.
         $note = $data['status'] === 'ditolak'
             ? collect([($data['reason'] ?? null) === 'Lainnya' ? null : ($data['reason'] ?? null), $data['note'] ?? null])
                 ->filter(fn ($part) => filled($part))->map(fn ($part) => rtrim(trim($part), '.'))->implode('. ')
             : '';
-        $note = $note === '' ? null : $note.'.';
+        $note = $note === '' ? null : (str_ends_with($note, '!') || str_ends_with($note, '?') ? $note : $note.'.');
 
         $changed = $application->status !== $data['status'];
         $application->update(['status' => $data['status'], 'status_changed_at' => now(), 'company_note' => $note]);
