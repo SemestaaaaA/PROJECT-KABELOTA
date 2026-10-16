@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Resources\JobPostings\JobPostingResource;
 use App\Models\Company;
+use App\Support\AdminAlerts;
 use App\Models\JobPosting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,6 +63,9 @@ class JobPostingFlowController extends Controller
             'payment_proof_path' => $request->file('payment_proof')->store('payment-proofs', 'local'),
             'closes_at' => today()->addDays(config("kabelota.packages.{$data['package']}.days")),
         ]);
+
+        $package = config("kabelota.packages.{$job->package}.label", $job->package);
+        AdminAlerts::send('payment_proof', 'Bukti bayar lowongan masuk', "{$this->company($request)->name}: {$job->title} ({$package}).", JobPostingResource::getUrl('index'));
 
         return redirect()->route('jobs.posting.status', $job);
     }

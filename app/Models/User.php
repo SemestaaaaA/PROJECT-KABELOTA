@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -30,6 +31,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'password' => 'hashed',
             'app_authentication_secret' => 'encrypted',
             'app_authentication_recovery_codes' => 'encrypted:array',
+            'notification_prefs' => 'array',
         ];
     }
 
@@ -122,6 +124,20 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function isVerifiedCompany(): bool
     {
         return $this->isCompany() && $this->company?->isVerified();
+    }
+
+    /** Admin profile photo (re-encoded WebP on the public disk); null lets Filament show initials. */
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar_path) : null;
+    }
+
+    /** How this admin wants an AdminAlerts event delivered: 'bell' (default), 'bell_email' or 'off'. */
+    public function adminAlertChannel(string $event): string
+    {
+        $channel = $this->notification_prefs[$event] ?? null;
+
+        return array_key_exists((string) $channel, \App\Support\AdminAlerts::CHANNELS) ? $channel : 'bell';
     }
 
     public function canAccessPanel(Panel $panel): bool

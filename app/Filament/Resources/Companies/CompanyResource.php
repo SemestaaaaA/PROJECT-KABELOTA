@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Companies;
 
 use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
+use App\Filament\Resources\Companies\Widgets\CompanyStats;
+use App\Filament\Support\DateRangeFilter;
+use App\Models\AdminActivity;
 use App\Models\Company;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -17,7 +20,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class CompanyResource extends Resource
@@ -33,6 +38,8 @@ class CompanyResource extends Resource
     protected static ?int $navigationSort = 1;
 
     public const STATUSES = ['menunggu' => 'Menunggu verifikasi', 'terverifikasi' => 'Terverifikasi', 'ditolak' => 'Ditolak'];
+
+    public const TYPES = ['konsultan' => 'Konsultan', 'kontraktor' => 'Kontraktor', 'pemilik_proyek' => 'Pemilik proyek', 'lainnya' => 'Lainnya'];
 
     public static function getNavigationBadge(): ?string
     {
@@ -51,7 +58,7 @@ class CompanyResource extends Resource
         return $schema->components([
             Section::make('Data perusahaan')->columns(2)->schema([
                 TextInput::make('name')->label('Nama')->required(),
-                Select::make('type')->label('Jenis')->options(['konsultan' => 'Konsultan', 'kontraktor' => 'Kontraktor', 'pemilik_proyek' => 'Pemilik proyek', 'lainnya' => 'Lainnya'])->required(),
+                Select::make('type')->label('Jenis')->options(self::TYPES)->required(),
                 TextInput::make('nib')->label('NIB'),
                 Select::make('city')->label('Kota')->options(array_combine(config('kabelota.locations'), config('kabelota.locations'))),
                 TextInput::make('contact_name')->label('Penanggung jawab'),
@@ -83,6 +90,14 @@ class CompanyResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')->options(self::STATUSES),
+                SelectFilter::make('city')->label('Kota')
+                    ->options(fn () => Company::query()->distinct()->orderBy('city')->pluck('city', 'city')->all()),
+                SelectFilter::make('type')->label('Jenis')->options(self::TYPES),
+                TernaryFilter::make('legal_doc')->label('Dokumen NIB/SBU')->attribute('legal_doc_path')->nullable()
+                    ->trueLabel('Ada dokumen')->falseLabel('Belum ada dokumen'),
+                Filter::make('has_live_job')->label('Punya lowongan tayang')
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereHas('jobPostings', fn ($q) => $q->open())),
+                DateRangeFilter::make('created_at', 'Tanggal daftar'),
             ])
             ->recordActions([
                 Action::make('dokumen')->label('NIB/SBU')->icon(Heroicon::OutlinedDocumentText)->color('gray')
@@ -93,6 +108,7 @@ class CompanyResource extends Resource
                     ->visible(fn (Company $r) => $r->status !== 'terverifikasi')
                     ->action(function (Company $r) {
                         $r->update(['status' => 'terverifikasi', 'verified_at' => now(), 'rejection_reason' => null]);
+                        AdminActivity::record('company_verified', $r, $r->name);
                         $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} terverifikasi")->success()->send();
                     }),
@@ -101,11 +117,17 @@ class CompanyResource extends Resource
                     ->schema([Textarea::make('reason')->label('Alasan (dikirim ke perusahaan)')->required()->default('NIB tidak terbaca atau tidak sesuai nama perusahaan.')])
                     ->action(function (Company $r, array $data) {
                         $r->update(['status' => 'ditolak', 'rejection_reason' => $data['reason']]);
+                        AdminActivity::record('company_rejected', $r, AdminActivity::withReason($r->name, $data['reason']));
                         $r->user?->notify(new \App\Notifications\CompanyReviewed($r));
                         Notification::make()->title("{$r->name} ditolak")->warning()->send();
                     }),
                 EditAction::make(),
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [CompanyStats::class];
     }
 
     public static function getPages(): array

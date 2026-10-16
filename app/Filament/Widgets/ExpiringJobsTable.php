@@ -14,7 +14,7 @@ class ExpiringJobsTable extends TableWidget
 
     protected static ?string $heading = 'Lowongan berakhir dalam 14 hari';
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = ['default' => 'full', 'xl' => 2];
 
     public function table(Table $table): Table
     {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Resources\Companies\CompanyResource;
+use App\Support\AdminAlerts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -47,11 +49,16 @@ class CompanyProfileController extends Controller
         }
 
         $company->fill(collect($data)->except(['logo', 'legal_doc'])->all());
-        if ($company->status === 'ditolak') {
+        $resubmitted = $company->status === 'ditolak';
+        if ($resubmitted) {
             $company->status = 'menunggu';
             $company->rejection_reason = null;
         }
         $company->save();
+
+        if (! $company->isVerified() && ($request->hasFile('legal_doc') || $resubmitted)) {
+            AdminAlerts::send('company_verification', 'Perusahaan menunggu verifikasi', "{$company->name} mengunggah dokumen legalitas.", CompanyResource::getUrl('index'));
+        }
 
         return redirect()->route('company.profile')->with('status', $company->isVerified()
             ? 'Profil perusahaan tersimpan.'

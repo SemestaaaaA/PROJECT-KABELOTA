@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\JobPostings\Pages;
 
 use App\Filament\Resources\JobPostings\JobPostingResource;
+use App\Filament\Resources\JobPostings\Widgets\JobPostingStats;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -15,5 +16,10 @@ class ListJobPostings extends ListRecords
         return [
             CreateAction::make(),
         ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [JobPostingStats::class];
     }
 }
