@@ -1,8 +1,8 @@
 <x-layouts.app title="Kontak · Kabelota">
 <div class="wrap">
     <div class="page-h">
-        <h1>Kontak</h1>
-        <p>Pertanyaan, kerja sama, atau kendala akun. Admin membalas di hari kerja.</p>
+        <x-cms key="contact.title" tag="h1">Kontak</x-cms>
+        <x-cms key="contact.lead" tag="p">Pertanyaan, kerja sama, atau kendala akun. Admin membalas di hari kerja.</x-cms>
     </div>
 
     <div class="split" style="margin-top:28px">
@@ -21,7 +21,7 @@
             </div>
             <div class="channel">
                 <i class="ph ph-map-pin" aria-hidden="true"></i>
-                <span><b>Sekretariat</b>HMTS, Fakultas Teknik Universitas Tadulako, Palu</span>
+                <span><b>Sekretariat</b><x-cms key="contact.address" tag="span">HMTS, Fakultas Teknik Universitas Tadulako, Palu</x-cms></span>
             </div>
         </div>
 

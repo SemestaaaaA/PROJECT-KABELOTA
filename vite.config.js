@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament/admin/theme.css'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/cms.js', 'resources/css/filament/admin/theme.css'],
             refresh: true,
             fonts: [
                 // Self-hosted at build time (no Google Fonts request at runtime).

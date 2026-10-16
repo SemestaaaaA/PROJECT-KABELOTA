@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminFileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\CmsController;
 use App\Http\Controllers\CompanyDashboardController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ContactController;
@@ -35,6 +36,14 @@ Route::view('/kebijakan-privasi', 'legal.privacy')->name('privacy');
 Route::view('/syarat-penggunaan', 'legal.terms')->name('terms');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+
+// Mode CMS: admins edit marketing copy on the public pages. Others get 403 (no login redirect).
+Route::middleware('admin')->prefix('cms')->name('cms.')->group(function () {
+    Route::post('/mode', [CmsController::class, 'mode'])->name('mode');
+    Route::put('/{key}', [CmsController::class, 'update'])->middleware('throttle:30,1')->name('update');
+    Route::get('/{key}/riwayat', [CmsController::class, 'history'])->name('history');
+    Route::post('/{key}/pulihkan', [CmsController::class, 'restore'])->middleware('throttle:30,1')->name('restore');
+});
 
 // Auth
 Route::middleware('guest')->group(function () {
