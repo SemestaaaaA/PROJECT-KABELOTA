@@ -44,7 +44,7 @@ class SiteTextTest extends TestCase
         return $keys;
     }
 
-    private function saveText(string $key, string $html, ?string $expected = ''): TestResponse
+    private function saveText(string $key, string $html, int|string|null $expected = 0): TestResponse
     {
         return $this->putJson('/cms/'.$key, ['html' => $html, 'expected' => $expected]);
     }
@@ -115,6 +115,8 @@ class SiteTextTest extends TestCase
             '<a href="https://a.id"><a href="https://b.id">dalam</a></a>' => '<a href="https://a.id" rel="noopener noreferrer"></a><a href="https://b.id" rel="noopener noreferrer">dalam</a>',
             '5 < 6 & "kutip"' => '5 &lt; 6 &amp; &quot;kutip&quot;',
             'Ahli<!-- komentar --> teknik' => 'Ahli teknik',
+            '<a href="/\\evil.com">miring balik</a>' => 'miring balik',
+            '<a href="https://kabelota.id\\@evil.com">campur</a>' => 'campur',
         ];
 
         foreach ($cases as $input => $expected) {
@@ -162,7 +164,8 @@ class SiteTextTest extends TestCase
 
         $row = SiteTextRow::where('key', self::KEY)->firstOrFail();
         $this->assertSame($admin->id, $row->updated_by);
-        $this->assertSame($first->json('updated'), SiteText::stamp($row));
+        $this->assertSame(1, $row->version);
+        $this->assertSame(1, $first->json('version'));
 
         $revision = SiteTextRevision::where('key', self::KEY)->sole();
         $this->assertNull($revision->html, 'The first revision remembers that the default was showing.');
@@ -174,8 +177,7 @@ class SiteTextTest extends TestCase
         $this->assertStringContainsString(self::KEY, $activity->description);
 
         // A second save keeps the previous override as a revision.
-        $this->travel(2)->seconds();
-        $this->saveText(self::KEY, 'Teks kedua', $first->json('updated'))->assertOk();
+        $this->saveText(self::KEY, 'Teks kedua', $first->json('version'))->assertOk()->assertJsonPath('version', 2);
         $this->assertSame('Teks <b>baru</b>', SiteTextRevision::where('key', self::KEY)->latest('id')->first()->html);
         $this->assertSame('Teks kedua', SiteText::get(self::KEY));
     }
@@ -183,8 +185,8 @@ class SiteTextTest extends TestCase
     public function test_saving_the_same_text_writes_nothing(): void
     {
         $this->actingAs($this->admin());
-        $updated = $this->saveText(self::KEY, 'Sama')->json('updated');
-        $this->saveText(self::KEY, 'Sama', $updated)->assertOk();
+        $version = $this->saveText(self::KEY, 'Sama')->json('version');
+        $this->saveText(self::KEY, 'Sama', $version)->assertOk()->assertJsonPath('version', $version);
 
         $this->assertSame(1, SiteTextRevision::count());
         $this->assertSame(1, AdminActivity::where('action', 'text_edited')->count());
@@ -195,13 +197,39 @@ class SiteTextTest extends TestCase
         $this->actingAs($this->admin());
         $this->saveText(self::KEY, 'Versi admin A')->assertOk();
 
-        $this->saveText(self::KEY, 'Versi admin B', '2020-01-01 00:00:00')->assertStatus(409)
+        $this->saveText(self::KEY, 'Versi admin B', 5)->assertStatus(409)
             ->assertJsonPath('message', 'Teks sudah diubah admin lain, muat ulang.');
-        // Empty expected means "I saw the default", which is only true while no row exists.
+        // Version 0 (or empty) means "I saw the default", which is only true while no row exists.
+        $this->saveText(self::KEY, 'Versi admin B', 0)->assertStatus(409);
         $this->saveText(self::KEY, 'Versi admin B', '')->assertStatus(409);
+        $this->saveText(self::KEY, 'Versi admin B', 'abc')->assertStatus(422);
 
         $this->assertSame('Versi admin A', SiteText::get(self::KEY));
         $this->assertSame(1, SiteTextRevision::count());
+    }
+
+    public function test_two_saves_in_the_same_second_with_an_old_version_conflict(): void
+    {
+        $this->freezeTime();
+        $this->actingAs($this->admin());
+
+        $this->saveText(self::KEY, 'Admin A menyimpan')->assertOk()->assertJsonPath('version', 1);
+        $this->saveText(self::KEY, 'Admin A lagi', 1)->assertOk()->assertJsonPath('version', 2);
+        // Admin B opened the page at version 1, in the same second: the timestamp is unchanged, the version is not.
+        $this->saveText(self::KEY, 'Admin B menimpa', 1)->assertStatus(409);
+
+        $this->assertSame('Admin A lagi', SiteText::get(self::KEY));
+    }
+
+    public function test_activity_names_the_editor_even_without_a_login_session(): void
+    {
+        $admin = $this->admin();
+        $this->assertNull(auth()->id());
+
+        SiteText::save(self::KEY, 'Dari perintah konsol', $admin, 0);
+        SiteText::restore(self::KEY, null, $admin);
+
+        $this->assertSame([$admin->id, $admin->id], AdminActivity::orderBy('id')->pluck('user_id')->all());
     }
 
     // ---- History and restore ----
@@ -209,10 +237,9 @@ class SiteTextTest extends TestCase
     public function test_history_lists_the_last_revisions(): void
     {
         $this->actingAs($this->admin());
-        $updated = '';
+        $version = 0;
         foreach (range(1, 22) as $i) {
-            $updated = $this->saveText(self::KEY, 'Versi '.$i, $updated)->assertOk()->json('updated');
-            $this->travel(1)->seconds();
+            $version = $this->saveText(self::KEY, 'Versi '.$i, $version)->assertOk()->json('version');
         }
 
         $list = $this->getJson('/cms/'.self::KEY.'/riwayat')->assertOk()->json('revisions');
@@ -226,9 +253,8 @@ class SiteTextTest extends TestCase
     public function test_restore_a_revision(): void
     {
         $this->actingAs($this->admin());
-        $updated = $this->saveText(self::KEY, 'Versi pertama')->json('updated');
-        $this->travel(2)->seconds();
-        $this->saveText(self::KEY, 'Versi kedua', $updated)->assertOk();
+        $version = $this->saveText(self::KEY, 'Versi pertama')->json('version');
+        $this->saveText(self::KEY, 'Versi kedua', $version)->assertOk();
 
         $revision = SiteTextRevision::where('key', self::KEY)->where('html', 'Versi pertama')->sole();
         $this->postJson('/cms/'.self::KEY.'/pulihkan', ['revision' => $revision->id])->assertOk()
@@ -262,9 +288,10 @@ class SiteTextTest extends TestCase
         $this->assertSame($row->id, $activity->subject_id);
         $this->assertStringContainsString('teks asli', $activity->description);
 
-        // After a restore to default, the editor's stamp is the row's updated_at (not empty).
-        $this->saveText(self::KEY, 'Lagi', '')->assertStatus(409);
-        $this->saveText(self::KEY, 'Lagi', SiteText::stamp($row))->assertOk();
+        // After a restore to default the row keeps counting: the editor sends the row's version, not 0.
+        $this->assertSame(2, $row->version);
+        $this->saveText(self::KEY, 'Lagi', 0)->assertStatus(409);
+        $this->saveText(self::KEY, 'Lagi', $row->version)->assertOk()->assertJsonPath('version', 3);
     }
 
     public function test_new_actions_show_in_the_activity_log(): void
@@ -343,23 +370,23 @@ class SiteTextTest extends TestCase
                 ->assertSee('/build/assets/cms-', false);
         }
 
-        // The default travels escaped in an attribute, and the version stamp is empty until the first save.
+        // The default travels escaped in an attribute, and the version is 0 until the first save.
         $this->get('/')->assertSee('data-cms-key="home.story.quote"', false)
             ->assertSee('data-cms-default="&quot;Kabelota&quot; dalam bahasa Kaili berarti &lt;em&gt;kebaikan untuk bersama.&lt;/em&gt;"', false)
-            ->assertSee('data-cms-updated=""', false);
+            ->assertSee('data-cms-version="0"', false);
     }
 
     public function test_an_override_replaces_the_default_on_the_page(): void
     {
         $admin = $this->admin();
-        $row = SiteText::save('about.hero.title', 'Judul <b>baru</b> dari admin', $admin, '');
+        $row = SiteText::save('about.hero.title', 'Judul <b>baru</b> dari admin', $admin, 0);
 
         $this->get('/tentang')->assertOk()
             ->assertSee('Judul <b>baru</b> dari admin', false)
             ->assertDontSee('Kebaikan untuk bersama.</h1>', false);
 
         $this->actingAs($admin)->withSession(['cms_edit' => true])->get('/tentang')
-            ->assertSee('data-cms-updated="'.SiteText::stamp($row).'"', false);
+            ->assertSee('data-cms-version="'.$row->version.'"', false);
 
         // Restoring the default brings the Blade text back.
         SiteText::restore('about.hero.title', null, $admin);

@@ -11,7 +11,7 @@
         $attributes = $attributes->class('cms-editable')->merge([
             'data-cms-key' => $key,
             'data-cms-default' => trim((string) $slot),
-            'data-cms-updated' => \App\Support\SiteText::updated($key),
+            'data-cms-version' => \App\Support\SiteText::version($key),
         ]);
     }
 @endphp

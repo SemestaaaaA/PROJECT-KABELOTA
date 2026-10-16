@@ -21,7 +21,8 @@ let modal = null;
 function safeHref(raw) {
     const href = (raw ?? '').replace(/[\u0000-\u001F\u007F]/g, '').trim();
     const compact = href.replace(/\s+/g, '');
-    if (!href || compact.startsWith('//') || compact.startsWith('\\')) return null;
+    // Browsers read a backslash as "/" in URLs ("/\evil.com" is another host), so refuse it anywhere.
+    if (!href || compact.startsWith('//') || compact.includes('\\')) return null;
     if (/^(https?:\/\/|mailto:)/i.test(compact)) return href;
     const beforePath = compact.split(/[/?#]/)[0];
     return beforePath.includes(':') ? null : href;
@@ -293,6 +294,15 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Mobile keyboards and IMEs can skip the Enter keydown: block new lines in single-line texts at input level
+// too, and turn a new paragraph into a line break elsewhere (the server keeps only <br>).
+document.addEventListener('beforeinput', (e) => {
+    if (!current || !current.el.contains(e.target)) return;
+    if (e.inputType !== 'insertParagraph' && e.inputType !== 'insertLineBreak') return;
+    if (SINGLE_LINE.has(current.el.tagName)) { e.preventDefault(); return; }
+    if (e.inputType === 'insertParagraph') { e.preventDefault(); document.execCommand('insertLineBreak'); }
+});
+
 // Pasted text arrives as plain text; dropped content is refused.
 document.addEventListener('paste', (e) => {
     if (!current || !current.el.contains(e.target)) return;
@@ -336,9 +346,9 @@ function confirmSave() {
             save.textContent = 'Menyimpan...';
             err.hidden = true;
             try {
-                const data = await request('PUT', url(el.dataset.cmsKey), { html, expected: el.dataset.cmsUpdated ?? '' });
+                const data = await request('PUT', url(el.dataset.cmsKey), { html, expected: Number(el.dataset.cmsVersion) || 0 });
                 el.replaceChildren(fromHtml(data.html));
-                el.dataset.cmsUpdated = data.updated ?? '';
+                el.dataset.cmsVersion = String(data.version ?? 0);
                 current.original = [...el.childNodes].map((n) => n.cloneNode(true));
                 closeModal();
                 endEdit(false);

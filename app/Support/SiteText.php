@@ -10,6 +10,9 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use Illuminate\Database\DeadlockException;
+use Illuminate\Database\DetectsConcurrencyErrors;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -100,7 +103,13 @@ class SiteText
 
     public const MAX_LENGTH = 2000;
 
+    /** Cached overrides live under site_texts:<generation>; a write moves to a new generation. */
     private const CACHE_KEY = 'site_texts';
+
+    private const CACHE_GENERATION = 'site_texts:generation';
+
+    /** Safety net: even if an invalidation were lost, a stale copy lives at most this long. */
+    private const CACHE_TTL = 600;
 
     /** Tags kept as they are. `a` and `br` are handled on their own. */
     private const INLINE = ['b', 'strong', 'i', 'em'];
@@ -111,12 +120,18 @@ class SiteText
     /** Block tags that become a line break when unwrapped (contenteditable wraps new lines in them). */
     private const BLOCK = ['div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'tr'];
 
-    /** Overrides keyed by key: ['html' => ?string, 'updated' => string]. One cache read per request. */
+    /**
+     * Overrides keyed by key: ['html' => ?string, 'version' => int]. Memoized, so one cache read per request.
+     * A reader that loaded old rows while a write committed stores them under the old generation, which
+     * nobody reads any more, so a race cannot keep stale text cached.
+     */
     public static function all(): array
     {
-        return Cache::memo()->rememberForever(self::CACHE_KEY, fn () => SiteTextRow::query()
-            ->get(['key', 'html', 'updated_at'])
-            ->mapWithKeys(fn (SiteTextRow $row) => [$row->key => ['html' => $row->html, 'updated' => self::stamp($row)]])
+        $generation = Cache::memo()->rememberForever(self::CACHE_GENERATION, fn () => Str::random(12));
+
+        return Cache::memo()->remember(self::CACHE_KEY.':'.$generation, self::CACHE_TTL, fn () => SiteTextRow::query()
+            ->get(['key', 'html', 'version'])
+            ->mapWithKeys(fn (SiteTextRow $row) => [$row->key => ['html' => $row->html, 'version' => (int) $row->version]])
             ->all());
     }
 
@@ -126,15 +141,10 @@ class SiteText
         return self::all()[$key]['html'] ?? null;
     }
 
-    /** The version the editor saw, sent back as `expected` on save. Empty when no row exists yet. */
-    public static function updated(string $key): string
+    /** The version the editor saw, sent back as `expected` on save. 0 while no row exists yet. */
+    public static function version(string $key): int
     {
-        return self::all()[$key]['updated'] ?? '';
-    }
-
-    public static function stamp(?SiteTextRow $row): string
-    {
-        return $row?->updated_at?->format('Y-m-d H:i:s') ?? '';
+        return self::all()[$key]['version'] ?? 0;
     }
 
     public static function isKey(string $key): bool
@@ -176,8 +186,8 @@ class SiteText
         return mb_strlen(trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
     }
 
-    /** Save an override. $expected is the stamp the editor saw ('' = the default, with no row yet). */
-    public static function save(string $key, string $html, User $user, ?string $expected): SiteTextRow
+    /** Save an override. $expected is the version the editor saw (0 or null = the default, with no row yet). */
+    public static function save(string $key, string $html, User $user, ?int $expected): SiteTextRow
     {
         self::assertKey($key);
         $clean = self::sanitize($html);
@@ -189,17 +199,17 @@ class SiteText
             throw ValidationException::withMessages(['html' => 'Teks maksimal '.self::MAX_LENGTH.' karakter.']);
         }
 
-        return self::fresh(DB::transaction(function () use ($key, $clean, $user, $expected) {
+        return self::locked(function () use ($key, $clean, $user, $expected) {
             $row = SiteTextRow::where('key', $key)->lockForUpdate()->first();
-            if (self::stamp($row) !== (string) $expected) {
-                throw new ConflictHttpException('Teks sudah diubah admin lain, muat ulang.');
+            if ((int) $row?->version !== (int) $expected) {
+                throw self::conflict();
             }
             if ($row?->html === $clean) {
                 return $row;
             }
 
             return self::write($key, $row, $clean, $user, 'text_edited', 'Teks "'.$key.'" diubah: '.self::snippet($clean, 160));
-        }));
+        });
     }
 
     /** Restore a revision of this key, or the default when $revisionId is null. Returns null if nothing changed. */
@@ -207,7 +217,7 @@ class SiteText
     {
         self::assertKey($key);
 
-        return self::fresh(DB::transaction(function () use ($key, $revisionId, $user) {
+        return self::locked(function () use ($key, $revisionId, $user) {
             $html = $revisionId === null ? null : SiteTextRevision::where('key', $key)->findOrFail($revisionId)->html;
             $row = SiteTextRow::where('key', $key)->lockForUpdate()->first();
             if (($row?->html) === $html) {
@@ -217,7 +227,7 @@ class SiteText
             return self::write($key, $row, $html, $user, 'text_restored', $html === null
                 ? 'Teks "'.$key.'" dikembalikan ke teks asli.'
                 : 'Teks "'.$key.'" dipulihkan ke versi sebelumnya: '.self::snippet($html, 160));
-        }));
+        });
     }
 
     /** Plain-text preview of sanitized html, for history lists and the activity log. */
@@ -236,18 +246,48 @@ class SiteText
     {
         $row ??= new SiteTextRow(['key' => $key]);
         SiteTextRevision::create(['key' => $key, 'html' => $row->html, 'user_id' => $user->id]);
-        $row->fill(['html' => $html, 'updated_by' => $user->id])->save();
-        AdminActivity::record($action, $row, $description);
+        $row->fill(['html' => $html, 'version' => (int) $row->version + 1, 'updated_by' => $user->id])->save();
+        AdminActivity::record($action, $row, $description, $user->id);
+
+        // Only once the write is visible to other requests: start a new cache generation.
+        DB::afterCommit(fn () => Cache::memo()->forever(self::CACHE_GENERATION, Str::random(12)));
 
         return $row;
     }
 
-    /** Drop the cached overrides once a write is committed, so every page reads the new text. */
-    private static function fresh(?SiteTextRow $row): ?SiteTextRow
+    /**
+     * Run a write under a row lock. Lock waits and deadlocks are retried (3 attempts); if they keep
+     * failing, the editor gets the same 409 as a version conflict instead of a 500.
+     */
+    private static function locked(\Closure $write): ?SiteTextRow
     {
-        Cache::memo()->forget(self::CACHE_KEY);
+        try {
+            return DB::transaction($write, 3);
+        } catch (QueryException|DeadlockException $e) {
+            if ($e instanceof DeadlockException || self::concurrency()->check($e)) {
+                throw self::conflict();
+            }
+            throw $e;
+        }
+    }
 
-        return $row;
+    private static function conflict(): ConflictHttpException
+    {
+        return new ConflictHttpException('Teks sudah diubah admin lain, muat ulang.');
+    }
+
+    /** Laravel's own deadlock/lock-timeout detection (the trait method is protected). */
+    private static function concurrency(): object
+    {
+        return new class
+        {
+            use DetectsConcurrencyErrors;
+
+            public function check(\Throwable $e): bool
+            {
+                return $this->causedByConcurrencyError($e);
+            }
+        };
     }
 
     private static function assertKey(string $key): void
@@ -298,7 +338,8 @@ class SiteText
     {
         $href = trim(preg_replace('/[\x00-\x1F\x7F]+/', '', $href) ?? '');
         $compact = preg_replace('/\s+/', '', $href) ?? '';
-        if ($href === '' || str_starts_with($compact, '//') || str_starts_with($compact, '\\')) {
+        // Browsers read "\" as "/" in URLs ("/\evil.com" is another host), so refuse it anywhere.
+        if ($href === '' || str_starts_with($compact, '//') || str_contains($compact, '\\')) {
             return null;
         }
         if (preg_match('#^(https?://|mailto:)#i', $compact)) {

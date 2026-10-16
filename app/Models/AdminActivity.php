@@ -25,10 +25,11 @@ class AdminActivity extends Model
 
     protected $fillable = ['user_id', 'action', 'subject_type', 'subject_id', 'description'];
 
-    public static function record(string $action, Model $subject, string $description): void
+    /** $userId defaults to the logged-in admin; pass it when acting outside a login session (console, jobs). */
+    public static function record(string $action, Model $subject, string $description, ?int $userId = null): void
     {
         static::create([
-            'user_id' => auth()->id(),
+            'user_id' => $userId ?? auth()->id(),
             'action' => $action,
             'subject_type' => $subject->getMorphClass(),
             'subject_id' => $subject->getKey(),

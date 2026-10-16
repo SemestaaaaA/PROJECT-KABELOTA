@@ -26,12 +26,12 @@ class CmsController extends Controller
         $this->ensureKey($key);
         $data = $request->validate([
             'html' => ['required', 'string', 'max:20000'],
-            'expected' => ['nullable', 'string', 'max:40'],
+            'expected' => ['nullable', 'integer', 'min:0'],
         ], ['html.required' => 'Teks tidak boleh kosong.', 'html.max' => 'Teks terlalu panjang.']);
 
-        $row = SiteText::save($key, $data['html'], $request->user(), $data['expected'] ?? '');
+        $row = SiteText::save($key, $data['html'], $request->user(), (int) ($data['expected'] ?? 0));
 
-        return response()->json(['html' => $row->html, 'updated' => SiteText::stamp($row)]);
+        return response()->json(['html' => $row->html, 'version' => (int) $row->version]);
     }
 
     public function history(string $key): JsonResponse
@@ -57,7 +57,7 @@ class CmsController extends Controller
 
         $row = SiteText::restore($key, isset($data['revision']) ? (int) $data['revision'] : null, $request->user());
 
-        return response()->json(['html' => $row?->html, 'updated' => SiteText::stamp($row)]);
+        return response()->json(['html' => $row?->html, 'version' => (int) $row?->version]);
     }
 
     private function ensureKey(string $key): void

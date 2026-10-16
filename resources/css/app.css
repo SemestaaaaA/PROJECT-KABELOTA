@@ -402,7 +402,7 @@ footer.site #kontak li { color: #C9C9C4; }
 .co-points { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; margin-top: 30px; border-top: 1px solid var(--line); }
 .co-points div { padding: 20px 20px 20px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
 .co-points .ph-icon { font-size: 26px; }
-.co-points b { display: block; font-size: 17px; }
+.co-points > div > span > b { display: block; font-size: 17px; } /* the point title only, not bold text inside the description */
 .co-points span { color: var(--muted); font-size: 14.5px; }
 @media (max-width: 860px) { .co-hero, .co-points { grid-template-columns: 1fr; } }
 .stat .num { color: var(--ink); font-size: clamp(40px, 5vw, 60px); }
@@ -448,7 +448,7 @@ footer.site #kontak li { color: #C9C9C4; }
 .channels { display: grid; gap: 10px; }
 .channel { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 14px; border: 1px solid var(--line-strong); background: var(--surface); text-decoration: none; color: var(--ink); }
 .channel .ph { font-size: 26px; width: 44px; height: 44px; display: grid; place-items: center; background: var(--paper); border-radius: var(--r); }
-.channel b { display: block; }
+.channel > span > b { display: block; }
 .channel span { color: var(--muted); font-size: 14px; }
 a.channel:hover { border-color: var(--ink); }
 .formcard { background: var(--surface); border: 1px solid var(--ink); padding: 24px; display: grid; gap: 14px; }
