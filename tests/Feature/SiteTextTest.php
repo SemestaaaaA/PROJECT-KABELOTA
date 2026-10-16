@@ -287,11 +287,94 @@ class SiteTextTest extends TestCase
         $this->get('/admin/admin-activities')->assertOk();
     }
 
+    // ---- Pages ----
+
+    /** Each converted page, with a default sentence that must render unchanged when no override exists. */
+    private const PAGES = [
+        '/' => 'Tenaga ahli daerah, membangun daerahnya.',
+        '/tentang' => 'Kenapa HMTS memulai ini',
+        '/untuk-talenta' => 'Profil Anda dicari perusahaan konstruksi Sulawesi Tengah.',
+        '/untuk-perusahaan' => 'Tenaga ahli lokal untuk tender Anda.',
+        '/kontak' => 'Pertanyaan, kerja sama, atau kendala akun. Admin membalas di hari kerja.',
+    ];
+
+    public function test_pages_render_the_defaults_for_guests_without_editor_markup(): void
+    {
+        foreach (self::PAGES as $url => $sentence) {
+            $this->get($url)->assertOk()->assertSee($sentence)
+                ->assertDontSee('data-cms-key', false)
+                ->assertDontSee('cms-editable', false)
+                ->assertDontSee('data-cms-toggle', false)
+                ->assertDontSee('/build/assets/cms-', false);
+        }
+
+        // The story quote keeps its inline markup from the Blade default.
+        $this->get('/')->assertSee('berarti <em>kebaikan untuk bersama.</em>', false);
+    }
+
+    public function test_non_admins_never_get_the_toggle_or_editor(): void
+    {
+        foreach (['talenta', 'perusahaan'] as $role) {
+            $this->actingAs(User::factory()->create(['role' => $role]))->withSession(['cms_edit' => true]);
+            $this->get('/tentang')->assertOk()
+                ->assertDontSee('data-cms-toggle', false)
+                ->assertDontSee('data-cms-key', false)
+                ->assertDontSee('/build/assets/cms-', false);
+        }
+    }
+
+    public function test_admin_sees_the_toggle_and_in_edit_mode_the_editor(): void
+    {
+        $this->actingAs($this->admin());
+
+        $this->get('/tentang')->assertOk()
+            ->assertSee('data-cms-toggle', false)
+            ->assertSee('Mode edit')
+            ->assertDontSee('data-cms-key', false)
+            ->assertDontSee('/build/assets/cms-', false);
+
+        $this->withSession(['cms_edit' => true]);
+        foreach (array_keys(self::PAGES) as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('data-cms-toggle', false)
+                ->assertSee('Selesai mengedit')
+                ->assertSee('data-cms-key=', false)
+                ->assertSee('cms-editable', false)
+                ->assertSee('/build/assets/cms-', false);
+        }
+
+        // The default travels escaped in an attribute, and the version stamp is empty until the first save.
+        $this->get('/')->assertSee('data-cms-key="home.story.quote"', false)
+            ->assertSee('data-cms-default="&quot;Kabelota&quot; dalam bahasa Kaili berarti &lt;em&gt;kebaikan untuk bersama.&lt;/em&gt;"', false)
+            ->assertSee('data-cms-updated=""', false);
+    }
+
+    public function test_an_override_replaces_the_default_on_the_page(): void
+    {
+        $admin = $this->admin();
+        $row = SiteText::save('about.hero.title', 'Judul <b>baru</b> dari admin', $admin, '');
+
+        $this->get('/tentang')->assertOk()
+            ->assertSee('Judul <b>baru</b> dari admin', false)
+            ->assertDontSee('Kebaikan untuk bersama.</h1>', false);
+
+        $this->actingAs($admin)->withSession(['cms_edit' => true])->get('/tentang')
+            ->assertSee('data-cms-updated="'.SiteText::stamp($row).'"', false);
+
+        // Restoring the default brings the Blade text back.
+        SiteText::restore('about.hero.title', null, $admin);
+        $this->get('/tentang')->assertSee('Kebaikan untuk bersama.')->assertDontSee('Judul <b>baru</b>', false);
+    }
+
     // ---- Keys ----
 
-    public function test_every_key_used_in_views_is_registered(): void
+    public function test_keys_match_the_views(): void
     {
-        $this->assertSame([], array_values(array_diff(self::keysInViews(), SiteText::KEYS)));
-        $this->assertSame(count(SiteText::KEYS), count(array_unique(SiteText::KEYS)));
+        $inViews = self::keysInViews();
+        $this->assertSame(count($inViews), count(array_unique($inViews)), 'A key is used twice in the views.');
+
+        $registered = SiteText::KEYS;
+        sort($registered);
+        $this->assertSame($registered, $inViews);
     }
 }

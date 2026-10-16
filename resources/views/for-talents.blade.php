@@ -2,8 +2,8 @@
 <div class="wrap">
     <div class="co-hero">
         <div>
-            <h1>Profil Anda dicari perusahaan konstruksi Sulawesi Tengah.</h1>
-            <p class="lead" style="margin-top:16px">Buat profil sekali, tampilkan SKK dan pengalaman Anda, lalu biarkan perusahaan yang datang. Gratis untuk alumni dan mahasiswa.</p>
+            <x-cms key="talents.hero.title" tag="h1">Profil Anda dicari perusahaan konstruksi Sulawesi Tengah.</x-cms>
+            <x-cms key="talents.hero.lead" tag="p" class="lead" style="margin-top:16px">Buat profil sekali, tampilkan SKK dan pengalaman Anda, lalu biarkan perusahaan yang datang. Gratis untuk alumni dan mahasiswa.</x-cms>
             <div class="row" style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
                 @auth
                     <a class="btn btn-accent" href="{{ route('profile.edit') }}">Lengkapi Profil</a>
@@ -17,10 +17,10 @@
     </div>
 
     <div class="co-points">
-        <div><i class="ph ph-gift ph-icon" aria-hidden="true"></i><span><b>Gratis selamanya</b>Profil, melamar lowongan, dan menerima tawaran tidak dipungut biaya.</span></div>
-        <div><i class="ph ph-lock-key ph-icon" aria-hidden="true"></i><span><b>Kontak di tangan Anda</b>Nomor HP dan email hanya terbuka untuk perusahaan yang tawarannya Anda tanggapi dengan Tertarik.</span></div>
-        <div><i class="ph ph-seal-check ph-icon" aria-hidden="true"></i><span><b>Pengingat SKK</b>Kami mengirim email sebelum sertifikat SKK Anda habis masa berlakunya.</span></div>
-        <div><i class="ph ph-handshake ph-icon" aria-hidden="true"></i><span><b>Anda yang memilih</b>Tawaran kerja final Anda jawab sendiri. Setelah Anda mengambil satu, proses lain ditutup dengan rapi.</span></div>
+        <div><i class="ph ph-gift ph-icon" aria-hidden="true"></i><span><x-cms key="talents.points.1.title" tag="b">Gratis selamanya</x-cms><x-cms key="talents.points.1.desc" tag="span">Profil, melamar lowongan, dan menerima tawaran tidak dipungut biaya.</x-cms></span></div>
+        <div><i class="ph ph-lock-key ph-icon" aria-hidden="true"></i><span><x-cms key="talents.points.2.title" tag="b">Kontak di tangan Anda</x-cms><x-cms key="talents.points.2.desc" tag="span">Nomor HP dan email hanya terbuka untuk perusahaan yang tawarannya Anda tanggapi dengan Tertarik.</x-cms></span></div>
+        <div><i class="ph ph-seal-check ph-icon" aria-hidden="true"></i><span><x-cms key="talents.points.3.title" tag="b">Pengingat SKK</x-cms><x-cms key="talents.points.3.desc" tag="span">Kami mengirim email sebelum sertifikat SKK Anda habis masa berlakunya.</x-cms></span></div>
+        <div><i class="ph ph-handshake ph-icon" aria-hidden="true"></i><span><x-cms key="talents.points.4.title" tag="b">Anda yang memilih</x-cms><x-cms key="talents.points.4.desc" tag="span">Tawaran kerja final Anda jawab sendiri. Setelah Anda mengambil satu, proses lain ditutup dengan rapi.</x-cms></span></div>
     </div>
 </div>
 
@@ -31,7 +31,7 @@
     ['ph-handshake', 'Ambil tawaran kerja', 'Pilih satu tawaran kerja final. Proses dengan perusahaan lain ditutup otomatis.'],
 ])
 <section class="wrap flow-h" aria-labelledby="talent-flow-h">
-    <h2 class="h2" id="talent-flow-h">Cara kerjanya</h2>
+    <x-cms key="talents.flow.title" tag="h2" class="h2" id="talent-flow-h">Cara kerjanya</x-cms>
     <ol class="flow" style="--n: 4">
         @foreach ($talentFlow as $i => [$icon, $title, $text])
             <li>

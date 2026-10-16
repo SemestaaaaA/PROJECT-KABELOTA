@@ -1088,3 +1088,51 @@ select.box option, select.box optgroup { background-color: var(--surface); color
 @media (hover: hover) { .todo-list a { transition: border-color .15s, transform .15s; } .todo-list a:hover { border-color: var(--orange); transform: translateX(2px); } }
 @media (max-width: 900px) { .bento { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .bento { grid-template-columns: 1fr; } .bento-card.wide { grid-column: auto; grid-row: auto; } }
+
+/* Mode CMS (admins only): toggle, editable outlines, toolbar and dialogs. See resources/js/cms.js. */
+.cms-toggle { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 46; }
+.cms-toggle button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px; border-radius: var(--r); border: 1px solid var(--orange); background: #111113; color: #F7F7F5; font: 600 14px/1 var(--f-body); cursor: pointer; box-shadow: 0 6px 20px rgba(17,17,19,.25); }
+.cms-toggle button .ph { color: var(--orange); font-size: 18px; }
+.cms-toggle button.is-on { background: var(--orange); border-color: var(--orange); color: #111113; }
+.cms-toggle button.is-on .ph { color: #111113; }
+.cms-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+html.cms-editing .cms-toggle { display: none; }
+
+.cms-editable { outline: 2px dashed var(--orange); outline-offset: 4px; border-radius: 2px; cursor: text; }
+.cms-editable:hover, .cms-editable:focus-visible { outline-style: solid; }
+.cms-editable.is-editing { outline: 2px solid var(--orange); box-shadow: 0 0 0 6px color-mix(in srgb, var(--orange) 22%, transparent); }
+.final .ta .cms-editable { outline-color: #111113; }
+.cms-editable a { pointer-events: auto; }
+
+.cms-bar { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; width: max-content; max-width: calc(100vw - 32px); padding: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--ink); border-radius: var(--r-lg); box-shadow: 0 12px 34px rgba(17,17,19,.28); }
+.cms-bar[hidden] { display: none; }
+.cms-tool { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: var(--r); background: transparent; color: var(--ink); font: 700 16px var(--f-body); cursor: pointer; }
+.cms-tool:hover { border-color: var(--orange); }
+.cms-tool .ph { font-size: 18px; }
+.cms-sep { width: 1px; align-self: stretch; background: var(--line); margin-inline: 2px; }
+.cms-bar .btn { min-height: 40px; }
+.cms-tool:focus-visible, .cms-bar .btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+.cms-modal { z-index: 70; }
+.cms-modal .sheet { width: min(760px, 100%); }
+.cms-modal .sheet:focus { outline: none; }
+.cms-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cms-side { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.cms-text { padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--paper); font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.cms-diff .cms-side:last-child .cms-text { border-color: var(--orange); background: var(--orange-soft); }
+.cms-text a { text-decoration: underline; }
+.cms-err { font-size: 14px; color: var(--bad); background: var(--bad-soft); padding: 10px 12px; border-radius: var(--r); font-weight: 500; }
+.cms-err[hidden] { display: none; }
+.cms-hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 50dvh; overflow: auto; }
+.cms-hist li { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); }
+.cms-hist-text { font-size: 14.5px; overflow-wrap: anywhere; }
+.cms-hist-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.cms-modal footer { flex-wrap: wrap; }
+@media (max-width: 560px) {
+    .cms-diff { grid-template-columns: 1fr; }
+    .cms-bar { left: 16px; right: 16px; width: auto; transform: none; }
+    .cms-toggle { left: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cms-editable { transition: outline-color .15s ease, box-shadow .15s ease; }
+}

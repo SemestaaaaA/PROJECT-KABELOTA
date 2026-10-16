@@ -56,6 +56,9 @@
     </script>
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if (\App\Support\SiteText::editing())
+        @vite('resources/js/cms.js')
+    @endif
 </head>
 <body x-data @if (session('open_auth') || $errors->login->any() || $errors->register->any()) x-init="$store.auth.show({ tab: @js($errors->register->any() ? 'daftar' : (session('open_auth') ?? 'masuk')), role: @js(old('role', 'talenta')), reason: @js(session('auth_reason', '')) })" @endif>
     {{-- Intro loader, shown only when <html> has .kb-intro (see the head script) --}}
@@ -250,6 +253,18 @@
         </div>
         <div class="wrap base"><span>© {{ date('Y') }} Kabelota · Palu, Sulawesi Tengah</span><span>Foto sementara dari Unsplash</span></div>
     </footer>
+
+    @if ($me?->isAdmin())
+        {{-- Mode CMS: admins edit the marketing copy in place. Works without JS (plain form, back to this page). --}}
+        @php($cmsEdit = \App\Support\SiteText::editing())
+        <form class="cms-toggle" method="post" action="{{ route('cms.mode') }}" data-cms-toggle>
+            @csrf
+            <button type="submit" aria-pressed="{{ $cmsEdit ? 'true' : 'false' }}" @class(['is-on' => $cmsEdit])>
+                <i class="ph {{ $cmsEdit ? 'ph-check' : 'ph-pencil-simple' }}" aria-hidden="true"></i>
+                <span>{{ $cmsEdit ? 'Selesai mengedit' : 'Mode edit' }}</span>
+            </button>
+        </form>
+    @endif
 
     <button type="button" class="to-top" x-data="{ show: false }" @scroll.window.throttle.150ms="show = window.scrollY > 700"
         x-show="show" x-cloak x-transition.opacity @click="window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })"
