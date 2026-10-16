@@ -414,11 +414,11 @@ function confirmRestore(el, rev) {
     setModal((body, footer) => {
         const err = errorLine();
         const preview = rev?.text != null ? document.createTextNode(rev.text) : defaultFragment(el);
-        body.append(
+        body.append(...[
             compareBox(rev ? 'Teks yang dipulihkan' : 'Teks asli', preview),
             isDirty() ? h('p', { class: 'demo-note' }, 'Perubahan yang belum disimpan akan hilang.') : null,
             err,
-        );
+        ].filter(Boolean));
         const back = h('button', { type: 'button', class: 'btn btn-line', onclick: () => showHistoryList(el) }, 'Batal');
         const ok = h('button', { type: 'button', class: 'btn btn-accent', 'data-autofocus': true, onclick: async () => {
             ok.disabled = true;
