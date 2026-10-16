@@ -14,10 +14,14 @@ use App\Models\Talent;
 use App\Models\User;
 use App\Notifications\AdminAlertMail;
 use App\Support\AdminAlerts;
+use App\Support\DeviceLabel;
+use Filament\Actions\Testing\TestAction;
 use Filament\Notifications\DatabaseNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -246,5 +250,104 @@ class AdminProfileTest extends TestCase
 
         $this->assertSame('off', $admin->fresh()->notification_prefs['contact_message']);
         $this->actingAs($admin)->get('/admin/profile')->assertOk()->assertSee('Notifikasi')->assertSee('Lonceng + email');
+    }
+
+    public function test_device_label_reads_common_user_agents(): void
+    {
+        $this->assertSame('Chrome di macOS', DeviceLabel::from('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'));
+        $this->assertSame('Safari di iPhone', DeviceLabel::from('Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1'));
+        $this->assertSame('Firefox di Windows', DeviceLabel::from('Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0'));
+        $this->assertSame('Edge di Windows', DeviceLabel::from('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0'));
+        $this->assertSame('Chrome di Android', DeviceLabel::from('Mozilla/5.0 (Linux; Android 14; SM-A546E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36'));
+        $this->assertSame('Perangkat tidak dikenal', DeviceLabel::from(null));
+        $this->assertSame('Perangkat tidak dikenal', DeviceLabel::from('curl/8.7.1'));
+    }
+
+    /** Session rows as the database session driver writes them; the test session itself uses the array driver. */
+    private function sessionRow(User $user, string $id, string $agent, int $minutesAgo, string $ip = '10.0.0.1'): void
+    {
+        DB::table('sessions')->insert([
+            'id' => $id, 'user_id' => $user->id, 'ip_address' => $ip, 'user_agent' => $agent,
+            'payload' => base64_encode('rahasia-payload'), 'last_activity' => now()->subMinutes($minutesAgo)->getTimestamp(),
+        ]);
+    }
+
+    public function test_profile_lists_this_admins_sessions_only(): void
+    {
+        $admin = $this->admin();
+        $other = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+        $current = session()->getId();
+        $this->sessionRow($admin, $current, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', 0, '10.0.0.7');
+        $this->sessionRow($admin, 'sesi-lain-iphone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1', 30, '10.0.0.8');
+        $this->sessionRow($other, 'sesi-admin-lain', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0', 5, '10.9.9.9');
+
+        Livewire::test(EditProfile::class)
+            ->assertSee('Sesi aktif')
+            ->assertSee('Chrome di macOS')
+            ->assertSee('Perangkat ini')
+            ->assertSee('Safari di iPhone')
+            ->assertSee('10.0.0.8')
+            ->assertSee('30 menit')
+            ->assertDontSee('Firefox di Windows')
+            ->assertDontSee('10.9.9.9')
+            ->assertDontSee('rahasia-payload');
+    }
+
+    public function test_logging_out_other_devices_needs_the_current_password(): void
+    {
+        $admin = $this->admin();
+        $admin->forceFill(['password' => 'sandi-uji-panjang-1'])->save();
+        $other = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+        $current = session()->getId();
+        $this->sessionRow($admin, $current, 'Mozilla/5.0 (Macintosh) Chrome/129.0', 0);
+        $this->sessionRow($admin, 'sesi-lain-1', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) Version/17.6 Mobile Safari/604.1', 30);
+        $this->sessionRow($admin, 'sesi-lain-2', 'Mozilla/5.0 (Windows NT 10.0) Firefox/131.0', 90);
+        $this->sessionRow($other, 'sesi-admin-lain', 'Mozilla/5.0 (Windows NT 10.0) Firefox/131.0', 5);
+
+        Livewire::test(EditProfile::class)
+            ->callAction('logoutOtherDevices', data: ['password' => 'salah-sandi'])
+            ->assertHasActionErrors(['password']);
+        $this->assertSame(3, DB::table('sessions')->where('user_id', $admin->id)->count());
+
+        // Mounted the way the button in the "Sesi aktif" header does it (schema component context).
+        Livewire::test(EditProfile::class)
+            ->callAction(TestAction::make('logoutOtherDevices')->schemaComponent('sessions', schema: 'content'), data: ['password' => 'sandi-uji-panjang-1'])
+            ->assertHasNoActionErrors()
+            ->assertNotified('2 sesi lain dikeluarkan');
+
+        $this->assertSame([$current], DB::table('sessions')->where('user_id', $admin->id)->pluck('id')->all());
+        $this->assertSame(1, DB::table('sessions')->where('user_id', $other->id)->count());
+        $this->assertTrue(Hash::check('sandi-uji-panjang-1', $admin->fresh()->password));
+
+        Livewire::test(EditProfile::class)->assertActionHidden('logoutOtherDevices');
+    }
+
+    public function test_profile_shows_the_last_ten_activities_of_this_admin(): void
+    {
+        $admin = $this->admin();
+        $other = User::factory()->create(['role' => 'admin']);
+        $company = $this->pendingCompany();
+        foreach (range(1, 12) as $n) {
+            AdminActivity::create(['user_id' => $admin->id, 'action' => 'company_verified', 'subject_type' => $company->getMorphClass(), 'subject_id' => $company->id, 'description' => "Aktivitas uji nomor $n."])
+                ->forceFill(['created_at' => now()->subMinutes(100 - $n)])->save();
+        }
+        AdminActivity::create(['user_id' => $other->id, 'action' => 'job_rejected', 'subject_type' => $company->getMorphClass(), 'subject_id' => $company->id, 'description' => 'Milik admin lain.']);
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)
+            ->assertSee('Aktivitas terakhir Anda')
+            ->assertSee('Aktivitas uji nomor 12.')
+            ->assertSee('Aktivitas uji nomor 3.')
+            ->assertDontSee('Aktivitas uji nomor 2.')
+            ->assertDontSee('Milik admin lain.')
+            ->assertSee('Perusahaan diverifikasi')
+            ->assertSee('Lihat semua');
+
+        Livewire::withQueryParams(['filters' => ['user_id' => ['value' => (string) $other->id]]])
+            ->test(ListAdminActivities::class)
+            ->assertSee('Milik admin lain.')
+            ->assertDontSee('Aktivitas uji nomor 12.');
     }
 }

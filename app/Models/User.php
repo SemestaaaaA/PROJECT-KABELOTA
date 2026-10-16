@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar, HasAppAuthenticationRecovery, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

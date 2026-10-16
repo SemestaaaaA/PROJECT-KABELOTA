@@ -2,24 +2,133 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Filament\Resources\AdminActivities\AdminActivityResource;
+use App\Models\AdminActivity;
 use App\Support\AdminAlerts;
+use App\Support\DeviceLabel;
 use App\Support\ImageStore;
+use Closure;
+use Filament\Actions\Action;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use SensitiveParameter;
 
-/** Admin profile: Filament's name/email/password/2FA plus a profile photo and per-event notification choices. */
+/**
+ * Admin profile: Filament's name/email/password/2FA plus a profile photo, per-event notification choices,
+ * the admin's active sessions (with "log out other devices") and their last ten logged actions.
+ */
 class EditProfile extends BaseEditProfile
 {
+    public function content(Schema $schema): Schema
+    {
+        return $schema->components([
+            // Same as the parent page: profile form, then Filament's 2FA management.
+            $this->getFormContentComponent(),
+            ...Arr::wrap($this->getMultiFactorAuthenticationContentComponent()),
+            Section::make('Sesi aktif')->key('sessions')
+                ->icon('heroicon-o-computer-desktop')
+                ->description('Perangkat yang sedang masuk ke akun ini.')
+                ->headerActions([$this->logoutOtherDevicesAction()])
+                ->schema([View::make('filament.pages.auth.profile-sessions')->viewData(fn () => ['sessions' => $this->sessionRows()])]),
+            Section::make('Aktivitas terakhir Anda')->key('activities')
+                ->icon('heroicon-o-clock')
+                ->schema([View::make('filament.pages.auth.profile-activities')->viewData(fn () => [
+                    'activities' => AdminActivity::where('user_id', $this->getUser()->getKey())->latest('created_at')->latest('id')->limit(10)->get(),
+                    'url' => AdminActivityResource::getUrl('index', ['filters' => ['user_id' => ['value' => $this->getUser()->getKey()]]]),
+                ])]),
+        ]);
+    }
+
+    /** The sessions table rows of this admin (database session driver). Never selects the payload. */
+    protected function sessionsQuery(): Builder
+    {
+        return DB::connection(config('session.connection'))->table(config('session.table', 'sessions'))
+            ->where('user_id', $this->getUser()->getKey());
+    }
+
+    protected function otherSessionsQuery(): Builder
+    {
+        return $this->sessionsQuery()->where('id', '!=', session()->getId());
+    }
+
+    /** @return Collection<int, object> */
+    protected function sessionRows(): Collection
+    {
+        $current = session()->getId();
+
+        return $this->sessionsQuery()->orderByDesc('last_activity')->get(['id', 'ip_address', 'user_agent', 'last_activity'])
+            ->map(fn (object $row) => (object) [
+                'device' => DeviceLabel::from($row->user_agent),
+                'icon' => preg_match('/iPhone|Android.*Mobile/', (string) $row->user_agent) ? 'heroicon-o-device-phone-mobile' : 'heroicon-o-computer-desktop',
+                'ip_address' => $row->ip_address,
+                'last_active' => Carbon::createFromTimestamp($row->last_activity, config('app.timezone'))->diffForHumans(),
+                'is_current' => hash_equals($current, (string) $row->id),
+            ]);
+    }
+
+    public function logoutOtherDevicesAction(): Action
+    {
+        return Action::make('logoutOtherDevices')
+            ->label('Keluar dari perangkat lain')
+            ->icon('heroicon-o-arrow-right-start-on-rectangle')
+            ->color('danger')
+            ->size('sm')
+            ->modalHeading('Keluar dari perangkat lain')
+            ->modalDescription('Semua sesi lain akun ini akan berakhir. Masukkan kata sandi Anda saat ini untuk melanjutkan.')
+            ->modalSubmitActionLabel('Keluarkan')
+            ->schema([
+                TextInput::make('password')->label('Kata sandi saat ini')
+                    ->password()->revealable()->autocomplete('current-password')->required()
+                    ->rules([fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                        // Five guesses per minute, so this modal cannot be used to brute-force the password.
+                        $key = 'admin-logout-devices:'.$this->getUser()->getKey();
+                        if (RateLimiter::tooManyAttempts($key, 5)) {
+                            $fail('Terlalu banyak percobaan. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.');
+
+                            return;
+                        }
+                        if (! is_string($value) || ! Hash::check($value, $this->getUser()->getAuthPassword())) {
+                            RateLimiter::hit($key);
+                            $fail('Kata sandi tidak cocok.');
+                        }
+                    }]),
+            ])
+            ->visible(fn (): bool => $this->otherSessionsQuery()->exists())
+            ->action(function (array $data): void {
+                $guard = Filament::auth();
+                // Rehashes the password so AuthenticateSession and remember-me cookies on other devices stop matching.
+                $guard->logoutOtherDevices($data['password']);
+
+                // Keep this device signed in: AuthenticateSession compares against the hash stored in the session.
+                if (request()->hasSession()) {
+                    request()->session()->put(['password_hash_'.Filament::getAuthGuard() => $guard->user()->getAuthPassword()]);
+                }
+
+                $count = $this->otherSessionsQuery()->delete();
+
+                Notification::make()->success()->title("$count sesi lain dikeluarkan")->send();
+            });
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema->components([
