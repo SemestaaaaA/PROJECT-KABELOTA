@@ -19,6 +19,8 @@ class AdminActivity extends Model
         'job_rejected' => 'Lowongan ditolak',
         'skk_verified' => 'SKK diverifikasi',
         'skk_rejected' => 'SKK ditolak',
+        'text_edited' => 'Teks situs diubah',
+        'text_restored' => 'Teks situs dikembalikan',
     ];
 
     protected $fillable = ['user_id', 'action', 'subject_type', 'subject_id', 'description'];
