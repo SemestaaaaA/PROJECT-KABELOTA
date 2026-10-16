@@ -297,7 +297,7 @@ class AdminProfileTest extends TestCase
     public function test_logging_out_other_devices_needs_the_current_password(): void
     {
         $admin = $this->admin();
-        $admin->forceFill(['password' => 'sandi-uji-panjang-1'])->save();
+        $admin->forceFill(['password' => 'sandi-uji-panjang-1', 'remember_token' => 'token-lama-uji'])->save();
         $other = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin);
         $current = session()->getId();
@@ -318,6 +318,10 @@ class AdminProfileTest extends TestCase
             ->assertNotified('2 sesi lain dikeluarkan');
 
         $this->assertSame([$current], DB::table('sessions')->where('user_id', $admin->id)->pluck('id')->all());
+        // Remember-me cookies on other devices stop working; this device stays signed in with a matching hash.
+        $this->assertNotSame('token-lama-uji', $admin->fresh()->getRememberToken());
+        $this->assertAuthenticatedAs($admin);
+        $this->assertSame($admin->fresh()->getAuthPassword(), session('password_hash_web'));
         $this->assertSame(1, DB::table('sessions')->where('user_id', $other->id)->count());
         $this->assertTrue(Hash::check('sandi-uji-panjang-1', $admin->fresh()->password));
 
@@ -349,5 +353,47 @@ class AdminProfileTest extends TestCase
             ->test(ListAdminActivities::class)
             ->assertSee('Milik admin lain.')
             ->assertDontSee('Aktivitas uji nomor 12.');
+    }
+
+    public function test_this_device_keeps_its_remember_me_cookie_after_logging_out_others(): void
+    {
+        $admin = $this->admin();
+        $admin->forceFill(['password' => 'sandi-uji-panjang-1', 'remember_token' => 'token-lama-uji'])->save();
+        $this->actingAs($admin);
+        $this->sessionRow($admin, 'sesi-lain-1', 'Mozilla/5.0 (Windows NT 10.0) Firefox/131.0', 30);
+        $recaller = auth()->guard('web')->getRecallerName();
+
+        Livewire::withCookie($recaller, $admin->id.'|token-lama-uji|'.hash_hmac('sha256', $admin->getAuthPassword(), config('app.key')))
+            ->test(EditProfile::class)
+            ->callAction('logoutOtherDevices', data: ['password' => 'sandi-uji-panjang-1'])
+            ->assertHasNoActionErrors();
+
+        $fresh = $admin->fresh();
+        $queued = \Illuminate\Support\Facades\Cookie::queued($recaller);
+        $this->assertNotNull($queued, 'A new recaller cookie is queued for this device.');
+        [$id, $token] = explode('|', $queued->getValue());
+        $this->assertSame((string) $admin->id, $id);
+        $this->assertSame($fresh->getRememberToken(), $token);
+        $this->assertNotSame('token-lama-uji', $token);
+    }
+
+    public function test_email_change_from_the_profile_is_saved(): void
+    {
+        $admin = $this->admin();
+        $admin->forceFill(['password' => 'sandi-uji-panjang-1'])->save();
+        $this->actingAs($admin);
+
+        Livewire::test(EditProfile::class)
+            ->fillForm(['email' => 'admin-baru@kabelota.test'])
+            ->call('save')
+            ->assertHasFormErrors(['currentPassword']);
+        $this->assertNotSame('admin-baru@kabelota.test', $admin->fresh()->email);
+
+        Livewire::test(EditProfile::class)
+            ->fillForm(['email' => 'admin-baru@kabelota.test', 'currentPassword' => 'sandi-uji-panjang-1'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('admin-baru@kabelota.test', $admin->fresh()->email);
     }
 }

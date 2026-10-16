@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use SensitiveParameter;
@@ -109,19 +110,27 @@ class EditProfile extends BaseEditProfile
                         if (! is_string($value) || ! Hash::check($value, $this->getUser()->getAuthPassword())) {
                             RateLimiter::hit($key);
                             $fail('Kata sandi tidak cocok.');
+
+                            return;
                         }
+                        RateLimiter::clear($key);
                     }]),
             ])
             ->visible(fn (): bool => $this->otherSessionsQuery()->exists())
             ->action(function (array $data): void {
                 $guard = Filament::auth();
-                // Rehashes the password so AuthenticateSession and remember-me cookies on other devices stop matching.
+
+                // A remember-me cookie elsewhere could start a fresh session (AuthenticateSession only stores the hash
+                // when none is there yet), so rotate the remember token first: every old recaller cookie stops matching.
+                $guard->getProvider()->updateRememberToken($guard->user(), Str::random(60));
+
+                // Rehashes the password, and when this request carries (or has queued) a recaller cookie, the guard
+                // queues a new one built from the new token and hash, so this device stays remembered.
                 $guard->logoutOtherDevices($data['password']);
 
                 // Keep this device signed in: AuthenticateSession compares against the hash stored in the session.
-                if (request()->hasSession()) {
-                    request()->session()->put(['password_hash_'.Filament::getAuthGuard() => $guard->user()->getAuthPassword()]);
-                }
+                // session() is the same store StartSession puts on the request (and still works in Livewire tests).
+                session()->put(['password_hash_'.Filament::getAuthGuard() => $guard->user()->getAuthPassword()]);
 
                 $count = $this->otherSessionsQuery()->delete();
 
